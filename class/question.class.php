@@ -588,7 +588,7 @@ class Question extends SaturneObject
 		$sql              .= " WHERE s.entity IN (" . getEntity($this->table_element) . ")";
 		// TODO REVIEW not possible to put this in $filter param because of testSqlAndScriptInject which return empty string
 		$sql              .= " AND s.rowid NOT IN (";
-		$sql              .= "	SELECT fk_target FROM llx_element_element WHERE targettype = 'digiquali_question'";
+		$sql              .= "	SELECT fk_target FROM " . MAIN_DB_PREFIX . "element_element WHERE targettype = 'digiquali_question'";
 		$sql			  .= ")";
 		if ($filter) $sql .= " AND (" . $filter . ")";
 

@@ -536,7 +536,7 @@ class Sheet extends SaturneObject
 
         if ($reindexLast) {
             $sql = 'UPDATE ' . MAIN_DB_PREFIX . 'element_element';
-            $sql .= ' SET position = ( SELECT (COALESCE(MAX(position), 0) + 1) FROM llx_element_element WHERE fk_source = '. (int) $fk_source .' AND sourcetype = \'' . $this->db->escape($sourcetype) . '\' )';
+            $sql .= ' SET position = ( SELECT (COALESCE(MAX(position), 0) + 1) FROM ' . MAIN_DB_PREFIX . 'element_element WHERE fk_source = '. (int) $fk_source .' AND sourcetype = \'' . $this->db->escape($sourcetype) . '\' )';
             $sql .= ' WHERE fk_source = ' . $fk_source;
             $sql .= ' AND sourcetype = \'' . $this->db->escape($sourcetype) . '\'';
             $sql .= ' AND (targettype = "digiquali_question" OR targettype = "digiquali_questiongroup")';

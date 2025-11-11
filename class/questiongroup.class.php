@@ -466,7 +466,7 @@ class QuestionGroup extends SaturneObject
 
 		$sql              .= " WHERE s.entity IN (" . getEntity($this->table_element) . ")";
         $sql              .= " AND s.rowid NOT IN (";
-		$sql              .= "	SELECT fk_target FROM llx_element_element WHERE targettype = 'digiquali_questiongroup'";
+		$sql              .= "	SELECT fk_target FROM " . MAIN_DB_PREFIX . "element_element WHERE targettype = 'digiquali_questiongroup'";
 		$sql			  .= ")";
 		if ($filter) $sql .= " AND (" . $filter . ")";
 
@@ -656,7 +656,7 @@ class QuestionGroup extends SaturneObject
 
     /**
      * Return the number of questions in the group
-     * 
+     *
      * @param bool $includeSubGroups If you want to include questions of subgroups or not
      *
      * @return int
@@ -823,13 +823,13 @@ class QuestionGroup extends SaturneObject
 
 		return false;
 	}
-    
+
     /**
      * Return a array of formatted string to print group score (in points)
      * and success rate
-     * 
+     *
      * @param Survey $survey the survey on which check answers are correct or not
-     * 
+     *
      * @return array
 	 */
     public function getFormattedSuccessPointsAndRates(Survey $survey): array
