@@ -735,7 +735,7 @@ class QuestionGroup extends SaturneObject
      *
      * @return array
      */
-    public function calculatePoints(Survey $survey): array
+    public function calculatePoints(SaturneObject $survey): array
     {
         $numberOfAnsweredQuestions = 0;
         $numberOfQuestions = 0;

@@ -796,7 +796,7 @@ class Survey extends SaturneObject
     /**
      * Display survey questions & answers
      */
-    public function displayAnswers(SurveyLine $objectLine, array $questionsAndGroups, bool $isFrontend, int $level = 0)
+    public function displayAnswers(SurveyLine $objectLine, array $questionsAndGroups, bool $isFrontend = false, int $level = 0)
     {
         global $langs;
 

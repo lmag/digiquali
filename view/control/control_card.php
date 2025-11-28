@@ -103,7 +103,8 @@ list($refTaskMod)    = saturne_require_objects_mod(['project/task' => $conf->glo
 $taskNextValue       = $refTaskMod->getNextValue($object->id, $object->element);
 
 // View objects
-$form = new Form($db);
+$form       = new Form($db);
+$isFrontend = false;
 
 $hookmanager->initHooks(array('controlcard', 'globalcard')); // Note that conf->hooks_modules contains array
 
