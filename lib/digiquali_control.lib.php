@@ -383,3 +383,30 @@ function get_task_infos(Task $task): array
 
     return $out;
 }
+
+/**
+ * Prepare array of tabs for ControlLine
+ *
+ * @param	ControlLine	$object					ControlLine
+ * @return 	array<array{string,string,string}>	Array of tabs
+ */
+function controldetPrepareHead($object)
+{
+	global $db, $langs, $conf;
+
+	$langs->load("digiquali@digiquali");
+
+	$h = 0;
+	$head = array();
+
+	$head[$h][0] = dol_buildpath("/digiquali/view/controldet/controldet_card.php", 1).'?id='.$object->id;
+	$head[$h][1] = $langs->trans("Controldet");
+	$head[$h][2] = 'card';
+	$h++;
+
+	complete_head_from_modules($conf, $langs, $object, $head, $h, 'test@test');
+
+	complete_head_from_modules($conf, $langs, $object, $head, $h, 'test@test', 'remove');
+
+	return $head;
+}
