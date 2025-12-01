@@ -997,9 +997,9 @@ class ActionsDigiquali
                                         $userIcon  = 'fa-user';
                                         break;
                                 }
-                                if (is_array($users[$signatory->role]) && !empty($users[$signatory->role])) {
+                                if (is_array($users[$signatory->role]) && !empty($users[$signatory->role][$signatory->id])) {
                                     $out[$parameters['key']] .= $users[$signatory->role][$signatory->id]->getNomUrl(1, '', 0, 0, 24, 1);
-                                } elseif (is_array($contacts[$signatory->role]) && !empty($contacts[$signatory->role])) {
+                                } elseif (is_array($contacts[$signatory->role]) && !empty($contacts[$signatory->role][$signatory->id])) {
                                     $out[$parameters['key']] .= $contacts[$signatory->role][$signatory->id]->getNomUrl(1);
                                 }
                                 if ((is_array($users[$signatory->role]) && !empty($users[$signatory->role])) || (is_array($contacts[$signatory->role]) && !empty($contacts[$signatory->role]))) {
