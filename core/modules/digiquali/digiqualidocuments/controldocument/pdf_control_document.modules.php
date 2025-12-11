@@ -201,13 +201,13 @@ class pdf_control_document
             }
             $linkedObject = $object->linkedObjects[$objectMetadata['link_name']][key($object->linkedObjects[$objectMetadata['link_name']])];
         }
-        $diroutput = $conf->digiquali->dir_output ?? '';
+        $diroutput = $conf->digiquali->multi_diropu ?? '';
         if (empty($diroutput)) {
             $this->error = "Configuration manquante: conf->digiquali->dir_output";
             return -1;
         }
         $ref = !empty($object->ref) ? dol_sanitizeFileName($object->ref) : 'no_ref';
-        $dir = $diroutput . "/" . $ref;
+        $dir = $diroutput . '/controldocument/' . $ref;
         if (!file_exists($dir)) {
             if (dol_mkdir($dir) < 0) {
                 $this->error = "Impossible de créer le répertoire: $dir";
