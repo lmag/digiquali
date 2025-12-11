@@ -201,7 +201,7 @@ class pdf_control_document
             }
             $linkedObject = $object->linkedObjects[$objectMetadata['link_name']][key($object->linkedObjects[$objectMetadata['link_name']])];
         }
-        $diroutput = $conf->digiquali->multi_diropu ?? '';
+        $diroutput = $conf->digiquali->multidir_output[$conf->entity] ?? '';
         if (empty($diroutput)) {
             $this->error = "Configuration manquante: conf->digiquali->dir_output";
             return -1;
