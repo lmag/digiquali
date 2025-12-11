@@ -52,7 +52,7 @@ if (!isset($user->conf->DIGIQUALI_SHOW_ONLY_QUESTIONS_WITH_NO_ANSWER) || empty($
                 <div class="question__header-content">
                     <div class="question-title"><?php echo $question->getNomUrl(1, '', 0, '', -1, 1); ?></div>
                     <div class="question-description"><?php echo $question->description; ?></div>
-                    <div class="question-points"><?php echo ($showCorrection ? $question->formatSingleQuestionScore($questionWithCorrectAnswer) : '') ?></div>
+                    <div class="question-points"><?php echo ($showCorrection ? $question->formatSingleQuestionScore($questionWithCorrectAnswer, $objectLine->answer) : '') ?></div>
                 </div>
                 <div class="question__header-answer">
                     <?php print show_answer_from_question($question, $object, $questionAnswer, $questionGroupId, $showCorrection); ?>

@@ -879,14 +879,19 @@ class Question extends SaturneObject
 	/**
 	 * Return a formatted string to print question score (in points)
 	 * like : 0 / 3 points
-	 *
-	 * @param int $questionWithCorrectAnswer (values are those returned by Question::checkAnswerIsCorrect())
+	 *+
+	 * @param int    $questionWithCorrectAnswer (values are those returned by Question::checkAnswerIsCorrect())
+	 * @param string $answer (answer of the line)
 	 *
 	 * @return string
 	 */
-	public function formatSingleQuestionScore(int $questionWithCorrectAnswer): string
+	public function formatSingleQuestionScore(int $questionWithCorrectAnswer, string $answer): string
 	{
 		global $langs;
+
+		if ($this->type == $this::TYPE_PERCENTAGE) {
+			return ($answer != '' ? round(($answer / 100) * $this->points, 2) : 0) . ' / ' . $this->points . ' ' . strtolower(($this->points > 1 ? $langs->trans('Points') : $langs->trans('Point')));
+		}
 
 		return (($questionWithCorrectAnswer >= 0) ? $this->points : 0) . ' / ' . $this->points . ' ' . strtolower(($this->points > 1 ? $langs->trans('Points') : $langs->trans('Point')));
 	}

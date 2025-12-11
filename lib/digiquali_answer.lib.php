@@ -135,7 +135,7 @@ function show_answer_from_question(Question $question, CommonObject $object, str
                 $step = $questionConfig[$question->type]['step'];
             }
 
-			if ($showCorrection) {
+			if ($showCorrection && $question->type == $question::TYPE_RANGE) {
 				$isAnswerCorrect = $question->isAnswerInQuestionRange($questionAnswer);
 				$answerCssClass = ($isAnswerCorrect && $questionAnswer !== '' ? ' correct' : ' incorrect');
 			}
