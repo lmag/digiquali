@@ -224,6 +224,7 @@ function get_control_infos(CommonObject $linkedObject): array
         return $b->control_date - $a->control_date;
     });
 
+    $out['control'] = [];
     foreach ($filteredControls as $control) {
         if ($lastControl === null || $control->control_date > $lastControl->control_date) {
             $lastControl = $control;
