@@ -490,6 +490,10 @@ PublicSurvey          = Interface publique de questionnaire
 PublicSurveyToCome    = Interface publique de questionnaire à venir
 PointsResult          = Points acquis
 RateResult            = Pourcentage de réussite
+NotAnswered           = Non répondu
+PartiallyAnswered     = Partiellement répondu
+SurveyKo              = Non conforme
+SurveyOk              = Conforme
 
 
 #
