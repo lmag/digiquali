@@ -812,7 +812,25 @@ class Survey extends SaturneObject
      */
     public function getStatus()
     {
-        
+        global $langs;
+        $answered = 0;
+        foreach ($this->lines as $line) {
+            if ($line->answer != '') {
+                $answered++;
+            }
+        }
+
+        if ($answered == 0) {
+            return dolGetStatus($langs->trans('NotAnswered'), '', '', 'status6', 3);
+        } elseif ($answered < count($this->lines)) {
+            return dolGetStatus($langs->trans('PartiallyAnswered'), '', '', 'status2', 3);
+        } else {
+            [$numberOfAnsweredQuestions, $numberOfQuestions, $correctPoints, $totalPoints, $atLeastOneIncorrectSubGroup] = $this->calculatePoints();
+            if ($this->success_rate != null && (($correctPoints / $totalPoints) * 100) < $this->success_rate) {
+                return dolGetStatus($langs->trans('SurveyKo'), '', '', 'status8', 3);
+            }
+        }
+        return dolGetStatus($langs->trans('SurveyOk'), '', '', 'status4', 3);
     }
 }
 

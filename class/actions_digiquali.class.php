@@ -64,11 +64,10 @@ class ActionsDigiquali
     /**
      * Overloading the constructCategory function : replacing the parent's function with the one below
      *
-     * @param  array        $parameters Hook metadata (context, etc...)
-     * @param  CommonObject $object     The object to process
-     * @return int                      0 < on error, 0 on success, 1 to replace standard code
+     * @param  array $parameters Hook metadata (context, etc...)
+     * @return int               0 < on error, 0 on success, 1 to replace standard code
      */
-    public function constructCategory(array $parameters, &$object): int
+    public function constructCategory(array $parameters): int
     {
         if (strpos($parameters['context'], 'category') !== false) {
             $tags = [
@@ -77,31 +76,64 @@ class ActionsDigiquali
                     'code'      => 'question',
                     'obj_class' => 'Question',
                     'obj_table' => 'digiquali_question',
+                    'label'     => 'Question'
                 ],
                 'sheet' => [
                     'id'        => 436301002,
                     'code'      => 'sheet',
                     'obj_class' => 'Sheet',
                     'obj_table' => 'digiquali_sheet',
+                    'label'     => 'Sheet'
                 ],
                 'control' => [
                     'id'        => 436301003,
                     'code'      => 'control',
                     'obj_class' => 'Control',
                     'obj_table' => 'digiquali_control',
+                    'label'     => 'Control'
                 ],
                 'survey' => [
                     'id'        => 436301004,
                     'code'      => 'survey',
                     'obj_class' => 'Survey',
                     'obj_table' => 'digiquali_survey',
+                    'label'     => 'Survey'
+                ],
+                'questiongroup' => [
+                    'id'        => 436301005,
+                    'code'      => 'questiongroup',
+                    'obj_class' => 'QuestionGroup',
+                    'obj_table' => 'digiquali_questiongroup',
+                    'label'     => 'QuestionGroup'
                 ]
             ];
-
             $this->results = $tags;
         }
 
         return 0; // or return 1 to replace standard code
+    }
+
+    /**
+     * Overloading the getElementProperties function : replacing the parent's function with the one below
+     *
+     * @param  array $parameters Hook metadata (context, etc...)
+     * @return int               0 < on error, 0 on success, 1 to replace standard code
+     */
+    public function getElementProperties(array $parameters): int
+    {
+        if (preg_match('/elementproperties|category/', $parameters['context'])) {
+            $objectElements = ['question', 'questiongroup', 'sheet', 'control', 'survey'];
+            if (in_array($parameters['elementType'], $objectElements)) {
+                $out = [
+                    'module'        => 'digiquali',
+                    'table_element' => 'digiquali_' . $parameters['elementType'],
+                    'classpath'     => 'custom/digiquali/class',
+                ];
+                $this->results = $out;
+            }
+        }
+
+        return 0;
     }
 
     /**
@@ -843,7 +875,7 @@ class ActionsDigiquali
      */
     public function saturnePrintFieldListLoopObject(array $parameters, object $object): int
     {
-        global $conf, $langs;
+        global $conf, $langs, $db;
 
         if (strpos($parameters['context'], 'questionlist') !== false) {
             $out = [];
@@ -1022,6 +1054,42 @@ class ActionsDigiquali
                         }
                         $alreadyAddedThirdParties[] = $thirdparty->id;
                     }
+                }
+            }
+
+            $this->results = $out;
+        } elseif (preg_match('/controldetlist/', $parameters['context'])) {
+            $out = [];
+
+            if ($parameters['key'] == 'tasks') {
+                $sqlGetTasks = "SELECT DISTINCT pt.rowid, pt.ref
+                        	FROM ".MAIN_DB_PREFIX."projet_task as pt
+                        	INNER JOIN ".MAIN_DB_PREFIX."element_element as dt
+                        		ON dt.fk_source = ".$object->id."
+                        		AND dt.sourcetype = '".$object->element."'
+                        		AND dt.targettype = 'project_task'
+                        	WHERE dt.fk_target = pt.rowid";
+
+                $resqlTasks = $db->query($sqlGetTasks);
+                if ($resqlTasks) {
+                    $task = new Task($db);
+                    while ($objTask = $db->fetch_object($resqlTasks)) {
+                        $task->fetch($objTask->rowid);
+                        $out[$parameters['key']] .= $task->getNomUrl() . '<br>';
+                    }
+                }
+            } elseif ($parameters['key'] == 'question_type') {
+                $question = new Question($db);
+
+                if ($object->fk_question) {
+                    $question->fetch($object->fk_question);
+                    $out[$parameters['key']] = $question->type;
+                }
+            } elseif ($parameters['key'] == 'answer') {
+                if ($object->answer) {
+                    $answer = new Answer($db);
+                    $res = $answer->fetch(0, '', ' AND t.position ='.$object->answer.' AND t.fk_question = '.$object->fk_question);
+                    $out[$parameters['key']] = ($res != -1 && $answer->value ? $answer->value : '').($object->answer ? ' <span class="opacitymedium" title="value">('.$object->answer.')</span>' : '');
                 }
             }
 

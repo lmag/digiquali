@@ -137,7 +137,7 @@ if (is_array($signatoriesInDictionary) && !empty($signatoriesInDictionary)) {
 $object->fields['days_remaining_before_next_control'] = ['label' => 'DaysBeforeNextControl',      'enabled' => 1, 'position' => 66,  'visible' => 2, 'csslist' => 'center'];
 $object->fields['question_answered']                  = ['label' => 'QuestionAnswered',           'enabled' => 1, 'position' => 66,  'visible' => 2, 'css' => 'center minwidth200 maxwidth250 widthcentpercentminusxx'];
 $object->fields['last_status_date']                   = ['label' => 'LastStatusDate',             'enabled' => 1, 'position' => 67,  'visible' => 2, 'css' => 'center minwidth200 maxwidth300 widthcentpercentminusxx'];
-$object->fields['society_attendants']                 = ['label' => 'SocietyAttendants',          'enabled' => 1, 'position' => 115, 'visible' => 2, 'css' => 'minwidth300 maxwidth500 widthcentpercentminusxx'];
+$object->fields['society_attendants']                 = ['label' => 'SocietyAttendants',          'enabled' => 1, 'position' => 115, 'visible' => 2, 'css' => 'minwidth300 maxwidth500 widthcentpercentminusxx', 'disablesort' => 1];
 $object->fields['average_percentage_qestions']        = ['label' => 'AveragePercentageQuestions', 'enabled' => 1, 'position' => 220, 'visible' => 2, 'css' => 'center minwidth200 maxwidth250 widthcentpercentminusxx'];
 
 $excludeFields = array_merge($excludeFields, ['days_remaining_before_next_control', 'question_answered', 'last_status_date', 'society_attendants', 'average_percentage_qestions']);
