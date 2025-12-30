@@ -699,8 +699,10 @@ class Survey extends SaturneObject
 
                 foreach ($this->lines as $questionAnswer) {
                     if ($questionId == $questionAnswer->fk_question) {
-                        if ($question->checkAnswerIsCorrect($questionAnswer->answer)) {
+                        if ($question->checkAnswerIsCorrect($questionAnswer->answer) >= 0) {
                             $surveyCorrectAnswersTotalPoints += $question->points;
+                        } elseif ($question->type == $question::TYPE_PERCENTAGE) {
+                            $surveyCorrectAnswersTotalPoints += round($questionAnswer->answer / 100, 2);
                         }
                         if ($questionAnswer->answer !== '') {
                             $numberOfAnsweredQuestions++;

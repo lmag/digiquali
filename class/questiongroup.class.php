@@ -754,6 +754,8 @@ class QuestionGroup extends SaturneObject
                     if ($questionId == $questionAnswer->fk_question) {
                         if ($question->checkAnswerIsCorrect($questionAnswer->answer) >= 0) {
                             $questionGroupCorrectAnswersTotalPoints += $question->points;
+                        } elseif ($question->type == $question::TYPE_PERCENTAGE) {
+                            $questionGroupCorrectAnswersTotalPoints += round($questionAnswer->answer / 100, 2);
                         }
                         if ($questionAnswer->answer !== '') {
                             $numberOfAnsweredQuestions++;
