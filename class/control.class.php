@@ -1281,7 +1281,7 @@ class Control extends SaturneObject
      */
     public function displayAnswers(ControlLine $objectLine, array $questionsAndGroups, bool $isFrontend, int $level = 0)
     {
-        global $langs;
+        global $conf, $langs;
 
         $object = $this;
 
