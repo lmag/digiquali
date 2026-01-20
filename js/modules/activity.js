@@ -108,10 +108,14 @@ window.digiquali.activity.updateContentEditable = function() {
   $.ajax({
     url: `${document.URL}${querySeparator}&action=update_activity&token=${token}`,
     type: 'POST',
+    contentType: 'application/json charset=utf-8',
     data: JSON.stringify({
       object_id: objectId,
       field:     field,
       value:     contentText
     }),
+    success: function ( resp ) {
+      $.jnotify($(resp).find('#success_message').val());
+    },
   });
 };
