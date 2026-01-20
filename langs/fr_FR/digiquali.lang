@@ -540,11 +540,12 @@ NewSubprocess     = Nouveau sous-processus
 
 # Data - Donnée
 ProcessusActivities = Activités
-InputData           = Données d'entrées
-OutputData          = Données de sorties
-ActualScore         = Score actuel
-TargetScore         = Score cible
-ActivityCreate      = Ajout de l'activité
+SourceFrom     = Qui
+InputData      = Données d'entrées
+OutputData     = Données de sorties
+ActualScore    = Score actuel
+TargetScore    = Score cible
+ActivityCreate = Ajout de l'activité
 
 # Specimen - Échantillon
 ActivityLabelSpecimen      = Attribuer les rôles, Responsabilités et autorités au sein de l'organisme en matière de SST

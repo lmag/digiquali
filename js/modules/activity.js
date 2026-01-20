@@ -113,5 +113,8 @@ window.digiquali.activity.updateContentEditable = function() {
       field:     field,
       value:     contentText
     }),
+    success: function ( resp ) {
+      $.jnotify($(resp).find('#success_message').val());
+    },
   });
 };

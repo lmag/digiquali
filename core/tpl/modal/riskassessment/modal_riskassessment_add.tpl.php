@@ -73,10 +73,10 @@
                 <label class="modal-label" for="frequency-percentage-input"><?php echo $langs->trans('Frequency'); ?></label>
                 <div class="input-group">
                     <div class="frequency-buttons">
-                        <button class="frequency-button button-grey selected" data-frequency-value="25"><?php echo $langs->trans('1D'); ?></button>
-                        <button class="frequency-button button-yellow" data-frequency-value="50"><?php echo $langs->trans('1W'); ?></button>
-                        <button class="frequency-button button-red" data-frequency-value="75"><?php echo $langs->trans('1M'); ?></button>
-                        <button class="frequency-button button-black" data-frequency-value="100"><?php echo $langs->trans('1Y'); ?></button>
+                        <button class="frequency-button button-grey selected" data-frequency-value="25"><?php echo $langs->trans('1Y'); ?></button>
+                        <button class="frequency-button button-yellow" data-frequency-value="50"><?php echo $langs->trans('1M'); ?></button>
+                        <button class="frequency-button button-red" data-frequency-value="75"><?php echo $langs->trans('1W'); ?></button>
+                        <button class="frequency-button button-black" data-frequency-value="100"><?php echo $langs->trans('1D'); ?></button>
                     </div>
                     <input type="number" class="small-input frequency-percentage-input input-ajax" id="frequency-percentage-input" name="frequency_percentage" min="0" max="100" value="25">
                     <span class="unit">%</span>
