@@ -443,7 +443,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
         foreach ($questionsLinked as $questionLinked) {
                 print '<tr id="' . $questionLinked->id . '" class="line-row oddeven">';
                 print '<td>';
-                print img_picto('', $questionLinked->picto, 'class="pictofixedwidth"') . $questionLinked->ref;
+                print $questionLinked->getNomUrl(1);
                 print '</td>';
 
                 print '<td>';
@@ -506,14 +506,12 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 	print '<div class="fichecenter"><div class="fichehalfright">';
 
-	$maxEvent = 10;
-
 	$morehtmlcenter = dolGetButtonTitle($langs->trans('SeeAll'), '', 'fa fa-bars imgforviewmode', dol_buildpath('/saturne/view/saturne_agenda.php', 1) . '?id=' . $object->id . '&module_name=DigiQuali&object_type=' . $object->element);
 
 	// List of actions on element
 	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formactions.class.php';
 	$formactions = new FormActions($db);
-	$somethingshown = $formactions->showactions($object, $object->element . '@' . $object->module, '', 1, '', $MAXEVENT, '', $morehtmlcenter);
+	$somethingshown = $formactions->showactions($object, $object->element . '@' . $object->module, '', 1, '', 10, '', $morehtmlcenter);
 
 	print '</div></div>';
 }
