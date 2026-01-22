@@ -1010,10 +1010,11 @@ class Control extends SaturneObject
         $array['picto'] = $this->picto;
 
         // Graph parameters.
-        $array['width']   = '100%';
-        $array['height']  = 400;
-        $array['type']    = 'pie';
-        $array['dataset'] = 1;
+        $array['width']      = '100%';
+        $array['height']     = 400;
+        $array['type']       = 'pie';
+        $array['showlegend'] = 1;
+        $array['dataset']    = 1;
 
         $array['labels'] = [
             0 => [
@@ -1068,10 +1069,11 @@ class Control extends SaturneObject
         $array['picto'] = $this->picto;
 
         // Graph parameters.
-        $array['width']   = '100%';
-        $array['height']  = 400;
-        $array['type']    = 'bar';
-        $array['dataset'] = 3;
+        $array['width']      = '100%';
+        $array['height']     = 400;
+        $array['type']       = 'bar';
+        $array['showlegend'] = 1;
+        $array['dataset']    = 3;
 
         $array['labels'] = [
             0 => [
@@ -1135,7 +1137,7 @@ class Control extends SaturneObject
         // Graph parameters.
         $array['width']      = '100%';
         $array['height']     = 400;
-        $array['type']       = 'bars';
+        $array['type']       = 'bar';
         $array['showlegend'] = 1;
         $array['dataset']    = 3;
 

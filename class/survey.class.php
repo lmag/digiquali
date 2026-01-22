@@ -603,7 +603,7 @@ class Survey extends SaturneObject
         // Graph parameters
         $array['width']      = '100%';
         $array['height']     = 400;
-        $array['type']       = 'bars';
+        $array['type']       = 'bar';
         $array['showlegend'] = 1;
         $array['dataset']    = 3;
 
