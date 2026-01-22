@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2022-2023 EVARISK <technique@evarisk.com>
+/* Copyright (C) 2022-2026 EVARISK <technique@evarisk.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,67 +16,67 @@
  */
 
 /**
- *   	\file       view/question/question_card.php
- *		\ingroup    digiquali
- *		\brief      Page to create/edit/view question
+ * \file    view/question/question_card.php
+ * \ingroup digiquali
+ * \brief   Page to create/edit/view question
  */
 
- // Load DigiQuali environment
+// Load DigiQuali environment
 if (file_exists('../digiquali.main.inc.php')) {
-	require_once __DIR__ . '/../digiquali.main.inc.php';
+    require_once __DIR__ . '/../digiquali.main.inc.php';
 } elseif (file_exists('../../digiquali.main.inc.php')) {
-	require_once __DIR__ . '/../../digiquali.main.inc.php';
+    require_once __DIR__ . '/../../digiquali.main.inc.php';
 } else {
-	die('Include of digiquali main fails');
+    die('Include of digiquali main fails');
 }
 
-// Libraries
-require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
-require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
-require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
+// Load Dolibarr libraries
+require_once DOL_DOCUMENT_ROOT . '/core/class/html.formcompany.class.php';
+require_once DOL_DOCUMENT_ROOT . '/core/class/html.formfile.class.php';
+require_once DOL_DOCUMENT_ROOT . '/core/class/html.formprojet.class.php';
 require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
-require_once DOL_DOCUMENT_ROOT.'/categories/class/categorie.class.php';
+require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/images.lib.php';
 
-require_once '../../class/sheet.class.php';
-require_once '../../class/question.class.php';
-require_once '../../class/questiongroup.class.php';
-require_once '../../class/answer.class.php';
-require_once '../../lib/digiquali_question.lib.php';
-require_once '../../lib/digiquali_answer.lib.php';
+// Load DigiQuali libraries
+require_once __DIR__ . '/../../class/sheet.class.php';
+require_once __DIR__ . '/../../class/question.class.php';
+require_once __DIR__ . '/../../class/questiongroup.class.php';
+require_once __DIR__ . '/../../class/answer.class.php';
+require_once __DIR__ . '/../../lib/digiquali_question.lib.php';
+require_once __DIR__ . '/../../lib/digiquali_answer.lib.php';
 
 // Global variables definitions
-global $conf, $db, $hookmanager, $langs, $user, $langs;
+global $conf, $db, $hookmanager, $langs, $user;
 
 // Load translation files required by the page
 saturne_load_langs();
 
 // Get parameters
-$id                  = GETPOST('id', 'int');
+$id                  = GETPOSTINT('id');
 $ref                 = GETPOST('ref', 'alpha');
-$sheetId             = GETPOST('sheet_id', 'int');
-$questionGroupId     = GETPOST('question_group_id', 'int');
 $action              = GETPOST('action', 'aZ09');
 $subaction           = GETPOST('subaction', 'aZ09');
 $confirm             = GETPOST('confirm', 'alpha');
 $cancel              = GETPOST('cancel', 'aZ09');
-$contextpage         = GETPOST('contextpage', 'aZ') ?GETPOST('contextpage', 'aZ') : 'questioncard'; // To manage different context of search
+$contextpage         = GETPOST('contextpage', 'aZ') ? GETPOST('contextpage', 'aZ') : 'questioncard'; // To manage different context of search
 $backtopage          = GETPOST('backtopage', 'alpha');
 $backtopageforcancel = GETPOST('backtopageforcancel', 'alpha');
+$sheetId             = GETPOSTINT('sheet_id');
+$questionGroupId     = GETPOSTINT('question_group_id');
 
-// Initialize objects
-// Technical objets
-$object         = new Question($db);
-$sheet          = new Sheet($db);
-$questiongroup  = new QuestionGroup($db);
-$answer         = new Answer($db);
-$extrafields    = new ExtraFields($db);
+// Initialize technical objects
+$object        = new Question($db);
+$sheet         = new Sheet($db);
+$questionGroup = new QuestionGroup($db);
+$answer        = new Answer($db);
+$extrafields   = new ExtraFields($db);
 
-// View objects
+// Initialize view objects
 $form = new Form($db);
 
-$hookmanager->initHooks(array('questioncard', 'globalcard')); // Note that conf->hooks_modules contains array
+$hookmanager->initHooks([$object->element . 'card', 'globalcard']); // Note that conf->hooks_modules contains array
 
 // Fetch optionals attributes and labels
 $extrafields->fetch_name_optionals_label($object->table_element);
@@ -84,31 +84,38 @@ $extrafields->fetch_name_optionals_label($object->table_element);
 $search_array_options = $extrafields->getOptionalsFromPost($object->table_element, '', 'search_');
 
 // Initialize array of search criterias
-$searchAll = GETPOST("search_all", 'alpha');
-$search = array();
+$searchAll = GETPOST('search_all', 'alpha');
+$search    = [];
 foreach ($object->fields as $key => $val) {
-	if (GETPOST('search_'.$key, 'alpha')) $search[$key] = GETPOST('search_'.$key, 'alpha');
+    if (GETPOST('search_' . $key, 'alpha')) {
+        $search[$key] = GETPOST('search_' . $key, 'alpha');
+    }
 }
 
-if (empty($action) && empty($id) && empty($ref)) $action = 'view';
+if (empty($action) && empty($id) && empty($ref)) {
+    $action = 'view';
+}
 
 // Load object
-include DOL_DOCUMENT_ROOT.'/core/actions_fetchobject.inc.php'; // Must be include, not include_once.
+require_once DOL_DOCUMENT_ROOT . '/core/actions_fetchobject.inc.php';
 
-$permissiontoread   = $user->rights->digiquali->question->read;
-$permissiontoadd    = $user->rights->digiquali->question->write; // Used by the include of actions_addupdatedelete.inc.php and actions_lineupdown.inc.php
-$permissiontodelete = $user->rights->digiquali->question->delete || ($permissiontoadd && isset($object->status) && $object->status == $object::STATUS_DRAFT);
+// Permissions
+$permissiontoread   = $user->hasRight($object->module, $object->element, 'read');
+$permissiontoadd    = $user->hasRight($object->module, $object->element, 'write');
+$permissiontodelete = $user->hasRight($object->module, $object->element, 'delete') || ($permissiontoadd && isset($object->status) && $object->status == $object::STATUS_DRAFT);
 
-// Security check - Protection if external user
+// Security check
 saturne_check_access($permissiontoread, $object);
 
 /*
  * Actions
  */
 
-$parameters = array();
-$reshook = $hookmanager->executeHooks('doActions', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
-if ($reshook < 0) setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+$parameters = [];
+$resHook    = $hookmanager->executeHooks('doActions', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
+if ($resHook < 0) {
+    setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+}
 
 if (empty($reshook)) {
 	$error = 0;
@@ -798,10 +805,11 @@ if (empty($reshook)) {
  * View
  */
 
-$title    = $langs->trans(ucfirst($object->element));
-$help_url = 'FR:Module_DigiQuali';
+$title   = $langs->trans(ucfirst($object->element));
+$helpUrl = 'FR:Module_DigiQuali';
 
-saturne_header(1,'', $title, $help_url);
+saturne_header(1,'', $title, $helpUrl, '', 0, 0, [], [], '', 'mod-' . $object->module . '-' . $object->element . ' page-card');
+
 if ($sheetId > 0) {
     $sheet->fetch($sheetId);
 	if ($sheet->displayTree()) {
@@ -1118,10 +1126,8 @@ if (($id || $ref) && $action == 'edit') {
 
 // Part to show record
 if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'create'))) {
-	$res = $object->fetch_optionals();
-
-	saturne_get_fiche_head($object, 'card', $title);
-	saturne_banner_tab($object);
+    saturne_get_fiche_head($object, 'card', $title);
+    saturne_banner_tab($object);
 
 	$formconfirm = '';
 
@@ -1183,7 +1189,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 	print $object->points;
 	print "</td></tr>";
 
-    $objectConfig = json_decode($object->json, true)['config'];
+    $objectConfig = json_decode($object->json, true)['config'] ?? [];
 
     // Config
     if ($object->type == 'Percentage' && isset($objectConfig[$object->type]['step'])) {
@@ -1357,7 +1363,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 					print '<tr id="'. $answerSingle->id .'" class="line-row oddeven">';
 					print '<td>';
-					print img_picto('', $answerSingle->picto, 'class="pictofixedwidth"') . $answerSingle->ref; 
+					print img_picto('', $answerSingle->picto, 'class="pictofixedwidth"') . $answerSingle->ref;
 					print '</td>';
 
 					print '<td>';
@@ -1492,14 +1498,12 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 	print '<div class="fichecenter"><div class="fichehalfright">';
 
-	$maxEvent = 10;
-
 	$morehtmlcenter = dolGetButtonTitle($langs->trans('SeeAll'), '', 'fa fa-bars imgforviewmode', dol_buildpath('/saturne/view/saturne_agenda.php', 1) . '?id=' . $object->id . '&module_name=DigiQuali&object_type=' . $object->element);
 
 	// List of actions on element
 	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formactions.class.php';
 	$formactions = new FormActions($db);
-	$somethingshown = $formactions->showactions($object, $object->element . '@' . $object->module, '', 1, '', $MAXEVENT, '', $morehtmlcenter);
+	$somethingshown = $formactions->showactions($object, $object->element . '@' . $object->module, '', 1, '', 10, '', $morehtmlcenter);
 
 	print '</div></div>';
 }
