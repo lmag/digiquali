@@ -6,10 +6,6 @@
   .riskassessment__content, .riskassessment-task__content {
     background: #fff;
     position: relative;
-
-    &:hover .riskassessment-list__actions, &:hover .riskassessment-task__actions {
-      opacity: 1 !important;
-    }
   }
   .riskassessment__content {
     display: flex;
@@ -81,7 +77,6 @@
     flex-direction: row;
     flex-wrap: nowrap;
     z-index: 10;
-    opacity: 0;
 
     .wpeo-button {
       line-height: 36px;

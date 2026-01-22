@@ -1010,10 +1010,11 @@ class Control extends SaturneObject
         $array['picto'] = $this->picto;
 
         // Graph parameters.
-        $array['width']   = '100%';
-        $array['height']  = 400;
-        $array['type']    = 'pie';
-        $array['dataset'] = 1;
+        $array['width']      = '100%';
+        $array['height']     = 400;
+        $array['type']       = 'pie';
+        $array['showlegend'] = 1;
+        $array['dataset']    = 1;
 
         $array['labels'] = [
             0 => [
@@ -1068,10 +1069,11 @@ class Control extends SaturneObject
         $array['picto'] = $this->picto;
 
         // Graph parameters.
-        $array['width']   = '100%';
-        $array['height']  = 400;
-        $array['type']    = 'bar';
-        $array['dataset'] = 3;
+        $array['width']      = '100%';
+        $array['height']     = 400;
+        $array['type']       = 'bar';
+        $array['showlegend'] = 1;
+        $array['dataset']    = 3;
 
         $array['labels'] = [
             0 => [
@@ -1135,7 +1137,7 @@ class Control extends SaturneObject
         // Graph parameters.
         $array['width']      = '100%';
         $array['height']     = 400;
-        $array['type']       = 'bars';
+        $array['type']       = 'bar';
         $array['showlegend'] = 1;
         $array['dataset']    = 3;
 
@@ -1281,7 +1283,7 @@ class Control extends SaturneObject
      */
     public function displayAnswers(ControlLine $objectLine, array $questionsAndGroups, bool $isFrontend, int $level = 0)
     {
-        global $langs;
+        global $conf, $langs;
 
         $object = $this;
 
@@ -1319,6 +1321,10 @@ class ControlLine extends SaturneObject
      * @var int Does object support extrafields ? 0 = No, 1 = Yes
      */
     public $isextrafieldmanaged = 1;
+
+    const STATUS_DRAFT = 0;
+	const STATUS_VALIDATED = 1;
+	const STATUS_CANCELED = 9;
 
     /**
      * 'type' field format:
@@ -1366,19 +1372,19 @@ class ControlLine extends SaturneObject
         'ref'               => ['type' => 'varchar(128)', 'label' => 'Ref',              'enabled' => 1, 'position' => 10,  'notnull' => 1, 'visible' => 1, 'noteditable' => 1, 'default' => '(PROV)', 'index' => 1, 'searchall' => 1, 'showoncombobox' => 1, 'validate' => 1, 'comment' => 'Reference of object'],
         'ref_ext'           => ['type' => 'varchar(128)', 'label' => 'RefExt',           'enabled' => 1, 'position' => 20,  'notnull' => 0, 'visible' => 0],
         'entity'            => ['type' => 'integer',      'label' => 'Entity',           'enabled' => 1, 'position' => 30,  'notnull' => 1, 'visible' => 0, 'index' => 1],
-        'date_creation'     => ['type' => 'datetime',     'label' => 'DateCreation',     'enabled' => 1, 'position' => 40,  'notnull' => 1, 'visible' => 0],
-        'tms'               => ['type' => 'timestamp',    'label' => 'DateModification', 'enabled' => 1, 'position' => 50,  'notnull' => 0, 'visible' => 0],
+        'date_creation'     => ['type' => 'datetime',     'label' => 'DateCreation',     'enabled' => 1, 'position' => 40,  'notnull' => 1, 'visible' => -1],
+        'tms'               => ['type' => 'timestamp',    'label' => 'DateModification', 'enabled' => 1, 'position' => 50,  'notnull' => 0, 'visible' => -2],
         'import_key'        => ['type' => 'varchar(14)',  'label' => 'ImportId',         'enabled' => 1, 'position' => 60,  'notnull' => 0, 'visible' => 0, 'index' => 0],
-        'status'            => ['type' => 'smallint',     'label' => 'Status',           'enabled' => 1, 'position' => 70,  'notnull' => 1, 'visible' => 0, 'index' => 1, 'default' => 1],
-        'type'              => ['type' => 'varchar(128)', 'label' => 'Type',             'enabled' => 0, 'position' => 80,  'notnull' => 0, 'visible' => 0],
-        'answer'            => ['type' => 'text',         'label' => 'Answer',           'enabled' => 1, 'position' => 90,  'notnull' => 0, 'visible' => 0],
-        'answer_photo'      => ['type' => 'text',         'label' => 'AnswerPhoto',      'enabled' => 0, 'position' => 100, 'notnull' => 0, 'visible' => 0],
-        'comment'           => ['type' => 'text',         'label' => 'Comment',          'enabled' => 1, 'position' => 110, 'notnull' => 0, 'visible' => 0],
-        'fk_user_creat'     => ['type' => 'integer:User:user/class/user.class.php',              'label' => 'UserAuthor', 'picto' => 'user',                                'enabled' => 1, 'position' => 120, 'notnull' => 1, 'visible' => 0, 'foreignkey' => 'user.rowid'],
-        'fk_user_modif'     => ['type' => 'integer:User:user/class/user.class.php',              'label' => 'UserModif',  'picto' => 'user',                                'enabled' => 1, 'position' => 130, 'notnull' => 0, 'visible' => 0, 'foreignkey' => 'user.rowid'],
-        'fk_control'        => ['type' => 'integer:Control:digiquali/class/survey.class.php',    'label' => 'Control',    'picto' => 'fontawesome_fa-tasks_fas_#d35968',    'enabled' => 1, 'position' => 140,  'notnull' => 1, 'visible' => 0, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx', 'foreignkey' => 'digiquali_survey.rowid'],
-        'fk_question'       => ['type' => 'integer:Question:digiquali/class/question.class.php', 'label' => 'Question',   'picto' => 'fontawesome_fa-question_fas_#d35968', 'enabled' => 1, 'position' => 150,  'notnull' => 1, 'visible' => 0, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx', 'foreignkey' => 'digiquali_question.rowid'],
-        'fk_question_group' => ['type' => 'integer:QuestionGroup:digiquali/class/questiongroup.class.php', 'label' => 'QuestionGroup', 'picto' => 'fontawesome_fa-folder_fas_#d35968', 'enabled' => 1, 'position' => 160, 'notnull' => 1, 'default' => 0, 'visible' => 0, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx'],
+        'status'            => ['type' => 'integer',     'label' => 'Status',           'enabled' => 1, 'position' => 500,  'notnull' => 1, 'visible' => -1, 'index' => 1, 'default' => 1],
+        'type'              => ['type' => 'varchar(128)', 'label' => 'Type',             'enabled' => 0, 'position' => 80,  'notnull' => 0, 'visible' => -1],
+        'answer'            => ['type' => 'text',         'label' => 'Answer',           'enabled' => 1, 'position' => 90,  'notnull' => 0, 'visible' => -1],
+        'answer_photo'      => ['type' => 'text',         'label' => 'AnswerPhoto',      'enabled' => 0, 'position' => 100, 'notnull' => 0, 'visible' => -1],
+        'comment'           => ['type' => 'text',         'label' => 'Comment',          'enabled' => 1, 'position' => 110, 'notnull' => 0, 'visible' => -1],
+        'fk_user_creat'     => ['type' => 'integer:User:user/class/user.class.php',              'label' => 'UserAuthor', 'picto' => 'user',                                'enabled' => 1, 'position' => 70, 'notnull' => 1, 'visible' => -1, 'foreignkey' => 'user.rowid'],
+        'fk_user_modif'     => ['type' => 'integer:User:user/class/user.class.php',              'label' => 'UserModif',  'picto' => 'user',                                'enabled' => 1, 'position' => 75, 'notnull' => 0, 'visible' => -2, 'foreignkey' => 'user.rowid'],
+        'fk_control'        => ['type' => 'integer:control:digiquali/class/control.class.php',    'label' => 'Control',    'picto' => 'fontawesome_fa-tasks_fas_#d35968',    'enabled' => 1, 'position' => 2,  'notnull' => 1, 'visible' => -1, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx', 'foreignkey' => 'digiquali_survey.rowid'],
+        'fk_question'       => ['type' => 'integer:question:digiquali/class/question.class.php', 'label' => 'Question',   'picto' => 'fontawesome_fa-question_fas_#d35968', 'enabled' => 1, 'position' => 4,  'notnull' => 1, 'visible' => -1, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx', 'foreignkey' => 'digiquali_question.rowid'],
+        'fk_question_group' => ['type' => 'integer:questiongroup:digiquali/class/questiongroup.class.php', 'label' => 'QuestionGroup', 'picto' => 'fontawesome_fa-folder_fas_#d35968', 'enabled' => 1, 'position' => 6, 'notnull' => 1, 'default' => 0, 'visible' => -1, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx'],
     ];
 
     /**

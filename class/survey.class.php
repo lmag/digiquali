@@ -124,7 +124,7 @@ class Survey extends SaturneObject
         'photo'         => ['type' => 'text',         'label' => 'Photo',            'enabled' => 1, 'position' => 100, 'notnull' => 0, 'visible' => 0],
         'success_rate'  => ['type' => 'real',         'label' => 'SuccessScore',     'enabled' => 1, 'position' => 35,  'notnull' => 0, 'visible' => 2, 'help' => 'PercentageValue'],
         'track_id'      => ['type' => 'text',         'label' => 'TrackID',          'enabled' => 1, 'position' => 110, 'notnull' => 0, 'visible' => 2],
-        'fk_user_creat' => ['type' => 'integer:User:user/class/user.class.php',           'label' => 'UserAuthor',  'picto' => 'user',                            'enabled' => 1, 'position' => 120, 'notnull' => 1, 'visible' => 0, 'foreignkey' => 'user.rowid'],
+        'fk_user_creat' => ['type' => 'integer:User:user/class/user.class.php',           'label' => 'UserAuthor',  'picto' => 'user',                            'enabled' => 1, 'position' => 120, 'notnull' => 0, 'visible' => 0, 'foreignkey' => 'user.rowid'],
         'fk_user_modif' => ['type' => 'integer:User:user/class/user.class.php',           'label' => 'UserModif',   'picto' => 'user',                            'enabled' => 1, 'position' => 130, 'notnull' => 0, 'visible' => 0, 'foreignkey' => 'user.rowid'],
         'fk_sheet'      => ['type' => 'integer:Sheet:digiquali/class/sheet.class.php',    'label' => 'Sheet',       'picto' => 'fontawesome_fa-list_fas_#d35968', 'enabled' => 1, 'position' => 11,  'notnull' => 1, 'visible' => 5, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx', 'foreignkey' => 'digiquali_sheet.rowid'],
         'projectid'     => ['type' => 'integer:Project:projet/class/project.class.php:1', 'label' => 'Project',     'picto' => 'project',                         'enabled' => 1, 'position' => 13,  'notnull' => 0, 'visible' => 1, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx', 'foreignkey' => 'projet.rowid', 'positioncard' => 2]
@@ -603,7 +603,7 @@ class Survey extends SaturneObject
         // Graph parameters
         $array['width']      = '100%';
         $array['height']     = 400;
-        $array['type']       = 'bars';
+        $array['type']       = 'bar';
         $array['showlegend'] = 1;
         $array['dataset']    = 3;
 
@@ -699,8 +699,10 @@ class Survey extends SaturneObject
 
                 foreach ($this->lines as $questionAnswer) {
                     if ($questionId == $questionAnswer->fk_question) {
-                        if ($question->checkAnswerIsCorrect($questionAnswer->answer)) {
+                        if ($question->checkAnswerIsCorrect($questionAnswer->answer) >= 0) {
                             $surveyCorrectAnswersTotalPoints += $question->points;
+                        } elseif ($question->type == $question::TYPE_PERCENTAGE) {
+                            $surveyCorrectAnswersTotalPoints += round($questionAnswer->answer / 100, 2);
                         }
                         if ($questionAnswer->answer !== '') {
                             $numberOfAnsweredQuestions++;
@@ -796,13 +798,39 @@ class Survey extends SaturneObject
     /**
      * Display survey questions & answers
      */
-    public function displayAnswers(SurveyLine $objectLine, array $questionsAndGroups, bool $isFrontend, int $level = 0)
+    public function displayAnswers(SurveyLine $objectLine, array $questionsAndGroups, bool $isFrontend = false, int $level = 0)
     {
-        global $langs;
+        global $conf, $langs;
 
         $object = $this;
 
         include DOL_DOCUMENT_ROOT . '/custom/digiquali/core/tpl/digiquali_answers.tpl.php';
+    }
+
+    /**
+     * Get status of the survey
+     */
+    public function getStatus()
+    {
+        global $langs;
+        $answered = 0;
+        foreach ($this->lines as $line) {
+            if ($line->answer != '') {
+                $answered++;
+            }
+        }
+
+        if ($answered == 0) {
+            return dolGetStatus($langs->trans('NotAnswered'), '', '', 'status6', 3);
+        } elseif ($answered < count($this->lines)) {
+            return dolGetStatus($langs->trans('PartiallyAnswered'), '', '', 'status2', 3);
+        } else {
+            [$numberOfAnsweredQuestions, $numberOfQuestions, $correctPoints, $totalPoints, $atLeastOneIncorrectSubGroup] = $this->calculatePoints();
+            if ($this->success_rate != null && (($correctPoints / $totalPoints) * 100) < $this->success_rate) {
+                return dolGetStatus($langs->trans('SurveyKo'), '', '', 'status8', 3);
+            }
+        }
+        return dolGetStatus($langs->trans('SurveyOk'), '', '', 'status4', 3);
     }
 }
 

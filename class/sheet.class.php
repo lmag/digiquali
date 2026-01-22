@@ -117,8 +117,8 @@ class Sheet extends SaturneObject
         'import_key'          => ['type' => 'varchar(14)',  'label' => 'ImportId',           'enabled' => 1, 'position' => 60,  'notnull' => 0, 'visible' => -2, 'index' => 0],
         'status'              => ['type' => 'smallint',     'label' => 'Status',             'enabled' => 1, 'position' => 70,  'notnull' => 1, 'visible' => 1, 'index' => 1, 'searchmulti' => 1, 'default' => 1, 'arrayofkeyval' => [1 => 'InProgress', 2 => 'Locked', 3 => 'Archived'], 'css' => 'minwidth200'],
         'type'                => ['type' => 'select',       'label' => 'Type',               'enabled' => 1, 'position' => 65,  'notnull' => 1, 'visible' => 1, 'arrayofkeyval' => ['control' => 'Control', 'survey' => 'Survey']],
-        'label'               => ['type' => 'varchar(255)', 'label' => 'Label',              'enabled' => 1, 'position' => 11,  'notnull' => 1, 'visible' => 1, 'searchall' => 1, 'css' => 'minwidth200'],
-        'description'         => ['type' => 'html',         'label' => 'Description',        'enabled' => 1, 'position' => 15,  'notnull' => 0, 'visible' => 1, 'searchall' => 1, 'css' => 'minwidth200'],
+        'label'               => ['type' => 'varchar(255)', 'label' => 'Label',              'enabled' => 1, 'position' => 11,  'notnull' => 1, 'visible' => 1, 'searchall' => 1, 'css' => 'tdoverflowmax200'],
+        'description'         => ['type' => 'html',         'label' => 'Description',        'enabled' => 1, 'position' => 15,  'notnull' => 0, 'visible' => 1, 'searchall' => 1, 'css' => 'tdoverflowmax200'],
         'element_linked'      => ['type' => 'text',         'label' => 'ElementLinked',      'enabled' => 1, 'position' => 90,  'notnull' => 0, 'visible' => -2],
         'photo'               => ['type' => 'text',         'label' => 'Photo',              'enabled' => 1, 'position' => 95,  'notnull' => 0, 'visible' => -2, 'disablesearch' => 1, 'disablesort' => 1],
         'success_rate'        => ['type' => 'real',         'label' => 'SuccessScore',       'enabled' => 1, 'position' => 35,  'notnull' => 0, 'visible' => 2, 'help' => 'PercentageValue'],
@@ -536,7 +536,7 @@ class Sheet extends SaturneObject
 
         if ($reindexLast) {
             $sql = 'UPDATE ' . MAIN_DB_PREFIX . 'element_element';
-            $sql .= ' SET position = ( SELECT (COALESCE(MAX(position), 0) + 1) FROM llx_element_element WHERE fk_source = '. (int) $fk_source .' AND sourcetype = \'' . $this->db->escape($sourcetype) . '\' )';
+            $sql .= ' SET position = ( SELECT (COALESCE(MAX(position), 0) + 1) FROM ' . MAIN_DB_PREFIX . 'element_element WHERE fk_source = '. (int) $fk_source .' AND sourcetype = \'' . $this->db->escape($sourcetype) . '\' )';
             $sql .= ' WHERE fk_source = ' . $fk_source;
             $sql .= ' AND sourcetype = \'' . $this->db->escape($sourcetype) . '\'';
             $sql .= ' AND (targettype = "digiquali_question" OR targettype = "digiquali_questiongroup")';

@@ -207,6 +207,7 @@ if ((empty($action) || ($action != 'edit' && $action != 'create'))) {
         print $activityInfos['ref'];
         print '</div>';
 
+        print '<input type="hidden" id="success_message" value="' . $langs->transnoentities('Updated') . '">';
         print '<div class="activity-container__body wpeo-gridlayout grid-2">';
         foreach ($activitySingle->fields as $key => $val) {
             if (!isset($val['viewmode']) && $val['viewmode'] != 'badge') {

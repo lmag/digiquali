@@ -148,6 +148,7 @@ AnswerCorrectnessMaxBound     = Valeur maximale de réponse correcte
 QuestionMinBoundExceeded      = La valeur minimale de réponse correcte d'un pourcentage ne peut pas être inférieure à 0
 QuestionMaxBoundExceeded      = La valeur minimale de réponse correcte d'un pourcentage ne peut pas être supérieure à 100
 AddProject                    = Veuillez définir un projet pour ce contrôle afin de pouvoir utiliser les tâches
+NoQuestion                    = Aucune question
 
 
 #
@@ -269,6 +270,7 @@ ControlVerdictSelected                         = Le verdict a déjà été défi
 ControlMustBeValidatedToSetVerdict             = Le contrôle doit être validé pour définir le verdict
 ControlMustBeValidatedToGenerated              = Le contrôle doit être validé pour générer la fiche de contrôle
 SetOK/KO                                       = Apte/Inapte
+ControlObject                                  = Objet contrôlé
 Batch                                          = Lot/Série
 BatchLinked                                    = Lot/Série contrôlé
 VerdictControl                                 = Choix du verdict
@@ -422,7 +424,9 @@ ObjectReadyToValidate                          = Le %s est prêt à être valid�
 QuestionAnswered                               = Réponse/Question
 LastStatusDate                                 = Dernières dates de statut
 ValidationDate                                 = Date de validation
-ReOpenDate                                     = Date de réouverture
+ReopeningDate                                  = Date de réouverture
+LockingDate                                    = Date de verrouillage
+ArchivingDate                                  = Date d'archivage
 DraftValidatedLocked                           = -- (Brouillon + validé + verrouillé) --
 CloneControlEquipments                         = Cloner les moyens de contrôle
 NoControl                                      = Aucun contrôle
@@ -451,6 +455,7 @@ NoObjectLineAnswersPhoto                = Pas de photos sur les réponses du %s
 # Data - Donnée
 ControlDocument                         = Fiche de Contrôle
 Controldocument                         = Fiche de Contrôle
+ControlDocumentPDF                      = Fiche de Contrôle PDF
 ControlDocumentsMin                     = fiches de contôle
 ControlDocumentDisplayMedias            = Afficher les médias dans la fiche de contrôle
 ControlDocumentDisplayMediasDescription = Afficher les médias des questions dans la fiche de contrôle ODT
@@ -485,6 +490,10 @@ PublicSurvey          = Interface publique de questionnaire
 PublicSurveyToCome    = Interface publique de questionnaire à venir
 PointsResult          = Points acquis
 RateResult            = Pourcentage de réussite
+NotAnswered           = Non répondu
+PartiallyAnswered     = Partiellement répondu
+SurveyKo              = Non conforme
+SurveyOk              = Conforme
 
 
 #
@@ -531,11 +540,12 @@ NewSubprocess     = Nouveau sous-processus
 
 # Data - Donnée
 ProcessusActivities = Activités
-InputData           = Données d'entrées
-OutputData          = Données de sorties
-ActualScore         = Score actuel
-TargetScore         = Score cible
-ActivityCreate      = Ajout de l'activité
+SourceFrom     = Qui
+InputData      = Données d'entrées
+OutputData     = Données de sorties
+ActualScore    = Score actuel
+TargetScore    = Score cible
+ActivityCreate = Ajout de l'activité
 
 # Specimen - Échantillon
 ActivityLabelSpecimen      = Attribuer les rôles, Responsabilités et autorités au sein de l'organisme en matière de SST
@@ -631,3 +641,15 @@ NoControlsLinked = Aucun contrôle lié à cette fiche
 
 FieldMaxValue = Le champ '%s' doit être inférieure ou égale à %s
 FieldMinValue = Le champ '%s' doit être supérieure ou égale à %s
+
+#
+# Control Document PDF
+#
+
+Role                   = Rôle
+Equipement             = Equipement
+EstimatedLife          = Durée de vie restante
+ControlEquipementList  = Liste des équipements et moyens de contrôle
+Sheet                  = Modèle de contrôle
+ControlObservationList = Liste des points contrôlés, observations et réponse(s) à la question
+LinkedContactsControl  = Contact(s) associés au contrôle

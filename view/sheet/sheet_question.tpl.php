@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 $parentGroupId = $question->getParentGroupId();
 
@@ -7,7 +7,18 @@ print '<td ' . $tdOffsetStyle . '>' . $question->getNomUrl(1) . '</td>';
 print '<td>' . $question->label . '</td>';
 print '<td>' . $question->description . '</td>';
 print '<td>' . $langs->transnoentities($question->type) . '</td>';
-print '<td class="center"><input type="checkbox" disabled></td>';
+$mandatoryArray = json_decode($sheetObject->mandatory_questions, true);
+
+print '<td class="center">';
+print '<form method="POST" action="' . $_SERVER["PHP_SELF"] . '?id=' . $sheetObject->id . '">';
+print '<input type="hidden" name="token" value="' . newToken() . '">';
+print '<input type="hidden" name="action" value="set_mandatory">';
+print '<input type="hidden" name="questionId" value="' . $question->id . '">';
+print '<input type="hidden" name="questionRef" value="' . $question->ref . '">';
+print '<input type="checkbox" onchange="submit();" id="mandatory" name="mandatory" value="' . $question->id . '"' . (in_array($question->id, $mandatoryArray) ? ' checked ' : '') . '" ' . ($sheetObject->status < Sheet::STATUS_LOCKED ? '>' : 'disabled>');
+print '</form>';
+print '</td>';
+
 print '<td class="center">' . saturne_show_medias_linked(
         'digiquali',
         $conf->digiquali->multidir_output[$conf->entity] . '/question/' . $question->ref . '/photo_ok',

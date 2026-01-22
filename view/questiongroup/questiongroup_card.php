@@ -213,21 +213,19 @@ if ($action == 'create') {
 	$doleditor->Create();
 	print '</td></tr>';
 
-	// Categories
-	if (!empty($conf->categorie->enabled)) {
-		print '<tr><td>'.$langs->trans("Categories").'</td><td>';
-		$categoryArborescence = $form->select_all_categories('questiongroup', '', 'parent', 64, 0, 1);
-		print img_picto('', 'category', 'class="pictofixedwidth"').$form::multiselectarray('categories', $categoryArborescence, GETPOST('categories', 'array'), '', 0, 'minwidth100imp maxwidth500 widthcentpercentminusxx');
-        print '<a class="butActionNew" href="' . DOL_URL_ROOT . '/categories/index.php?type=questiongroup&backtopage=' . urlencode($_SERVER['PHP_SELF'] . '?action=create') . '" target="_blank"><span class="fa fa-plus-circle valignmiddle paddingleft" title="' . $langs->trans('AddCategories') . '"></span></a>';
-		print "</td></tr>";
-	}
+    // Success score
+    print '<tr><td class="fieldrequired">'.$langs->trans("SuccessScoreWithUnit").'</td><td>';
+    print '<input class="flat" type="number" step="0.01" min="0" max="100" size="3" name="success_rate" id="success_rate" value="'.GETPOST('success_rate').'">';
+    print '</td></tr>';
 
-	// Success score
-	print '<tr><td class="fieldrequired">'.$langs->trans("SuccessScoreWithUnit").'</td><td>';
-	print '<input class="flat" type="number" step="0.01" min="0" max="100" size="3" name="success_rate" id="success_rate" value="'.GETPOST('success_rate').'">';
-	print '</td></tr>';
+    // Categories
+    if (isModEnabled('category')) {
+        print '<tr><td>' . $langs->trans('Categories') . '</td><td>';
+        print $form->selectCategories('questiongroup', 'categories', $object);
+        print '</td></tr>';
+    }
 
-	// Other attributes
+    // Other attributes
 	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_add.tpl.php';
 
 	print '</table>'."\n";
@@ -445,7 +443,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
         foreach ($questionsLinked as $questionLinked) {
                 print '<tr id="' . $questionLinked->id . '" class="line-row oddeven">';
                 print '<td>';
-                print img_picto('', $questionLinked->picto, 'class="pictofixedwidth"') . $questionLinked->ref;
+                print $questionLinked->getNomUrl(1);
                 print '</td>';
 
                 print '<td>';
@@ -481,7 +479,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
         print '<td>-</td>';
 
         print '<td>';
-		
+
 		$filter = ['customsql' => "t.rowid NOT IN (SELECT fk_target FROM llx_element_element WHERE targettype = 'digiquali_question')"];
         $questionList = saturne_fetch_all_object_type('Question', '', '', 0, 0, $filter);
         $questionArray = [];
@@ -508,14 +506,12 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 	print '<div class="fichecenter"><div class="fichehalfright">';
 
-	$maxEvent = 10;
-
 	$morehtmlcenter = dolGetButtonTitle($langs->trans('SeeAll'), '', 'fa fa-bars imgforviewmode', dol_buildpath('/saturne/view/saturne_agenda.php', 1) . '?id=' . $object->id . '&module_name=DigiQuali&object_type=' . $object->element);
 
 	// List of actions on element
 	include_once DOL_DOCUMENT_ROOT.'/core/class/html.formactions.class.php';
 	$formactions = new FormActions($db);
-	$somethingshown = $formactions->showactions($object, $object->element . '@' . $object->module, '', 1, '', $MAXEVENT, '', $morehtmlcenter);
+	$somethingshown = $formactions->showactions($object, $object->element . '@' . $object->module, '', 1, '', 10, '', $morehtmlcenter);
 
 	print '</div></div>';
 }

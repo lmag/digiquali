@@ -77,7 +77,7 @@ class modDigiQuali extends DolibarrModules
 		$this->editor_url = 'https://evarisk.com/';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '21.2.0';
+		$this->version = '22.0.0';
 		// Url to the file with your last numberversion of this module
 		//$this->url_last_version = 'http://www.example.com/versionmodule.txt';
 
@@ -161,7 +161,7 @@ class modDigiQuali extends DolibarrModules
 
 		// Prerequisites
 		$this->phpmin = [7, 4]; // Minimum version of PHP required by module
-		$this->need_dolibarr_version = [19, 0]; // Minimum version of Dolibarr required by module
+		$this->need_dolibarr_version = [21, 0]; // Minimum version of Dolibarr required by module
 
 		// Messages at activation
 		$this->warnings_activation = []; // Warning to show when we activate module. array('always'='text') or array('FR'='textfr','ES'='textes'...)
@@ -716,6 +716,21 @@ class modDigiQuali extends DolibarrModules
 		$this->menu[$r++] = [
 			'fk_menu'  => 'fk_mainmenu=digiquali,fk_leftmenu=digiquali_control',
 			'type'     => 'left',
+			'titre'    => '<i class="fas fa-tasks pictofixedwidth" style="padding-right: 4px;"></i>' . $langs->transnoentities('Control') . ' ' . $langs->transnoentities('Answer'),
+			'mainmenu' => 'digiquali',
+			'leftmenu' => 'digiquali_controldet',
+			'url'      => '/digiquali/view/controldet/controldet_list.php',
+			'langs'    => 'digiquali@digiquali',
+			'position' => 1000 + $r,
+			'enabled'  => '$conf->digiquali->enabled && $user->rights->digiquali->control->read',
+			'perms'    => '$user->rights->digiquali->control->read',
+			'target'   => '',
+			'user'     => 0,
+		];
+
+		$this->menu[$r++] = [
+			'fk_menu'  => 'fk_mainmenu=digiquali,fk_leftmenu=digiquali_control',
+			'type'     => 'left',
 			'titre'    => '<i class="fas fa-tags pictofixedwidth" style="padding-right: 4px;"></i>' . $langs->transnoentities('Categories'),
 			'mainmenu' => 'digiquali',
 			'leftmenu' => 'digiquali_controltags',
@@ -845,10 +860,11 @@ class modDigiQuali extends DolibarrModules
 
 		delDocumentModel('controldocument_odt', 'controldocument');
         delDocumentModel('surveydocument_odt', 'surveydocument');
-		delDocumentModel('calypso_controldocument', 'controldocument');
+        delDocumentModel('control_document', 'controldocument');
 
 		addDocumentModel('controldocument_odt', 'controldocument', 'ODT templates', 'DIGIQUALI_CONTROLDOCUMENT_ADDON_ODT_PATH');
 		addDocumentModel('surveydocument_odt', 'surveydocument', 'ODT templates', 'DIGIQUALI_SURVEYDOCUMENT_ADDON_ODT_PATH');
+        addDocumentModel('control_document', 'controldocument', $langs->transnoentities('ControlDocumentPDF'));
 
 		if (!empty($conf->global->DIGIQUALI_SHEET_TAGS_SET) && empty($conf->global->DIGIQUALI_SHEET_DEFAULT_TAG)) {
 			global $user, $langs;

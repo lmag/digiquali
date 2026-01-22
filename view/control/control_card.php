@@ -103,7 +103,8 @@ list($refTaskMod)    = saturne_require_objects_mod(['project/task' => $conf->glo
 $taskNextValue       = $refTaskMod->getNextValue($object->id, $object->element);
 
 // View objects
-$form = new Form($db);
+$form       = new Form($db);
+$isFrontend = false;
 
 $hookmanager->initHooks(array('controlcard', 'globalcard')); // Note that conf->hooks_modules contains array
 
@@ -239,6 +240,15 @@ if (empty($resHook)) {
             $tabParam['DIGIQUALI_' . dol_strtoupper($action)] = $data[$action];
             dol_set_user_param($db, $conf, $user, $tabParam);
         }
+    }
+
+    if ($action == 'builddoc' && GETPOST('model') == 'control_document') {
+        require_once __DIR__ . './../../class/digiqualidocuments/controldocument.class.php';
+        $document = new ControlDocument($db);
+
+        $moduleNameLowerCase      = 'digiquali';
+        $moreParams['modulePart'] = 'digiquali';
+        require __DIR__ . '/../../../saturne/core/tpl/documents/documents_action.tpl.php';
     }
 
     require_once __DIR__ . '/../../core/tpl/digiquali_answers_save_action.tpl.php';
@@ -509,6 +519,11 @@ if ($object->id > 0 && (empty($action) || ($action != 'create'))) {
 
     $sheet->fetch($object->fk_sheet);
     $questionsAndGroups = $sheet->fetchQuestionsAndGroups();
+    $object->fetchObjectLinked('', '', $object->id, 'digiquali_control');
+
+    $linkedObjectType = key($object->linkedObjects);
+    $questionIds      = $sheet->linkedObjectsIds['digiquali_question'];
+
 
     foreach($questionsAndGroups as $questionOrGroup) {
         if ($questionOrGroup->element == 'questiongroup') {
@@ -597,10 +612,11 @@ if ($object->id > 0 && (empty($action) || ($action != 'create'))) {
     // Clone confirmation
     if (($action == 'clone' && (empty($conf->use_javascript_ajax) || !empty($conf->dol_use_jmobile))) || (!empty($conf->use_javascript_ajax) && empty($conf->dol_use_jmobile))) {
         // Define confirmation messages
-        $object->fetchObjectLinked('', '', $object->id, 'digiquali_control');
-        $linkedObjectType  = key($object->linkedObjects);
+        $objectMetadata = $objectsMetadata[$linkedObjectType];
+        $linkedObject   = $object->linkedObjects[$objectMetadata['link_name']][key($object->linkedObjects[$objectMetadata['link_name']])];
+
         $formQuestionClone = [
-            ['type' => 'text',     'name' => 'clone_label', 'label' => $langs->trans('NewLabelForClone', $langs->transnoentities('The' . ucfirst($object->element))), 'value' => dol_print_date($object->control_date, '%Y%m%d') . '-' . $object->linkedObjects[$linkedObjectType][key($object->linkedObjects[$linkedObjectType])]->label, 'size' => 24],
+            ['type' => 'text',     'name' => 'clone_label', 'label' => $langs->trans('NewLabelForClone', $langs->transnoentities('The' . ucfirst($object->element))), 'value' => dol_print_date($object->control_date, '%Y%m%d') . '-' . $linkedObject->{$objectMetadata['name_field']}, 'size' => 24],
             ['type' => 'checkbox', 'name' => 'clone_attendants',         'label' => $langs->trans('CloneAttendants'),        'value' => 1],
             ['type' => 'checkbox', 'name' => 'clone_photos',             'label' => $langs->trans('ClonePhotos'),            'value' => 1],
             ['type' => 'checkbox', 'name' => 'clone_control_equipments', 'label' => $langs->trans('CloneControlEquipments'), 'value' => 1]
@@ -702,9 +718,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'create'))) {
         }
         print '</tr>';
     }
-
-    $object->fetchObjectLinked('', '', $object->id, 'digiquali_control');
-    $linkedObjectType = key($object->linkedObjects);
+    
     foreach ($objectsMetadata as $objectMetadata) {
         if ($objectMetadata['conf'] == 0 || $objectMetadata['link_name'] != $linkedObjectType) {
             continue;

@@ -214,7 +214,14 @@ class doc_controldocument_odt extends SaturneDocumentModel
                                     default:
                                         $tmpArray['answer'] = '';
                                 }
-
+                                $actionPrevention = ['actionPreventionUncompleted', 'actionPreventionCompleted'];
+                                if(!empty($actionPrevention) && is_array($actionPrevention)) {
+                                    foreach ($actionPrevention as $key) {
+                                        if (empty($tmpArray[$key])) {
+                                            $tmpArray[$key] = '-';
+                                        }
+                                    }
+                                }
                                 $path = $conf->digiquali->multidir_output[$conf->entity] . '/control/' . $object->ref . '/answer_photo/' . $question->ref;
                                 // If thumb directory does not exist, create a new one to stock thumbs photo
                                 if (!is_dir($path . '/thumbs/')) {
@@ -368,7 +375,7 @@ class doc_controldocument_odt extends SaturneDocumentModel
 
         if (!empty($object->photo)) {
             $path       = $conf->digiquali->multidir_output[$conf->entity] . '/control/' . $object->ref . '/photos';
-            $thumb_name = saturne_get_thumb_name($object->photo, 'mini');
+            $thumb_name = saturne_get_thumb_name($object->photo, 'small');
             $image      = $path . '/thumbs/' . $thumb_name;
             $tmpArray['photoDefault'] = $image;
         } else {
