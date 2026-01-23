@@ -242,15 +242,6 @@ if (empty($resHook)) {
         }
     }
 
-    if ($action == 'builddoc' && GETPOST('model') == 'control_document') {
-        require_once __DIR__ . './../../class/digiqualidocuments/controldocument.class.php';
-        $document = new ControlDocument($db);
-
-        $moduleNameLowerCase      = 'digiquali';
-        $moreParams['modulePart'] = 'digiquali';
-        require __DIR__ . '/../../../saturne/core/tpl/documents/documents_action.tpl.php';
-    }
-
     require_once __DIR__ . '/../../core/tpl/digiquali_answers_save_action.tpl.php';
 
     require_once __DIR__ . '/../../core/tpl/digiquali_answers_task_action.tpl.php';
@@ -718,7 +709,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'create'))) {
         }
         print '</tr>';
     }
-    
+
     foreach ($objectsMetadata as $objectMetadata) {
         if ($objectMetadata['conf'] == 0 || $objectMetadata['link_name'] != $linkedObjectType) {
             continue;
@@ -1017,7 +1008,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'create'))) {
         $fileDir   = $upload_dir . '/' . $dirFiles;
         $urlSource = $_SERVER['PHP_SELF'] . '?id=' . $object->id;
 
-        print saturne_show_documents('digiquali:' . ucfirst($object->element) . 'Document', $dirFiles, $fileDir, $urlSource, $permissiontoadd, $permissiontodelete, $conf->global->DIGIQUALI_CONTROLDOCUMENT_DEFAULT_MODEL, 1, 0, 0, 0, '', '', '', $langs->defaultlang, '', $object, 0, 'remove_file', (($object->status > CONTROL::STATUS_DRAFT) ? 1 : 0), $langs->trans('ObjectMustBeValidatedToGenerate', ucfirst($langs->transnoentities('The' . ucfirst($object->element)))));
+        print saturne_show_documents('digiquali:' . ucfirst($object->element) . 'Document', $dirFiles, $fileDir, $urlSource, $permissiontoadd, $permissiontodelete, $conf->global->DIGIQUALI_CONTROLDOCUMENT_DEFAULT_MODEL, 1, 0, 0, 0, '', '', '', $langs->defaultlang, '', $object, 0, 'remove_file');
         print '</div>';
 
         print '</div><div class="fichehalfright">';

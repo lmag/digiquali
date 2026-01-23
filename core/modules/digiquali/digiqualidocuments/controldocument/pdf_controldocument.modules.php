@@ -1,10 +1,28 @@
 <?php
-/**
- *    \file       htdocs/custom/digiquali/documents/doctemplates/controldocument/controldocument.pdf.php
- *    \ingroup    control document pdf
- *    \brief      This template is to create a control pdf
+/* Copyright (C) 2025-2026 EVARISK <technique@evarisk.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ * or see https://www.gnu.org/
  */
 
+/**
+ * \file    core/modules/digiqualidocuments/controldocument/pdf_controldocument.modules.php
+ * \ingroup digiquali
+ * \brief   File of class to generate control document pdf
+ */
+
+// Load Dolibarr libraries
 require_once DOL_DOCUMENT_ROOT . '/core/modules/project/modules_project.php';
 require_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
 require_once DOL_DOCUMENT_ROOT . '/projet/class/task.class.php';
@@ -13,10 +31,13 @@ require_once DOL_DOCUMENT_ROOT . '/core/lib/pdf.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/date.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
 
+// Load Saturne libraries
+require_once __DIR__ . '/../../../../../../saturne/core/modules/saturne/modules_saturne.php';
+
 /**
- *    Class to build control documents
+ * Class to build control document pdf
  */
-class pdf_control_document
+class pdf_controldocument extends SaturneDocumentModel
 {
     /**
      * @var DoliDb Database handler
@@ -32,70 +53,6 @@ class pdf_control_document
      * @var string model description (short text)
      */
     public $description;
-
-    /**
-     * @var string document type
-     */
-    public $type;
-
-    /**
-     * @var array Minimum version of PHP required by module.
-     * e.g.: PHP ≥ 5.6 = array(5, 6)
-     */
-    public $phpmin = array(5, 6);
-
-    /**
-     * Dolibarr version of the loaded document
-     * @var string
-     */
-    public $version = 'dolibarr';
-
-    /**
-     * @var int page_largeur
-     */
-    public $page_largeur;
-
-    /**
-     * @var int page_hauteur
-     */
-    public $page_hauteur;
-
-    /**
-     * @var array format
-     */
-    public $format;
-
-    /**
-     * @var int marge_gauche
-     */
-    public $marge_gauche;
-
-    /**
-     * @var int marge_droite
-     */
-    public $marge_droite;
-
-    /**
-     * @var int marge_haute
-     */
-    public $marge_haute;
-
-    /**
-     * @var int marge_basse
-     */
-    public $marge_basse;
-
-    /**
-     * Page orientation
-     * @var string 'P' or 'Portait' (default), 'L' or 'Landscape'
-     */
-    private $orientation = 'P';
-
-    /**
-     * Issuer
-     * @var Societe Object that emits
-     */
-    public $emetteur;
 
     /**
      * @var string Module
@@ -116,16 +73,11 @@ class pdf_control_document
     {
         global $langs;
 
-        $this->db           = $db;
-        $this->name         = 'controldocument';
-        $this->description  = $langs->trans("ControlDocumentPDFDescription");
-        $this->type         = 'pdf_control_document';
-        $this->format       = 'A4';
-        $this->orientation  = 'P';
-        $this->marge_gauche = 5;
-        $this->marge_droite = 5;
-        $this->marge_haute  = 5;
-        $this->marge_basse  = 5;
+        parent::__construct($db, $this->module, $this->document_type);
+
+        $this->name        = 'controldocument';
+        $this->description = $langs->trans('ControlDocumentPDFDescription');
+        $this->type        = 'pdf';
     }
 
     /**
@@ -228,7 +180,7 @@ class pdf_control_document
             $pdf->setPrintFooter(false);
         }
 
-        $pdf->AddPage($this->orientation);
+        $pdf->AddPage();
         $pdf->SetFont(pdf_getPDFFont($outputlangs), '', $default_font_size);
 
         $widthFirstColumn  = 50;
@@ -557,6 +509,7 @@ class pdf_control_document
             $pdf->Cell($widthName+$widthPre+$widthDate+$widthSign, 8, "Aucun contrôleur", 1, 1, 'C');
         }
 
+        echo '<pre>'; print_r( $file ); echo '</pre>'; exit;
         try {
             $pdf->Output($file, 'F');
         } catch (Exception $e) {
