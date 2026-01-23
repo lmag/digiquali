@@ -1083,7 +1083,7 @@ class ActionsDigiquali
 
                 if ($object->fk_question) {
                     $question->fetch($object->fk_question);
-                    $out[$parameters['key']] = $question->type;
+                    $out[$parameters['key']] = $langs->trans($question->type);
                 }
             } elseif ($parameters['key'] == 'answer') {
                 if ($object->answer) {

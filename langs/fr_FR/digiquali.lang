@@ -85,6 +85,7 @@ Question                      = Question
 Questions                     = questions
 TheQuestion                   = la question
 QuestionList                  = Liste des questions
+ControldetList                = Liste des réponses aux controles
 SelectMultipleQuestion        = Sélectionnez une ou plusieurs questions
 NewQuestion                   = Nouvelle question
 ModifyQuestion                = Modifier une question
