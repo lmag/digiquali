@@ -804,7 +804,7 @@ class Survey extends SaturneObject
 
         $object = $this;
 
-        include DOL_DOCUMENT_ROOT . '/custom/digiquali/core/tpl/digiquali_answers.tpl.php';
+        require __DIR__ . '/../core/tpl/digiquali_answers.tpl.php';
     }
 
     /**

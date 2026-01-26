@@ -924,6 +924,6 @@ class Question extends SaturneObject
     {
 		global $langs;
 		$question = $this;
-		include DOL_DOCUMENT_ROOT . '/custom/digiquali/view/sheet/sheet_question.tpl.php';
+        require __DIR__ . '/../view/sheet/sheet_question.tpl.php';
     }
 }

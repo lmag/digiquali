@@ -818,7 +818,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 	$isAddFormsVisible = true;
 	$groupId = 0; // root of the model
-	include DOL_DOCUMENT_ROOT . '/custom/digiquali/view/sheet/sheet_addforms.tpl.php';
+    require __DIR__ . '/../../view/sheet/sheet_addforms.tpl.php';
 
 	print '</table>';
 	print '</div>';

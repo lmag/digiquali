@@ -975,7 +975,7 @@ class Sheet extends SaturneObject
             $positionPath = 1;
             foreach ($questionsAndGroups as $questionOrGroup) {
                 $object = $this;
-                include DOL_DOCUMENT_ROOT . '/custom/digiquali/view/sheet/sheet_questiongroup.tpl.php';
+                require __DIR__ . '/../view/sheet/sheet_questiongroup.tpl.php';
                 $positionPath++;
             }
         }

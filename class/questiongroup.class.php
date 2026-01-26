@@ -712,7 +712,7 @@ class QuestionGroup extends SaturneObject
         $groupId = $this->id;
         $object = $sheetObject;
         $tdOffsetStyle = 'style="padding-left: calc(2rem + 2rem * ' . $subLevel . ' + 12px);"';
-        include DOL_DOCUMENT_ROOT . '/custom/digiquali/view/sheet/sheet_addforms.tpl.php';
+        require __DIR__ . '/../view/sheet/sheet_addforms.tpl.php';
 
         $subLevel++;
 
