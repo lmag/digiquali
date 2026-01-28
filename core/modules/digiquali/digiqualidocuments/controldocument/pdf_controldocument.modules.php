@@ -100,7 +100,7 @@ class pdf_controldocument extends SaturneDocumentModel
      *  Write the PDF file to disk
      *
      * @param Object $object Object to generate (ex: control)
-     * @param Translate $outputlangs Lang object
+     * @param Translate $outputLangs Lang object
      * @param string $srctemplatepath
      * @param int $hidedetails
      * @param int $hidedesc
@@ -108,9 +108,9 @@ class pdf_controldocument extends SaturneDocumentModel
      * @param null|array $moreparams
      * @return int                         1=OK, <0=KO
      */
-    public function write_file($objectDocument, $outputlangs, $srcTemplatePath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0, $moreparams = array()): int
+    public function write_file($objectDocument, $outputLangs, $srcTemplatePath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0, $moreparams = array()): int
     {
-        global $conf, $langs, $user, $hookmanager, $action;
+        global $conf, $langs, $hookmanager, $action;
 
         $langs->load("main");
         $langs->load("digiquali@digiquali");
@@ -121,26 +121,40 @@ class pdf_controldocument extends SaturneDocumentModel
         $sheet            = new Sheet($this->db);
         $questions        = new Question($this->db);
         $controlDet       = new ControlLine($this->db);
-        $user             = new User($this->db);
+        $users            = new User($this->db);
         $project          = new Project($this->db);
         $saturneSignature = new SaturneSignature($this->db);
         $controlEquipment = new ControlEquipment($this->db);
         $productLot       = new Productlot($this->db);
 
         $object->fetch($id);
+
+        $moreparams['hideTemplateName'] = 1;
+        $file = $this->buildDocumentFilename($objectDocument, $outputLangs, $object, $moreparams);
+        if ($file < 0) {
+            $this->error = $langs->transnoentities('ErrorFileNameCanNotBeBuilt');
+            return -1;
+        }
+
+        $hookmanager->initHooks(['pdfgeneration']);
+        $parameters = ['file' => $file, 'object' => $object, 'outputlangs' => $outputLangs];
+        $hookmanager->executeHooks('beforePDFCreation', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
+
         $sheet->fetch($object->fk_sheet);
         $questions->fetchObjectLinked($sheet->id, 'digiquali_sheet', null, 'digiquali_question');
-        $user->fetch($object->fk_user_controller);
+        $users->fetch($object->fk_user_controller);
         $project->fetch($object->projectid);
 
         $signatures        = $saturneSignature->fetchSignatories($object->id, $object->element);
         $controlEquipments = $controlEquipment->fetchFromParent($object->id);
 
-        foreach ($questions->linkedObjects['digiquali_question'] as $question) {
-            $controlDets = $controlDet->fetchFromParentWithQuestion($id, $question->id);
-            foreach ($controlDets as $data) {
-                $answerRef[] = $data->ref;
-                $answer[]    = $data->answer;
+        if (!empty($questions->linkedObjects)) {
+            foreach ($questions->linkedObjects['digiquali_question'] as $question) {
+                $controlDets = $controlDet->fetchFromParentWithQuestion($id, $question->id);
+                foreach ($controlDets as $data) {
+                    $answerRef[] = $data->ref;
+                    $answer[] = $data->answer;
+                }
             }
         }
 
@@ -153,24 +167,8 @@ class pdf_controldocument extends SaturneDocumentModel
             }
             $linkedObject = $object->linkedObjects[$objectMetadata['link_name']][key($object->linkedObjects[$objectMetadata['link_name']])];
         }
-        $diroutput = $conf->digiquali->multidir_output[$conf->entity] ?? '';
-        if (empty($diroutput)) {
-            $this->error = "Configuration manquante: conf->digiquali->dir_output";
-            return -1;
-        }
-        $ref = !empty($object->ref) ? dol_sanitizeFileName($object->ref) : 'no_ref';
-        $dir = $diroutput . '/controldocument/' . $ref;
-        if (!file_exists($dir)) {
-            if (dol_mkdir($dir) < 0) {
-                $this->error = "Impossible de créer le répertoire: $dir";
-                return -1;
-            }
-        }
-        $date              = dol_print_date(dol_now(), "dayxcard");
-        $file_name         = dol_sanitizeFileName($date . "_" . $ref . "_controldocument") . ".pdf";
-        $file              = $dir . "/" . $file_name;
         $pdf               = pdf_getInstance($this->format);
-        $default_font_size = pdf_getPDFFontSize($outputlangs);
+        $default_font_size = pdf_getPDFFontSize($outputLangs);
 
         $pdf->SetAutoPageBreak(1, $this->marge_basse);
         $pdf->SetMargins($this->marge_gauche, $this->marge_haute, $this->marge_droite);
@@ -181,7 +179,7 @@ class pdf_controldocument extends SaturneDocumentModel
         }
 
         $pdf->AddPage();
-        $pdf->SetFont(pdf_getPDFFont($outputlangs), '', $default_font_size);
+        $pdf->SetFont(pdf_getPDFFont($outputLangs), '', $default_font_size);
 
         $widthFirstColumn  = 50;
         $widthSecondColumn = 80;
@@ -193,8 +191,11 @@ class pdf_controldocument extends SaturneDocumentModel
         $y = $pdf->GetY();
 
         $path  = $conf->digiquali->multidir_output[$conf->entity] . '/control/' . $object->ref . '/photos';
-        $thumb = saturne_get_thumb_name($object->photo);
+        $thumb = saturne_get_thumb_name($object->photo, 'medium');
         $image = $path . '/thumbs/' . $thumb;
+        if (!file_exists($image)) {
+            $image = vignette($path . '/' . $object->photo, getDolGlobalInt('DIGIQUALI_MEDIA_MAX_WIDTH_SMALL'), getDolGlobalInt('DIGIQUALI_MEDIA_MAX_HEIGHT_SMALL'), '_small', 50, $path . '/thumbs');
+        }
 
         if (!empty($object->photo)) {
             $pdf->Image($image, $x, $y * 2.5, $widthThirdColumn, 0, 'PNG', '', 'C', false, 300, '', false, false, 1);
@@ -269,23 +270,25 @@ class pdf_controldocument extends SaturneDocumentModel
         $pdf->SetFont('', '', $default_font_size);
         $controlLine = 0;
 
-        foreach ($questions->linkedObjects['digiquali_question'] as $question) {
-            $hRef       = $pdf->getStringHeight($widthQuestion, $question->ref);
-            $hTitle     = $pdf->getStringHeight($widthTitle, $question->label . "\nDescription : " . $question->description);
-            $hRefAnswer = $pdf->getStringHeight($widthRefAnswer, $question->ref_answer);
-            $hComment   = $pdf->getStringHeight($widthObservation, $question->comment);
-            $hAnswer    = $pdf->getStringHeight($widthAnswer, $question->answer);
-            $h          = max($hRef, $hTitle, $hRefAnswer, $hComment, $hAnswer);
-            $x          = $pdf->GetX();
-            $y          = $pdf->GetY();
-            $this->checkPageBreak($pdf, $h);
+        if (!empty($questions->linkedObjects['digiquali_question'])) {
+            foreach ($questions->linkedObjects['digiquali_question'] as $question) {
+                $hRef = $pdf->getStringHeight($widthQuestion, $question->ref);
+                $hTitle = $pdf->getStringHeight($widthTitle, $question->label . "\nDescription : " . $question->description);
+                $hRefAnswer = $pdf->getStringHeight($widthRefAnswer, $question->ref_answer);
+                $hComment = $pdf->getStringHeight($widthObservation, $question->comment);
+                $hAnswer = $pdf->getStringHeight($widthAnswer, $question->answer);
+                $h = max($hRef, $hTitle, $hRefAnswer, $hComment, $hAnswer);
+                $x = $pdf->GetX();
+                $y = $pdf->GetY();
+                $this->checkPageBreak($pdf, $h);
 
-            $pdf->MultiCell($widthQuestion, $h, strip_tags($question->ref), 1, 'C', false, 0, $x, $y, true, 0, false, true, $h, 'M');
-            $pdf->MultiCell($widthTitle, $h, strip_tags($question->label) . "\nDescription : " . html_entity_decode(strip_tags($question->description), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 1, 'C', false, 0, $x + $widthQuestion, $y, true, 0, false, true, $h, 'M');
-            $pdf->MultiCell($widthRefAnswer, $h, strip_tags($answerRef[$controlLine]), 1, 'C', false, 0, $x + $widthQuestion + $widthTitle, $y, true, 0, false, true, $h, 'M');
-            $pdf->MultiCell($widthObservation, $h, strip_tags($object->lines[$controlLine]->comment), 1, 'C', false, 0, $x + $widthQuestion + $widthTitle + $widthRefAnswer, $y, true, 0, false, true, $h, 'M');
-            $pdf->MultiCell($widthAnswer, $h, strip_tags($answer[$controlLine]), 1, 'C', false, 1, $x + $widthQuestion + $widthTitle + $widthRefAnswer + $widthObservation, $y, true, 0, false, true, $h, 'M');
-            $controlLine++;
+                $pdf->MultiCell($widthQuestion, $h, strip_tags($question->ref), 1, 'C', false, 0, $x, $y, true, 0, false, true, $h, 'M');
+                $pdf->MultiCell($widthTitle, $h, strip_tags($question->label) . "\nDescription : " . html_entity_decode(strip_tags($question->description), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 1, 'C', false, 0, $x + $widthQuestion, $y, true, 0, false, true, $h, 'M');
+                $pdf->MultiCell($widthRefAnswer, $h, strip_tags($answerRef[$controlLine]), 1, 'C', false, 0, $x + $widthQuestion + $widthTitle, $y, true, 0, false, true, $h, 'M');
+                $pdf->MultiCell($widthObservation, $h, strip_tags($object->lines[$controlLine]->comment), 1, 'C', false, 0, $x + $widthQuestion + $widthTitle + $widthRefAnswer, $y, true, 0, false, true, $h, 'M');
+                $pdf->MultiCell($widthAnswer, $h, strip_tags($answer[$controlLine]), 1, 'C', false, 1, $x + $widthQuestion + $widthTitle + $widthRefAnswer + $widthObservation, $y, true, 0, false, true, $h, 'M');
+                $controlLine++;
+            }
         }
 
         $pdf->Ln(10);
@@ -293,66 +296,68 @@ class pdf_controldocument extends SaturneDocumentModel
         $pdf->Cell(0, 8, 'Liste des photos liées aux questions', 0, 1, 'L');
         $pdf->Ln(3);
 
-        foreach ($questions->linkedObjects['digiquali_question'] as $question) {
-            $path = $conf->digiquali->multidir_output[$conf->entity] . '/control/' . $object->ref . '/answer_photo/' . $question->ref . '/thumbs/';
-            if (!is_dir($path)) {
-                continue;
-            }
-            $files = array_values(array_diff(scandir($path), ['.', '..']));
-            if (empty($files)) {
-                continue;
-            }
-            $pdf->Ln(6);
-            $pdf->SetFont('', '', 10);
-
-            $totalWidth      = 200;
-            $imagesPerRow    = 4;
-            $cellHeight      = 35;
-            $labelWidth      = 70;
-            $photoCols       = $imagesPerRow - 1;
-            $photoWidth      = ($totalWidth - $labelWidth) / $photoCols;
-            $imgWidth        = 25;
-            $rows            = ceil(count($files) / $photoCols);
-            $estimatedHeight = ($rows * ($cellHeight + 8)) + 10;
-            $this->checkPageBreak($pdf, $estimatedHeight);
-            $photoIndex = 0;
-
-            for ($r = 0; $r < $rows; $r++) {
-                if ($r == 0) {
-                    $pdf->MultiCell($labelWidth, $cellHeight, "Question :\n" . strip_tags($question->label), 1, 'L', false, 0, '', '', true, 0, false, true, $cellHeight, 'M');
-                } else {
-                    $pdf->MultiCell($labelWidth, $cellHeight, '', 1, 'L', false, 0, '', '', true, 0, false, true, $cellHeight, 'M');
+        if (!empty($questions->linkedObjects['digiquali_question'])) {
+            foreach ($questions->linkedObjects['digiquali_question'] as $question) {
+                $path = $conf->digiquali->multidir_output[$conf->entity] . '/control/' . $object->ref . '/answer_photo/' . $question->ref . '/thumbs/';
+                if (!is_dir($path)) {
+                    continue;
                 }
-                for ($p = 0; $p < $photoCols; $p++) {
-                    if ($photoIndex < count($files)) {
-                        $imagePath = realpath($path . '/' . $files[$photoIndex]);
-                        $imagePath = str_replace('\\', '/', $imagePath);
-                        $xImgCell  = $pdf->GetX();
-                        $yImgCell  = $pdf->GetY();
+                $files = array_values(array_diff(scandir($path), ['.', '..']));
+                if (empty($files)) {
+                    continue;
+                }
+                $pdf->Ln(6);
+                $pdf->SetFont('', '', 10);
 
-                        $pdf->Cell($photoWidth, $cellHeight, '', 1, 0, 'C');
+                $totalWidth = 200;
+                $imagesPerRow = 4;
+                $cellHeight = 35;
+                $labelWidth = 70;
+                $photoCols = $imagesPerRow - 1;
+                $photoWidth = ($totalWidth - $labelWidth) / $photoCols;
+                $imgWidth = 25;
+                $rows = ceil(count($files) / $photoCols);
+                $estimatedHeight = ($rows * ($cellHeight + 8)) + 10;
+                $this->checkPageBreak($pdf, $estimatedHeight);
+                $photoIndex = 0;
 
-                        if (file_exists($imagePath) && is_readable($imagePath)) {
-                            $imgX = $xImgCell + ($photoWidth - $imgWidth) / 2;
-                            $imgY = $yImgCell + 5;
-                            $pdf->Image($imagePath, $imgX, $imgY, $imgWidth, 0, 'PNG');
+                for ($r = 0; $r < $rows; $r++) {
+                    if ($r == 0) {
+                        $pdf->MultiCell($labelWidth, $cellHeight, "Question :\n" . strip_tags($question->label), 1, 'L', false, 0, '', '', true, 0, false, true, $cellHeight, 'M');
+                    } else {
+                        $pdf->MultiCell($labelWidth, $cellHeight, '', 1, 'L', false, 0, '', '', true, 0, false, true, $cellHeight, 'M');
+                    }
+                    for ($p = 0; $p < $photoCols; $p++) {
+                        if ($photoIndex < count($files)) {
+                            $imagePath = realpath($path . '/' . $files[$photoIndex]);
+                            $imagePath = str_replace('\\', '/', $imagePath);
+                            $xImgCell = $pdf->GetX();
+                            $yImgCell = $pdf->GetY();
+
+                            $pdf->Cell($photoWidth, $cellHeight, '', 1, 0, 'C');
+
+                            if (file_exists($imagePath) && is_readable($imagePath)) {
+                                $imgX = $xImgCell + ($photoWidth - $imgWidth) / 2;
+                                $imgY = $yImgCell + 5;
+                                $pdf->Image($imagePath, $imgX, $imgY, $imgWidth, 0, 'PNG');
+                            }
+                            $photoIndex++;
+                        } else {
+                            $pdf->Cell($photoWidth, $cellHeight, '', 1, 0, 'C');
                         }
-                        $photoIndex++;
-                    } else {
-                        $pdf->Cell($photoWidth, $cellHeight, '', 1, 0, 'C');
                     }
-                }
-                $pdf->Ln($cellHeight);
-                $pdf->Cell($labelWidth, 8, '', 1, 0, 'L');
-                for ($p = 0; $p < $photoCols; $p++) {
-                    $index = ($r * $photoCols) + $p;
-                    if ($index < count($files)) {
-                        $pdf->Cell($photoWidth, 8, 'Photo ' . ($index + 1), 1, 0, 'C');
-                    } else {
-                        $pdf->Cell($photoWidth, 8, '', 1, 0, 'C');
+                    $pdf->Ln($cellHeight);
+                    $pdf->Cell($labelWidth, 8, '', 1, 0, 'L');
+                    for ($p = 0; $p < $photoCols; $p++) {
+                        $index = ($r * $photoCols) + $p;
+                        if ($index < count($files)) {
+                            $pdf->Cell($photoWidth, 8, 'Photo ' . ($index + 1), 1, 0, 'C');
+                        } else {
+                            $pdf->Cell($photoWidth, 8, '', 1, 0, 'C');
+                        }
                     }
+                    $pdf->Ln(8);
                 }
-                $pdf->Ln(8);
             }
         }
 
@@ -509,38 +514,11 @@ class pdf_controldocument extends SaturneDocumentModel
             $pdf->Cell($widthName+$widthPre+$widthDate+$widthSign, 8, "Aucun contrôleur", 1, 1, 'C');
         }
 
-        echo '<pre>'; print_r( $file ); echo '</pre>'; exit;
         try {
             $pdf->Output($file, 'F');
-        } catch (Exception $e) {
-            $this->error = "Erreur lors de la création du PDF : " . $e->getMessage();
+        } catch (Exception $exception) {
+            $this->error = "Erreur lors de la création du PDF : " . $exception->getMessage();
             return -1;
-        }
-        if (!file_exists($file)) {
-            $this->error = "PDF non généré (fichier introuvable après Output) : $file";
-            return -1;
-        }
-
-        if (is_object($objectDocument) && method_exists($objectDocument, "setValueFrom")) {
-            $res = $objectDocument->setValueFrom(
-                "last_main_doc",
-                $file_name,
-                '',
-                null,
-                '',
-                '',
-                $user,
-                '',
-                ''
-            );
-            if ($res <= 0 && !empty($objectDocument->error)) {
-                $this->error = $objectDocument->error;
-                return -1;
-            }
-        }
-
-        if (!empty($conf->global->MAIN_UMASK)) {
-            @chmod($file, octdec($conf->global->MAIN_UMASK));
         }
 
         $this->result = ['fullpath' => $file];
