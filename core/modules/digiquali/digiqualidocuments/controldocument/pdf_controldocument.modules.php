@@ -191,11 +191,8 @@ class pdf_controldocument extends SaturneDocumentModel
         $y = $pdf->GetY();
 
         $path  = $conf->digiquali->multidir_output[$conf->entity] . '/control/' . $object->ref . '/photos';
-        $thumb = saturne_get_thumb_name($object->photo, 'medium');
+        $thumb = saturne_get_thumb_name($object->photo, 'medium', $path);
         $image = $path . '/thumbs/' . $thumb;
-        if (!file_exists($image)) {
-            $image = vignette($path . '/' . $object->photo, getDolGlobalInt('DIGIQUALI_MEDIA_MAX_WIDTH_SMALL'), getDolGlobalInt('DIGIQUALI_MEDIA_MAX_HEIGHT_SMALL'), '_small', 50, $path . '/thumbs');
-        }
 
         if (!empty($object->photo)) {
             $pdf->Image($image, $x, $y * 2.5, $widthThirdColumn, 0, 'PNG', '', 'C', false, 300, '', false, false, 1);
