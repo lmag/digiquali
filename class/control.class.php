@@ -908,7 +908,15 @@ class Control extends SaturneObject
      */
     public function showInputField($val, $key, $value, $moreparam = '', $keysuffix = '', $keyprefix = '', $morecss = 0, $nonewbutton = 0): string
     {
-        $objectsMetadata = saturne_get_objects_metadata();
+        global $conf;
+
+        if (!isset($conf->cache['objectsMetadata']) || empty($conf->cache['objectsMetadata'])) {
+            $objectsMetadata                = saturne_get_objects_metadata();
+            $conf->cache['objectsMetadata'] = $objectsMetadata;
+        } else {
+            $objectsMetadata = $conf->cache['objectsMetadata'];
+        }
+
         foreach($objectsMetadata as $objectMetadata) {
             if ($objectMetadata['conf'] > 0 && $key == $objectMetadata['post_name']) {
                 $out          = '';

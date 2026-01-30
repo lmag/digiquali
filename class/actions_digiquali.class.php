@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2022-2025 EVARISK <technique@evarisk.com>
+/* Copyright (C) 2022-2026 EVARISK <technique@evarisk.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,6 +40,11 @@ class ActionsDigiquali
      * @var array Errors
      */
     public array $errors = [];
+
+    /**
+     * @var string[] Warning codes (or messages)
+     */
+    public array $warnings = [];
 
     /**
      * @var array Hook results. Propagated to $hookmanager->resArray for later reuse
@@ -264,9 +269,14 @@ class ActionsDigiquali
     {
         global $conf, $extrafields, $langs, $user;
 
-        require_once __DIR__ . '/../../saturne/lib/object.lib.php';
+        if (!isset($conf->cache['objectsMetadata']) || empty($conf->cache['objectsMetadata'])) {
+            require_once __DIR__ . '/../../saturne/lib/object.lib.php';
+            $objectsMetadata                = saturne_get_objects_metadata();
+            $conf->cache['objectsMetadata'] = $objectsMetadata;
+        } else {
+            $objectsMetadata = $conf->cache['objectsMetadata'];
+        }
 
-        $objectsMetadata = saturne_get_objects_metadata();
         foreach($objectsMetadata as $objectMetadata) {
             if ($objectMetadata['tab_type'] == $object->element) {
                 if (strpos($parameters['context'], $objectMetadata['hook_name_card']) !== false) {
@@ -374,9 +384,7 @@ class ActionsDigiquali
         }
 
         if (preg_match('/surveylist|controllist/', $parameters['context'])) {
-            require_once __DIR__ . '/../../saturne/lib/object.lib.php';
-
-            $objectsMetadata = saturne_get_objects_metadata();
+            $objectsMetadata = $conf->cache['objectsMetadata'];
             foreach($objectsMetadata as $objectMetadata) {
                 if ($objectMetadata['conf'] == 0) {
                     continue;
@@ -460,11 +468,16 @@ class ActionsDigiquali
      */
     public function printFieldListOption(array $parameters): int
     {
-        global $extrafields, $langs, $object;
+        global $conf, $extrafields, $langs, $object;
 
-        require_once __DIR__ . '/../../saturne/lib/object.lib.php';
+        if (!isset($conf->cache['objectsMetadata']) || empty($conf->cache['objectsMetadata'])) {
+            require_once __DIR__ . '/../../saturne/lib/object.lib.php';
+            $objectsMetadata = saturne_get_objects_metadata();
+            $conf->cache['objectsMetadata'] = $objectsMetadata;
+        } else {
+            $objectsMetadata = $conf->cache['objectsMetadata'];
+        }
 
-        $objectsMetadata = saturne_get_objects_metadata();
         foreach($objectsMetadata as $objectMetadata) {
             if ($objectMetadata['tab_type'] != $object->element) {
                 continue;
@@ -819,8 +832,6 @@ class ActionsDigiquali
 
             $signatory = new SaturneSignature($this->db, 'digiquali', $object->element);
             $sheet     = new Sheet($this->db);
-
-            $conf->cache['objectsMetadata'] = saturne_get_objects_metadata();
 
             $object->fetchLines();
             $object->fetchObjectLinked('', '', $object->id, 'digiquali_control');

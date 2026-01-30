@@ -98,10 +98,11 @@ if (!$sortorder) {
 }
 
 // Definition of custom fields for columns
-$nbLinkableElements = 0;
-$objectPosition     = 21;
-$excludeFields      = [];
-$objectsMetadata    = saturne_get_objects_metadata();
+$nbLinkableElements             = 0;
+$objectPosition                 = 21;
+$excludeFields                  = [];
+$objectsMetadata                = saturne_get_objects_metadata();
+$conf->cache['objectsMetadata'] = $objectsMetadata;
 foreach($objectsMetadata as $objectMetadata) {
     if ($objectMetadata['conf'] == 0) {
         continue;
@@ -223,8 +224,8 @@ if (empty($resHook)) {
         foreach ($object->fields as $key => $val) {
             $search[$key] = '';
             if (isset($val['type']) && in_array($val['type'], ['date', 'datetime', 'timestamp'])) {
-                $search[$key.'_dtstart'] = '';
-                $search[$key.'_dtend']   = '';
+                $search[$key . '_dtstart'] = '';
+                $search[$key . '_dtend']   = '';
             }
         }
         $searchAll            = '';
