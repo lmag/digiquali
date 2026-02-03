@@ -78,6 +78,191 @@ class pdf_controldocument extends SaturneDocumentModel
         $this->name        = 'controldocument';
         $this->description = $langs->trans('ControlDocumentPDFDescription');
         $this->type        = 'pdf';
+        $this->height      = 10;
+    }
+
+    /**
+     *  Show top header of page
+     *
+     *  @param	TCPDF		$pdf     		Object PDF
+     *  @param  Control		$object     	Object to show
+     *  @param  Sheet		$object     	Object to show
+     *  @param  Project		$object     	Object to show
+     *  @param  Translate	$outputlangs	Object lang for output
+     *  @return	float|int                   Return topshift value
+     */
+    protected function _pagehead(&$pdf, $object, $sheet, $project, $outputLangs, $defaultFontSize)
+    {
+        global $langs;
+
+        $objectsMetadata = saturne_get_objects_metadata();
+        $object->fetchObjectLinked('', '', $object->id, 'digiquali_control');
+        $linkedObjectType = key($object->linkedObjects);
+
+        $linkedElement = json_decode($sheet->element_linked, true);
+        $linkedElement = array_keys($linkedElement)[0];
+        if ($linkedElement == 'productlot') {
+            $linkedElement = 'batch';
+        }
+
+        foreach ($objectsMetadata as $objectMetadata) {
+            if ($objectMetadata['conf'] == 0 || $objectMetadata['link_name'] != $linkedObjectType) {
+                continue;
+            }
+            $linkedObject = $object->linkedObjects[$objectMetadata['link_name']][key($object->linkedObjects[$objectMetadata['link_name']])];
+        }
+
+        $widthFirstColumn  = 35;
+        $widthSecondColumn = 80;
+        $widthThirdColumn  = 75;
+
+        $verdict = '';
+        if ($object->verdict == 1) {
+            $verdict = 'OK';
+        } elseif ($object->verdict == 2) {
+            $verdict = 'KO';
+        }
+        $multdirOutput = getMultidirOutput($object, $object->module);
+        $path          = $multdirOutput . '/control/' . $object->ref . '/photos';
+        $thumb         = saturne_get_thumb_name($object->photo, 'medium', $path);
+        $image         = $path . '/thumbs/' . $thumb;
+
+        $data = [
+            'ref' => [
+                'type'   => 'rowThreeCols',
+                'height' => $this->height,
+                'cols'   => [
+                    [
+                        'width' => $widthFirstColumn,
+                        'text'  => $langs->transnoentities('Ref') . $langs->transnoentities('Control'),
+                        'align' => 'L',
+                    ],
+                    [
+                        'width' => $widthSecondColumn,
+                        'text'  => $object->ref,
+                        'align' => 'L',
+                    ],
+                    [
+                        'width'  => $widthThirdColumn,
+                        'image'  => !empty($object->photo) ? $image : null,
+                        'height' => 60,
+                    ],
+                ],
+            ],
+            'object' => [
+                'type'   => 'rowTwoCols',
+                'height' => $this->height,
+                'cols'   => [
+                    [
+                        'width' => $widthFirstColumn,
+                        'text'  => $langs->transnoentities('ControlObject'),
+                    ],
+                    [
+                        'width' => $widthSecondColumn,
+                        'text'  => $langs->transnoentities(ucfirst($linkedElement)) . ' : ' . $linkedObject->$linkedElement,
+                    ],
+                ],
+            ],
+            'date' => [
+                'type'   => 'rowTwoCols',
+                'height' => $this->height,
+                'cols'   => [
+                    [
+                        'width' => $widthFirstColumn,
+                        'text'  => $langs->transnoentities('ControlDate'),
+                    ],
+                    [
+                        'width' => $widthSecondColumn,
+                        'text'  => dol_print_date($object->control_date, 'day'),
+                    ],
+                ],
+            ],
+            'project' => [
+                'type'   => 'rowTwoCols',
+                'height' => $this->height,
+                'cols'   => [
+                    [
+                        'width' => $widthFirstColumn,
+                        'text'  => $langs->transnoentities('Project'),
+                    ],
+                    [
+                        'width' => $widthSecondColumn,
+                        'text'  => $project->title,
+                    ],
+                ],
+            ],
+            'sheet' => [
+                'type'   => 'rowTwoCols',
+                'height' => $this->height,
+                'cols'   => [
+                    [
+                        'width' => $widthFirstColumn,
+                        'text'  => $langs->transnoentities('Ref') . $langs->transnoentities('Sheet'),
+                    ],
+                    [
+                        'width' => $widthSecondColumn,
+                        'text'  => $sheet->ref . ' - ' . $sheet->label,
+                    ],
+                ],
+            ],
+            'verdict' => [
+                'type'   => 'rowMerged',
+                'height' => $this->height,
+                'bg'     => [153, 204, 204],
+                'bold'   => true,
+                'label'  => $langs->transnoentities('VerdictObject'),
+                'value'  => $verdict,
+            ],
+
+            'note' => [
+                'type'   => 'text',
+                'height' => $this->height,
+                'text'   => $langs->transnoentities('NoteControl') . ': ' . $object->note_public,
+            ],
+        ];
+        foreach ($data as $row) {
+            switch ($row['type']) {
+                case 'rowTwoCols':
+                case 'rowThreeCols':
+                    foreach ($row['cols'] as $col) {
+                        // Police
+                        if (!empty($col['bold'])) {
+                            $pdf->SetFont('', 'B', $defaultFontSize);
+                        } else {
+                            $pdf->SetFont('', '', $defaultFontSize - 2);
+                        }
+                        // Image
+                        if (!empty($col['image'])) {
+                            $x = $pdf->GetX();
+                            $y = $pdf->GetY();
+                            $pdf->Image($col['image'], $x, $y, $col['width'], 0);
+                            $pdf->Cell($col['width'], $col['height'], '', 1);
+                        } else {
+                            $pdf->Cell($col['width'], $row['height'], $col['text'] ?? '', 1, 0, $col['align'] ?? 'L');
+                        }
+                    }
+                    $pdf->Ln($row['height']);
+                    break;
+
+                case 'rowMerged':
+                    if (!empty($row['bg'])) {
+                        $pdf->SetFillColor($row['bg'][0], $row['bg'][1], $row['bg'][2]);
+                    }
+                    $pdf->SetFont('', 'B', $defaultFontSize);
+                    $totalWidth = $widthFirstColumn + $widthSecondColumn;
+
+                    $pdf->Cell($totalWidth, $row['height'], $row['label'], 1, 0, 'C', true);
+                    $pdf->Cell($widthThirdColumn, $row['height'], $row['value'], 1, 1, 'C', true);
+                    $pdf->Ln(5);
+                    break;
+
+                case 'text':
+                    $pdf->SetFont('', '', $defaultFontSize);
+                    $pdf->Cell(0, $row['height'], strip_tags($row['text']), 0, 1, 'L');
+                    $pdf->Ln(2);
+                    break;
+            }
+        }
     }
 
     /**
@@ -96,6 +281,105 @@ class pdf_controldocument extends SaturneDocumentModel
         }
     }
 
+    private function renderSignatureTable($pdf, $langs, $signatures, $title, $roles, $widthArray, $default_font_size)
+    {
+        $pdf->SetFont('', 'B', $default_font_size);
+        $pdf->Cell(0, 8, $langs->transnoentities($title), 0, 1, 'L');
+        $pdf->Ln(3);
+
+        [$widthName, $widthPre, $widthDate, $widthSign] = $widthArray;
+
+        //Header
+        $dataSignatureHeader = [
+            [
+                'width' => $widthName,
+                'html'  => '<div style="text-align:center;"><span style="font-size:10pt;">' . $langs->transnoentities('LastName') . '</span></div>',
+            ],
+            [
+                'width' => $widthPre,
+                'html'  => '<div style="text-align:center;"><span style="font-size:10pt;">' . $langs->transnoentities('FirstName') . '</span></div>',
+            ],
+            [
+                'width' => $widthDate,
+                'html'  => '<div style="text-align:center;">' . $langs->transnoentities('SignatureDate') . '</div>',
+            ],
+            [
+                'width' => $widthSign,
+                'html'  => '<div style="text-align:center;">' . $langs->transnoentities('Signature') . '</div>',
+            ]
+        ];
+        $maxHeight = $this->calculateHeaderArraySize($pdf, $dataSignatureHeader);
+        $this->checkPageBreak($pdf, $this->height);
+        $pdf->SetFillColor(153, 204, 204);
+        foreach ($dataSignatureHeader as $header) {
+            $pdf->writeHTMLCell($header['width'], $maxHeight, '', '', $header['html'], 1, 0, true, true, 'C', true);
+        }
+        $pdf->Ln();
+
+        // Content
+        $pdf->SetFont('', '', $default_font_size);
+        $found = false;
+
+        foreach ($signatures as $signature) {
+            if (!in_array($signature->role, $roles)) {
+                continue;
+            }
+            $found = true;
+            $heightLastName  = $pdf->getStringHeight($widthName,  $signature->lastname);
+            $heightFirstName = $pdf->getStringHeight($widthPre,   $signature->firstname);
+            $heightDate      = $pdf->getStringHeight($widthDate,  $signature->signature_date);
+            $height          = max($heightLastName, $heightFirstName, $heightDate, 20);
+            $this->checkPageBreak($pdf, $height);
+            $x = $pdf->GetX();
+            $y = $pdf->GetY();
+
+            // Cells
+            $pdf->MultiCell($widthName, $height, $signature->lastname, 1, 'C', 0, 0, $x, $y, true, 0, false, true, $height, 'M', false);
+            $pdf->MultiCell($widthPre, $height, $signature->firstname, 1, 'C', 0, 0, $x + $widthName, $y, true, 0, false, true, $height, 'M', false);
+            $offset = $widthName + $widthPre;
+            $pdf->MultiCell($widthDate, $height, dol_print_date($signature->signature_date, 'day'), 1, 'C', 0, 0, $x + $offset, $y, true, 0, false, true, $height, 'M', false);
+            $offset += $widthDate;
+            // Signature
+            if (!empty($signature->signature)) {
+                $encoded = explode(",", $signature->signature)[1];
+                $img     = base64_decode($encoded);
+
+                $pdf->Image('@' . $img, $x + $offset, $y, $widthSign, $height, 'PNG', '', 'C', false, 300, '', false, false, 1);
+                $pdf->SetXY($x + $offset, $y);
+                $pdf->Cell($widthSign, $height, '', 1);
+            } else {
+                $pdf->MultiCell($widthSign, $offset, $langs->transnoentities('NA'), 1, 'C', 0, 0, $x + $offset, $y, true, 0, false, true, $height, 'M', false);
+            }
+            $pdf->Ln($height);
+        }
+
+        if (!$found) {
+            $total = array_sum($widthArray);
+            $pdf->Cell($total, 8, $langs->transnoentities('NoData'), 1, 1, 'C');
+        }
+    }
+
+
+    /**
+     *  Calcul the max header height size
+     *
+     * @param PDF $pdf           pdf object
+     * @param Array $headerArray array containing header information width and html code
+     * @return int               maxHeight=OK, <0=KO
+     */
+    private function calculateHeaderArraySize($pdf, $headerArray) {
+        if (!is_array($headerArray) || empty($headerArray)) {
+            return -1;
+        }
+        foreach ($headerArray as $header) {
+            $headerHeight[] = $pdf->getStringHeight($header['width'], strip_tags($header['html']));
+        }
+        $maxHeight = max($headerHeight);
+
+        return $maxHeight;
+
+    }
+
     /**
      *  Write the PDF file to disk
      *
@@ -110,14 +394,43 @@ class pdf_controldocument extends SaturneDocumentModel
      */
     public function write_file($objectDocument, $outputLangs, $srcTemplatePath = '', $hidedetails = 0, $hidedesc = 0, $hideref = 0, $moreparams = array()): int
     {
-        global $conf, $langs, $hookmanager, $action;
-
-        $langs->load("main");
-        $langs->load("digiquali@digiquali");
+        global $action, $langs, $hookmanager, $user;
 
         $id = GETPOST('id');
 
-        $object           = new Control($this->db);
+        $moreparams['hideTemplateName'] = 1;
+        $file = $this->buildDocumentFilename($objectDocument, $outputLangs, $moreparams['object'], $moreparams);
+        if ($file < 0) {
+            $this->error = $langs->transnoentities('ErrorFileNameCanNotBeBuilt');
+            return -1;
+        }
+
+        $hookmanager->initHooks(['pdfgeneration']);
+        $parameters = ['file' => $file, 'object' => $moreparams['object'], 'outputlangs' => $outputLangs];
+        $hookmanager->executeHooks('beforePDFCreation', $parameters, $moreparams['object'], $action); // Note that $action and $object may have been modified by some hooks
+
+        // Create pdf instance
+        $pdf              = pdf_getInstance($this->format);
+        $defaultFontSize  = pdf_getPDFFontSize($outputLangs); // Must be after pdf_getInstance
+        $defaultFontSize += 2;
+
+        if (class_exists('TCPDF')) {
+            $pdf->setPrintHeader(false);
+            $pdf->setPrintFooter(false);
+        }
+        $pdf->SetFont(pdf_getPDFFont($outputLangs));
+
+        $pdf->Open();
+        $pdf->SetDrawColor(128, 128, 128);
+
+        $pdf->SetTitle($outputLangs->convToOutputCharset($this->document_type));
+        $pdf->SetSubject($outputLangs->transnoentities($this->document_type));
+        $pdf->SetCreator('Dolibarr ' . DOL_VERSION);
+        $pdf->SetAuthor($outputLangs->convToOutputCharset($user->getFullName($outputLangs)));
+        $pdf->SetKeyWords($outputLangs->convToOutputCharset($moreparams['object']->ref) . ' ' . $outputLangs->transnoentities($this->document_type));
+
+        $pdf->SetMargins($this->marge_gauche, $this->marge_haute, $this->marge_droite);
+
         $sheet            = new Sheet($this->db);
         $questions        = new Question($this->db);
         $controlDet       = new ControlLine($this->db);
@@ -127,51 +440,28 @@ class pdf_controldocument extends SaturneDocumentModel
         $controlEquipment = new ControlEquipment($this->db);
         $productLot       = new Productlot($this->db);
 
-        $object->fetch($id);
-
-        $moreparams['hideTemplateName'] = 1;
-        $file = $this->buildDocumentFilename($objectDocument, $outputLangs, $object, $moreparams);
-        if ($file < 0) {
-            $this->error = $langs->transnoentities('ErrorFileNameCanNotBeBuilt');
-            return -1;
-        }
-
-        $hookmanager->initHooks(['pdfgeneration']);
-        $parameters = ['file' => $file, 'object' => $object, 'outputlangs' => $outputLangs];
-        $hookmanager->executeHooks('beforePDFCreation', $parameters, $object, $action); // Note that $action and $object may have been modified by some hooks
-
-        $sheet->fetch($object->fk_sheet);
+        $sheet->fetch($moreparams['object']->fk_sheet);
         $questions->fetchObjectLinked($sheet->id, 'digiquali_sheet', null, 'digiquali_question');
-        $users->fetch($object->fk_user_controller);
-        $project->fetch($object->projectid);
-
-        $signatures        = $saturneSignature->fetchSignatories($object->id, $object->element);
-        $controlEquipments = $controlEquipment->fetchFromParent($object->id);
+        $users->fetch($moreparams['object']->fk_user_controller);
+        $project->fetch($moreparams['object']->projectid);
+        $signatures        = $saturneSignature->fetchSignatories($moreparams['object']->id, $moreparams['object']->element);
+        $controlEquipments = $controlEquipment->fetchFromParent($moreparams['object']->id);
 
         if (!empty($questions->linkedObjects)) {
             foreach ($questions->linkedObjects['digiquali_question'] as $question) {
                 $controlDets = $controlDet->fetchFromParentWithQuestion($id, $question->id);
                 foreach ($controlDets as $data) {
                     $answerRef[] = $data->ref;
-                    $answer[] = $data->answer;
+                    $answer[]    = $data->answer;
                 }
             }
         }
-
-        $objectsMetadata = saturne_get_objects_metadata();
-        $object->fetchObjectLinked('', '', $object->id, 'digiquali_control');
-        $linkedObjectType = key($object->linkedObjects);
-        foreach ($objectsMetadata as $objectMetadata) {
-            if ($objectMetadata['conf'] == 0 || $objectMetadata['link_name'] != $linkedObjectType) {
-                continue;
-            }
-            $linkedObject = $object->linkedObjects[$objectMetadata['link_name']][key($object->linkedObjects[$objectMetadata['link_name']])];
-        }
         $pdf               = pdf_getInstance($this->format);
         $default_font_size = pdf_getPDFFontSize($outputLangs);
+        $default_font_size -= -2;
 
         $pdf->SetAutoPageBreak(1, $this->marge_basse);
-        $pdf->SetMargins($this->marge_gauche, $this->marge_haute, $this->marge_droite);
+        $pdf->setX(($this->marge_gauche + $this->marge_droite) / 2);
 
         if (class_exists("TCPDF")) {
             $pdf->setPrintHeader(false);
@@ -181,71 +471,9 @@ class pdf_controldocument extends SaturneDocumentModel
         $pdf->AddPage();
         $pdf->SetFont(pdf_getPDFFont($outputLangs), '', $default_font_size);
 
-        $widthFirstColumn  = 50;
-        $widthSecondColumn = 80;
-        $widthThirdColumn  = 70;
+        $this->_pagehead($pdf, $moreparams['object'], $sheet, $project, $outputLangs, $default_font_size); // pdf header
 
-        $pdf->Cell($widthFirstColumn, 10, $langs->transnoentities('Ref') . $langs->transnoentities('Control'), 1, 0, 'L');
-        $pdf->Cell($widthSecondColumn, 10, $object->ref, 1, 0, 'L');
-        $x = $pdf->GetX();
-        $y = $pdf->GetY();
-
-        $path  = $conf->digiquali->multidir_output[$conf->entity] . '/control/' . $object->ref . '/photos';
-        $thumb = saturne_get_thumb_name($object->photo, 'medium', $path);
-        $image = $path . '/thumbs/' . $thumb;
-
-        if (!empty($object->photo)) {
-            $pdf->Image($image, $x, $y * 2.5, $widthThirdColumn, 0, 'PNG', '', 'C', false, 300, '', false, false, 1);
-            $pdf->SetXY($x, $y);
-            $pdf->Cell($widthThirdColumn, 60 , '', 1, 0, 'C', false, '',  0, false, 'T', 'M');
-        } else {
-            $pdf->Cell($widthThirdColumn, 60, $langs->transnoentities('NoPhoto'), 1, 0, 'C' );
-        }
-        $pdf->Ln(10);
-
-        $linkedElement = json_decode($sheet->element_linked, true);
-        $linkedElement = array_keys($linkedElement)[0];
-        if ($linkedElement == 'productlot') {
-            $linkedElement = 'batch';
-        }
-
-        $pdf->Cell($widthFirstColumn, 10, $langs->transnoentities('ControlObject'), 1, 0, 'L');
-        $pdf->Cell($widthSecondColumn, 10, $langs->transnoentities(ucfirst($linkedElement)) . ' : ' . $linkedObject->$linkedElement, 1, 0, 'L');
-        $pdf->Ln(10);
-
-        $pdf->Cell($widthFirstColumn, 10, $langs->transnoentities('ControlDate'), 1, 0, 'L');
-        $pdf->Cell($widthSecondColumn, 10, dol_print_date($object->control_date, 'day'), 1, 0, 'L');
-        $pdf->Ln(10);
-
-        $pdf->Cell($widthFirstColumn, 10, $langs->transnoentities('Project'), 1, 0, 'L');
-        $pdf->Cell($widthSecondColumn, 10, $project->title, 1, 0, 'L');
-        $pdf->Ln(10);
-
-        $pdf->Cell($widthFirstColumn, 10, $langs->transnoentities('Ref') . $langs->transnoentities('Sheet'), 1, 0, 'L');
-        $pdf->Cell($widthSecondColumn, 10, $sheet->ref . ' - ' . $sheet->label, 1, 0, 'L');
-        $pdf->Ln(10);
-
-        $pdf->SetFillColor(153, 204, 204);
-        $pdf->SetFont('', 'B', $default_font_size+2);
-
-        $pdf->Cell($widthFirstColumn + $widthSecondColumn, 12, $langs->transnoentities('VerdictObject'), 1, 0, 'C', true);
-
-        $verdict = '';
-        if ($object->verdict == 1) {
-            $verdict = 'OK';
-        } elseif ($object->verdict == 2) {
-            $verdict = 'KO';
-        }
-
-        $pdf->Cell($widthThirdColumn, 12, $verdict, 1, 1, 'C', true);
-
-        $pdf->Ln(5  );
-
-        $pdf->SetFont('', '', $default_font_size);
-        $pdf->Cell(0, 8, $langs->transnoentities('NoteControl') . ': ' . $object->note_public, 0, 1, 'L');
-        $pdf->Ln(2);
-
-        $pdf->SetFont('', 'B', $default_font_size);
+        $pdf->SetFont('', 'B', $defaultFontSize);
         $pdf->Cell(0, 8, $langs->transnoentities('ControlObservationList'), 0, 1, 'L');
         $pdf->Ln(5);
 
@@ -255,261 +483,211 @@ class pdf_controldocument extends SaturneDocumentModel
         $widthQuestion    = 20;
         $widthTitle       = 80;
         $widthRefAnswer   = 20;
-        $widthObservation = 50;
+        $widthObservation = 40;
         $widthAnswer      = 30;
+        $totalWidth       = $widthQuestion + $widthTitle + $widthRefAnswer + $widthObservation + $widthAnswer;
+        $controlLine      = 0;
 
-        $pdf->writeHTMLCell($widthQuestion, 10, '', '', '<b>' .  $langs->transnoentities('Ref') . '</b> <span style="font-size:8px;">' .  $langs->transnoentities('Question') . '</span>', 1, 0, true, true, 'C');
-        $pdf->writeHTMLCell($widthTitle, 10, '', '', '<b>' .  $langs->transnoentities('Title') . ' - ' . $langs->transnoentities('Description') .'</b>', 1, 0, true, true, 'C', true);
-        $pdf->writeHTMLCell($widthRefAnswer, 10, '', '', '<b>' .  $langs->transnoentities('Ref') . '</b> <span style="font-size:8px;">' .  $langs->transnoentities('Answer') . '</span>', 1, 0, true, true, 'C');
-        $pdf->writeHTMLCell($widthObservation, 10, '', '', '<b>' .  $langs->transnoentities('Observations') . '</b>', 1, 0, true, true, 'C');
-        $pdf->writeHTMLCell($widthAnswer, 10, '', '', '<b>' .  $langs->transnoentities('Answer') . '</b>', 1, 1, true, true, 'C');
+        $dataQuestionsHeader = [
+            [
+                'width' => $widthQuestion,
+                'html'  => '<b>' . $langs->transnoentities('Ref') . '</b><br><span style="font-size:8px;">' . $langs->transnoentities('Question') . '</span>',
+            ],
+            [
+                'width' => $widthTitle,
+                'html'  => '<b>' . $langs->transnoentities('Title') . ' - ' . $langs->transnoentities('Description') . '</b>',
+            ],
+            [
+                'width' => $widthRefAnswer,
+                'html'  => '<b>' . $langs->transnoentities('Ref') . '</b><br><span style="font-size:8px;">' . $langs->transnoentities('Answer') . '</span>',
+            ],
+            [
+                'width' => $widthObservation,
+                'html'  => '<b>' . $langs->transnoentities('Observations') . '</b>',
+            ],
+            [
+                'width' => $widthAnswer,
+                'html'  => '<b>' . $langs->transnoentities('Answer') . '</b>',
+            ],
+        ];
 
-        $pdf->SetFont('', '', $default_font_size);
-        $controlLine = 0;
+        $maxHeight = $this->calculateHeaderArraySize($pdf, $dataQuestionsHeader);
+        foreach ($dataQuestionsHeader as $col) {
+            $pdf->writeHTMLCell($col['width'], $maxHeight, '', '', $col['html'], 1, 0, true, true, 'C');
+        }
 
+        $pdf->Ln($maxHeight);
+
+        $multdirOutput = getMultidirOutput($moreparams['object'], $moreparams['object']->module);
         if (!empty($questions->linkedObjects['digiquali_question'])) {
             foreach ($questions->linkedObjects['digiquali_question'] as $question) {
-                $hRef = $pdf->getStringHeight($widthQuestion, $question->ref);
-                $hTitle = $pdf->getStringHeight($widthTitle, $question->label . "\nDescription : " . $question->description);
-                $hRefAnswer = $pdf->getStringHeight($widthRefAnswer, $question->ref_answer);
-                $hComment = $pdf->getStringHeight($widthObservation, $question->comment);
-                $hAnswer = $pdf->getStringHeight($widthAnswer, $question->answer);
-                $h = max($hRef, $hTitle, $hRefAnswer, $hComment, $hAnswer);
+                $photoPath = $multdirOutput . '/control/' . $moreparams['object']->ref . '/answer_photo/' . $question->ref;
+                if (is_dir($photoPath)) {
+                    $photoFiles = array_values(array_diff(scandir($photoPath), ['.', '..']));
+                    foreach ($photoFiles as $photoFile) {
+                        $fullPath = realpath($photoPath . '/' . $photoFile);
+                        if ($fullPath && file_exists($fullPath) && is_readable($fullPath) && $photoFile != 'thumbs') {
+                            $photo = saturne_get_thumb_name($photoFile, 'small', $photoPath);
+                            $questionPhotos[] = $photoPath . '/thumbs/' . $photo;
+                        }
+                    }
+                }
+                $heightRef        = $pdf->getStringHeight($widthQuestion, $question->ref);
+                $heightTitle      = $pdf->getStringHeight($widthTitle, $question->label . ' ' . html_entity_decode(strip_tags($question->description)));
+                $heightRefAnswer  = $pdf->getStringHeight($widthRefAnswer, $answerRef[$controlLine]);
+                $heightObs        = $pdf->getStringHeight($widthObservation, $moreparams['object']->lines[$controlLine]->comment);
+                $heightAns        = $pdf->getStringHeight($widthAnswer, $answer[$controlLine]);
+                $lineHeight       = max([$heightRef, $heightTitle, $heightRefAnswer, $heightObs, $heightAns]);
+
+                $this->checkPageBreak($pdf, $lineHeight);
                 $x = $pdf->GetX();
                 $y = $pdf->GetY();
-                $this->checkPageBreak($pdf, $h);
 
-                $pdf->MultiCell($widthQuestion, $h, strip_tags($question->ref), 1, 'C', false, 0, $x, $y, true, 0, false, true, $h, 'M');
-                $pdf->MultiCell($widthTitle, $h, strip_tags($question->label) . "\nDescription : " . html_entity_decode(strip_tags($question->description), ENT_QUOTES | ENT_HTML5, 'UTF-8'), 1, 'C', false, 0, $x + $widthQuestion, $y, true, 0, false, true, $h, 'M');
-                $pdf->MultiCell($widthRefAnswer, $h, strip_tags($answerRef[$controlLine]), 1, 'C', false, 0, $x + $widthQuestion + $widthTitle, $y, true, 0, false, true, $h, 'M');
-                $pdf->MultiCell($widthObservation, $h, strip_tags($object->lines[$controlLine]->comment), 1, 'C', false, 0, $x + $widthQuestion + $widthTitle + $widthRefAnswer, $y, true, 0, false, true, $h, 'M');
-                $pdf->MultiCell($widthAnswer, $h, strip_tags($answer[$controlLine]), 1, 'C', false, 1, $x + $widthQuestion + $widthTitle + $widthRefAnswer + $widthObservation, $y, true, 0, false, true, $h, 'M');
+                $pdf->MultiCell($widthQuestion, $lineHeight, $question->ref, 1, 'C', 0, 0, $x, $y, true, 0, false, true, $lineHeight, 'M', true);
+                $pdf->MultiCell($widthTitle, $lineHeight, $question->label . ' ' . html_entity_decode(strip_tags($question->description)), 1, 'L', 0, 0, $x + $widthQuestion, $y, true, 0, false, true, $lineHeight, 'M', true);
+                $pdf->MultiCell($widthRefAnswer, $lineHeight, $answerRef[$controlLine], 1, 'C', 0, 0, $x + $widthQuestion + $widthTitle, $y, true, 0, false, true, $lineHeight, 'M', true);
+                $pdf->MultiCell($widthObservation, $lineHeight, $moreparams['object']->lines[$controlLine]->comment, 1, 'L', 0, 0, $x + $widthQuestion + $widthTitle + $widthRefAnswer, $y, true, 0, false, true, $lineHeight, 'M', true);
+                $pdf->MultiCell($widthAnswer, $lineHeight, $answer[$controlLine], 1, 'C', 0, 0, $x + $widthQuestion + $widthTitle + $widthRefAnswer + $widthObservation, $y, true, 0, false, true, $lineHeight, 'M', true);
+
+                $pdf->Ln($lineHeight);
+
+                $photoHeight = 25;
+                $this->checkPageBreak($pdf, $photoHeight);
+
+                $x = $pdf->GetX();
+                $y = $pdf->GetY();
+                $pdf->MultiCell($totalWidth, $photoHeight, '', 1, 'C');
+
+                if (!empty($questionPhotos)) {
+                    $maxPerLine = 4;
+                    $imgWidth   = ($totalWidth - 10) / $maxPerLine;
+                    $imgHeight  = $photoHeight - 6;
+                    $posX       = $x + 3;
+                    $posY       = $y + 3;
+                    $i          = 0;
+                    foreach ($questionPhotos as $img) {
+                        clearstatcache();
+                        if (file_exists($img) && str_contains($img, $question->ref)) {
+                            $pdf->Image($img, $posX, $posY, $imgWidth, $imgHeight, '', '', '', false, 300);
+                            $posX += $imgWidth + 2;
+                            $i++;
+                            if ($i >= $maxPerLine) {
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    $pdf->SetXY($x, $y);
+                    $pdf->MultiCell($totalWidth, $photoHeight, $langs->transnoentities('NoPhotoYet'), 0, 'C', false, 1, null, null, true, 0, false, true, $photoHeight, 'M', false);
+                }
+                $pdf->Ln(3);
                 $controlLine++;
             }
         }
 
-        $pdf->Ln(10);
-        $pdf->SetFont('', 'B', $default_font_size);
-        $pdf->Cell(0, 8, 'Liste des photos liées aux questions', 0, 1, 'L');
-        $pdf->Ln(3);
-
-        if (!empty($questions->linkedObjects['digiquali_question'])) {
-            foreach ($questions->linkedObjects['digiquali_question'] as $question) {
-                $path = $conf->digiquali->multidir_output[$conf->entity] . '/control/' . $object->ref . '/answer_photo/' . $question->ref . '/thumbs/';
-                if (!is_dir($path)) {
-                    continue;
-                }
-                $files = array_values(array_diff(scandir($path), ['.', '..']));
-                if (empty($files)) {
-                    continue;
-                }
-                $pdf->Ln(6);
-                $pdf->SetFont('', '', 10);
-
-                $totalWidth = 200;
-                $imagesPerRow = 4;
-                $cellHeight = 35;
-                $labelWidth = 70;
-                $photoCols = $imagesPerRow - 1;
-                $photoWidth = ($totalWidth - $labelWidth) / $photoCols;
-                $imgWidth = 25;
-                $rows = ceil(count($files) / $photoCols);
-                $estimatedHeight = ($rows * ($cellHeight + 8)) + 10;
-                $this->checkPageBreak($pdf, $estimatedHeight);
-                $photoIndex = 0;
-
-                for ($r = 0; $r < $rows; $r++) {
-                    if ($r == 0) {
-                        $pdf->MultiCell($labelWidth, $cellHeight, "Question :\n" . strip_tags($question->label), 1, 'L', false, 0, '', '', true, 0, false, true, $cellHeight, 'M');
-                    } else {
-                        $pdf->MultiCell($labelWidth, $cellHeight, '', 1, 'L', false, 0, '', '', true, 0, false, true, $cellHeight, 'M');
-                    }
-                    for ($p = 0; $p < $photoCols; $p++) {
-                        if ($photoIndex < count($files)) {
-                            $imagePath = realpath($path . '/' . $files[$photoIndex]);
-                            $imagePath = str_replace('\\', '/', $imagePath);
-                            $xImgCell = $pdf->GetX();
-                            $yImgCell = $pdf->GetY();
-
-                            $pdf->Cell($photoWidth, $cellHeight, '', 1, 0, 'C');
-
-                            if (file_exists($imagePath) && is_readable($imagePath)) {
-                                $imgX = $xImgCell + ($photoWidth - $imgWidth) / 2;
-                                $imgY = $yImgCell + 5;
-                                $pdf->Image($imagePath, $imgX, $imgY, $imgWidth, 0, 'PNG');
-                            }
-                            $photoIndex++;
-                        } else {
-                            $pdf->Cell($photoWidth, $cellHeight, '', 1, 0, 'C');
-                        }
-                    }
-                    $pdf->Ln($cellHeight);
-                    $pdf->Cell($labelWidth, 8, '', 1, 0, 'L');
-                    for ($p = 0; $p < $photoCols; $p++) {
-                        $index = ($r * $photoCols) + $p;
-                        if ($index < count($files)) {
-                            $pdf->Cell($photoWidth, 8, 'Photo ' . ($index + 1), 1, 0, 'C');
-                        } else {
-                            $pdf->Cell($photoWidth, 8, '', 1, 0, 'C');
-                        }
-                    }
-                    $pdf->Ln(8);
-                }
-            }
-        }
+        $pdf->SetFont('', '', $default_font_size);
 
         $pdf->Ln(10);
         $pdf->SetFont('', 'B', $default_font_size);
         $pdf->Cell(0, 8, $langs->transnoentities('ControlEquipementList'), 0, 1, 'L');
         $pdf->Ln(3);
-        $widthRef  = 20;
-        $widthLib  = 40;
+
+        $widthRef  = 25;
+        $widthLib  = 35;
         $widthLot  = 30;
-        $widthDesc = 60;
+        $widthDesc = 50;
         $widthDluo = 20;
         $widthRest = 30;
 
-        $pdf->writeHTMLCell($widthRef, 10, '', '', '<div style="text-align:center;"><span style="font-size:10pt;">' .  $langs->transnoentities('Ref') . '</span><br><span style="font-size:8pt;">' .  $langs->transnoentities('Equipement') . '</span></div>', 1, 0, true, true, 'C', true);
-        $pdf->writeHTMLCell($widthLib, 10, '', '', '<div style="text-align:center;"><span style="font-size:10pt;">' .  $langs->transnoentities('Label') . '</span></div>', 1, 0, true, true, 'C', true);
-        $pdf->writeHTMLCell($widthLot, 10, '', '', '<div style="text-align:center;"><span style="font-size:10pt;">' .  $langs->transnoentities('Ref') . '</span><br><span style="font-size:8pt;">' .  $langs->transnoentities('batch_number') . '</span></div>', 1, 0, true, true, 'C', true);
-        $pdf->writeHTMLCell($widthDesc, 10, '', '', '<div style="text-align:center;"><span style="font-size:10pt;">' .  $langs->transnoentities('Description') . '</span></div>', 1, 0, true, true, 'C', true);
-        $pdf->writeHTMLCell($widthDluo, 10, '', '', '<div style="text-align:center;"><span style="font-size:10pt;">' .  $langs->transnoentities('OptimalExpirationDate') . '/</span></div>', 1, 0, true, true, 'C', true);
-        $pdf->writeHTMLCell($widthRest, 10, '', '', '<div style="text-align:center;"><span style="font-size:10pt;">' .  $langs->transnoentities('EstimatedLife') . '</span></div>', 1, 1, true, true, 'C', true);
+        $dataEquipmentsHeader = [
+            [
+                'width' => $widthRef,
+                'html'  => '<div style="text-align:center;"><span style="font-size:10pt;">' . $langs->transnoentities('Ref') . '</span><br><span style="font-size:8pt;">' . $langs->transnoentities('Equipement') . '</span></div>',
+            ],
+            [
+                'width' => $widthLib,
+                'html'  => '<div style="text-align:center;"><span style="font-size:10pt;">' . $langs->transnoentities('Label') . '</span></div>',
+            ],
+            [
+                'width' => $widthLot,
+                'html'  => '<div style="text-align:center;"><span style="font-size:10pt;">' . $langs->transnoentities('Ref') . '</span><br><span style="font-size:8pt;">' . $langs->transnoentities('batch_number') . '</span></div>',
+            ],
+            [
+                'width' => $widthDesc,
+                'html'  => '<div style="text-align:center;"><span style="font-size:10pt;">' . $langs->transnoentities('Description') . '</span></div>',
+            ],
+            [
+                'width' => $widthDluo,
+                'html'  => '<div style="text-align:center;"><span style="font-size:10pt;">' . $langs->transnoentities('OptimalExpirationDate') . '</span></div>',
+            ],
+            [
+                'width' => $widthRest,
+                'html'  => '<div style="text-align:center;"><span style="font-size:10pt;">' . $langs->transnoentities('EstimatedLife') . '</span></div>',
+            ],
+        ];
+
+        $maxHeight = $this->calculateHeaderArraySize($pdf, $dataEquipmentsHeader);
+        foreach ($dataEquipmentsHeader as $col) {
+            $pdf->writeHTMLCell($col['width'], $maxHeight, '', '', $col['html'], 1, 0, true, true, 'C', true);
+        }
+
+        $pdf->Ln();
 
         $pdf->SetFont('', '', $default_font_size);
+
+        $dataEquipmentsRows = [];
 
         if (!empty($controlEquipments)) {
             foreach ($controlEquipments as $controlEquipement) {
                 $equipement = json_decode($controlEquipement->json);
                 $productLot->fetch($controlEquipement->fk_lot);
-
-                // --- On calcule la hauteur max ---
-                $h1 = $pdf->getStringHeight($widthRef,  $controlEquipement->ref);
-                $h2 = $pdf->getStringHeight($widthLib,  $equipement->label);
-                $h3 = $pdf->getStringHeight($widthLot,  $productLot->batch);
-                $h4 = $pdf->getStringHeight($widthDesc, $equipement->description);
-                $h5 = $pdf->getStringHeight($widthDluo, $equipement->dluo);
-                $h6 = $pdf->getStringHeight($widthRest, $equipement->lifetime);
-                $h  = max($h1, $h2, $h3, $h4, $h5, $h6);
-                $this->checkPageBreak($pdf, $h);
-                $x  = $pdf->GetX();
-                $y  = $pdf->GetY();
-
-                $pdf->MultiCell($widthRef,  $h, $controlEquipement->ref,       1, 'C', 0, 0, $x, $y);
-                $pdf->MultiCell($widthLib,  $h, $equipement->label,            1, 'L', 0, 0, $x+$widthRef, $y);
-                $pdf->MultiCell($widthLot,  $h, $productLot->batch,            1, 'C', 0, 0, $x+$widthRef+$widthLib, $y);
-                $pdf->MultiCell($widthDesc, $h, $equipement->description,      1, 'L', 0, 0, $x+$widthRef+$widthLib+$widthLot, $y);
-                $pdf->MultiCell($widthDluo, $h, dol_print_date($equipement->dluo),             1, 'C', 0, 0, $x+$widthRef+$widthLib+$widthLot+$widthDesc, $y);
-                $pdf->MultiCell($widthRest, $h, $equipement->lifetime,         1, 'C', 0, 0, $x+$widthRef+$widthLib+$widthLot+$widthDesc+$widthDluo, $y);
-
-                $pdf->Ln($h);
+                $dataEquipmentsRows[] = [
+                    'ref'         => $controlEquipement->ref,
+                    'label'       => $equipement->label,
+                    'lot'         => $productLot->batch,
+                    'description' => $equipement->description,
+                    'dluo'        => dol_print_date($equipement->dluo),
+                    'lifetime'    => $equipement->lifetime,
+                ];
             }
-        } else {
-            $pdf->Cell($widthRef + $widthLib + $widthLot + $widthDesc + $widthDluo + $widthRest, 8, "Aucun équipement trouvé", 1, 1, 'C');
         }
-
-        $pdf->Ln(10);
-        $pdf->SetFont('', 'B', $default_font_size);
-        $pdf->Cell(0, 8, $langs->transnoentities('LinkedContactsControl'), 0, 1, 'L');
-        $pdf->Ln(3);
-
-        $widthName = 40;
-        $widthPre = 40;
-        $widthRole = 40;
-        $widthDate = 30;
-        $widthSign = 50;
-
-        $pdf->SetFillColor(153, 204, 204);
-        $pdf->writeHTMLCell($widthName, 10, '', '', '<div style="text-align:center;"><span style="font-size:10pt;">' .  $langs->transnoentities('LastName') . '</span></div>', 1, 0, true, true, 'C', true);
-        $pdf->writeHTMLCell($widthPre, 10, '', '', '<div style="text-align:center;"><span style="font-size:10pt;">' .  $langs->transnoentities('FirstName') . '</span></div>', 1, 0, true, true, 'C', true);
-        $pdf->writeHTMLCell($widthRole, 10, '', '', '<div style="text-align:center;">' .  $langs->transnoentities('Role') . '</div>', 1, 0, true, true, 'C', true);
-        $pdf->writeHTMLCell($widthDate, 10, '', '', '<div style="text-align:center;">' .  $langs->transnoentities('SignatureDate') . '</div>', 1, 0, true, true, 'C', true);
-        $pdf->writeHTMLCell($widthSign, 10, '', '', '<div style="text-align:center;">' .  $langs->transnoentities('Signature') . '</div>', 1, 1, true, true, 'C', true);
 
         $pdf->SetFont('', '', $default_font_size);
 
-        if (!empty($signatures)) {
-            foreach ($signatures as $signature) {
-                if ($signature->role == 'ExtSocietyAttendant' || $signature->role == 'Attendant') {
-                    // Hauteur max
-                    $h1 = $pdf->getStringHeight($widthName,  $signature->lastname);
-                    $h2 = $pdf->getStringHeight($widthPre,  $signature->firstname);
-                    $h3 = $pdf->getStringHeight($widthRole, $signature->role);
-                    $h4 = $pdf->getStringHeight($widthDate, $signature->signature_date);
-                    $h  = max($h1, $h2, $h3, $h4, 20); // au moins 20 pour signature image
-                    $this->checkPageBreak($pdf, $h);
-                    $x  = $pdf->GetX();
-                    $y  = $pdf->GetY();
+        if (!empty($dataEquipmentsRows)) {
+            foreach ($dataEquipmentsRows as $row) {
+                // Calcul hauteurs
+                $heightRef         = $pdf->getStringHeight($widthRef,  $row['ref']);
+                $heightLabel       = $pdf->getStringHeight($widthLib,  $row['label']);
+                $heightLot         = $pdf->getStringHeight($widthLot,  $row['lot']);
+                $heightDescription = $pdf->getStringHeight($widthDesc, $row['description']);
+                $heightDluo        = $pdf->getStringHeight($widthDluo, $row['dluo']);
+                $heightLifetime    = $pdf->getStringHeight($widthRest, $row['lifetime']);
 
-                    $pdf->MultiCell($widthName,  $h, $signature->lastname,       1, 'C', 0, 0, $x, $y);
-                    $pdf->MultiCell($widthPre,  $h, $signature->firstname,      1, 'C', 0, 0, $x + $widthName, $y);
-                    $pdf->MultiCell($widthRole, $h, $langs->transnoentities($signature->role), 1, 'C', 0, 0, $x + $widthName + $widthPre, $y);
-                    $pdf->MultiCell($widthDate, $h, dol_print_date($signature->signature_date, 'day'), 1, 'C', 0, 0, $x + $widthName + $widthPre + $widthRole, $y);
-                    if (!empty($signature->signature)) {
-                        $encoded_image  = explode(",", $signature->signature)[1];
-                        $signatureImage = base64_decode($encoded_image);
-                        $pdf->Image('@' . $signatureImage, $x + $widthName + $widthPre + $widthRole + $widthDate, $y, $widthSign, $h, 'PNG', '', 'C', false, 300, '', false, false, 1);
-                        $pdf->SetXY($x + $widthName + $widthPre + $widthRole + $widthDate, $y);
-                        $pdf->Cell($widthSign, $h, '', 1, 0, 'C');
-                    } else {
-                        $pdf->MultiCell($widthSign,  $h, $langs->transnoentities('NA'), 1, 'C', 0, 0, $x + $widthName + $widthPre + $widthRole + $widthDate, $y);
-                    }
+                $height = max($heightRef, $heightLabel, $heightLot, $heightDescription, $heightDluo, $heightLifetime);
 
-                    $pdf->Ln($h);
-                }
+                $this->checkPageBreak($pdf, $height);
+
+                $x = $pdf->GetX();
+                $y = $pdf->GetY();
+
+                $pdf->MultiCell($widthRef,  $height, $row['ref'],        1, 'C', 0, 0, $x, $y);
+                $pdf->MultiCell($widthLib,  $height, $row['label'],      1, 'L', 0, 0, $x + $widthRef, $y);
+                $pdf->MultiCell($widthLot,  $height, $row['lot'],        1, 'C', 0, 0, $x + $widthRef + $widthLib, $y);
+                $pdf->MultiCell($widthDesc, $height, $row['description'],1, 'L', 0, 0, $x + $widthRef + $widthLib + $widthLot, $y);
+                $pdf->MultiCell($widthDluo, $height, $row['dluo'],        1, 'C', 0, 0, $x + $widthRef + $widthLib + $widthLot + $widthDesc, $y);
+                $pdf->MultiCell($widthRest, $height, $row['lifetime'],   1, 'C', 0, 0, $x + $widthRef + $widthLib + $widthLot + $widthDesc + $widthDluo, $y);
+                $pdf->Ln($height);
             }
         } else {
-            $pdf->Cell($widthName+$widthPre+$widthRole+$widthDate+$widthSign, 8, "Aucun contact associé", 1, 1, 'C');
+            $pdf->Cell($widthRef + $widthLib + $widthLot + $widthDesc + $widthDluo + $widthRest, 8, $langs->transnoentities('NoEquipmentFound'), 1, 1, 'C');
         }
 
+        $signatureWidths = [55, 55, 35, 45];
         $pdf->Ln(10);
-        $pdf->SetFont('', 'B', $default_font_size);
-        $pdf->Cell(0, 8, $langs->transnoentities('Controller'), 0, 1, 'L');
-        $pdf->Ln(3);
-
-        $widthName  = 55;
-        $widthPre  = 55;
-        $widthDate = 40;
-        $widthSign = 50;
-
-        $pdf->SetFillColor(153, 204, 204);
-        $pdf->writeHTMLCell($widthName, 10, '', '', '<div style="text-align:center;"><span style="font-size:10pt;">' .  $langs->transnoentities('LastName') . '</span><br><span style="font-size:8pt;">' .  $langs->transnoentities('Controller') . '</span></div>', 1, 0, true, true, 'C', true);
-        $pdf->writeHTMLCell($widthPre, 10, '', '', '<div style="text-align:center;"><span style="font-size:10pt;">' .  $langs->transnoentities('FirstName') . '</span><br><span style="font-size:8pt;">' .  $langs->transnoentities('Controller') . '</span></div>', 1, 0, true, true, 'C', true);
-        $pdf->writeHTMLCell($widthDate, 10, '', '', '<div style="text-align:center;">' .  $langs->transnoentities('SignatureDate') . '</div>', 1, 0, true, true, 'C', true);
-        $pdf->writeHTMLCell($widthSign, 10, '', '', '<div style="text-align:center;">' .  $langs->transnoentities('Signature') . '</div>', 1, 1, true, true, 'C', true);
-
-        $pdf->SetFont('', '', $default_font_size);
-
-        if (!empty($signatures)) {
-            foreach ($signatures as $signature) {
-                if ($signature->role == 'Controller') {
-                    $h1 = $pdf->getStringHeight($widthName,  $signature->lastname);
-                    $h2 = $pdf->getStringHeight($widthPre,  $signature->firstname);
-                    $h3 = $pdf->getStringHeight($widthDate, $signature->signature_date);
-                    $h  = max($h1, $h2, $h3, 20);
-                    $this->checkPageBreak($pdf, $h);
-                    $x = $pdf->GetX();
-                    $y = $pdf->GetY();
-
-                    $pdf->MultiCell($widthName,  $h, $signature->lastname,       1, 'C', 0, 0, $x, $y);
-                    $pdf->MultiCell($widthPre,  $h, $signature->firstname,      1, 'C', 0, 0, $x + $widthName, $y);
-                    $pdf->MultiCell($widthDate, $h, dol_print_date($signature->signature_date, 'day'), 1, 'C', 0, 0, $x + $widthName + $widthPre, $y);
-                    if (!empty($signature->signature)) {
-                        $encoded_image  = explode(",", $signature->signature)[1];
-                        $signatureImage = base64_decode($encoded_image);
-                        $pdf->Image('@' . $signatureImage, $x + $widthName + $widthPre + $widthDate, $y, $widthSign - 4, $h - 4, 'PNG', '', 'C', false, 300, '', false, false, 1);
-                        $pdf->SetXY($x + $widthName + $widthPre + $widthDate, $y);
-                        $pdf->Cell($widthSign, $h, '', 1, 0, 'C');
-                    } else {
-                        $pdf->MultiCell($widthSign, $h, $langs->transnoentities('NA'), 1, 'C', 0, 0, $x + $widthName + $widthPre + $widthDate, $y);
-                    }
-
-                    $pdf->Ln($h);
-                }
-            }
-        } else {
-            $pdf->Cell($widthName+$widthPre+$widthDate+$widthSign, 8, "Aucun contrôleur", 1, 1, 'C');
-        }
+        $this->renderSignatureTable($pdf, $langs, $signatures, 'LinkedContactsControl', ['ExtSocietyAttendant', 'Attendant'], $signatureWidths, $default_font_size);
+        $pdf->Ln(10);
+        $this->renderSignatureTable($pdf, $langs, $signatures, 'LinkedControllerControl', ['Controller'], $signatureWidths, $default_font_size);
 
         try {
             $pdf->Output($file, 'F');
