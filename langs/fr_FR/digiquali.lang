@@ -456,7 +456,7 @@ NoObjectLineAnswersPhoto                = Pas de photos sur les réponses du %s
 # Data - Donnée
 ControlDocument                         = Fiche de Contrôle
 Controldocument                         = Fiche de Contrôle
-ControlDocumentPDF                      = Fiche de Contrôle PDF
+ControlDocumentPDF                      = FC-A4-MEDIA-PDF
 ControlDocumentsMin                     = fiches de contôle
 ControlDocumentDisplayMedias            = Afficher les médias dans la fiche de contrôle
 ControlDocumentDisplayMediasDescription = Afficher les médias des questions dans la fiche de contrôle ODT
@@ -647,10 +647,12 @@ FieldMinValue = Le champ '%s' doit être supérieure ou égale à %s
 # Control Document PDF
 #
 
-Role                   = Rôle
-Equipement             = Equipement
-EstimatedLife          = Durée de vie restante
-ControlEquipementList  = Liste des équipements et moyens de contrôle
-Sheet                  = Modèle de contrôle
-ControlObservationList = Liste des points contrôlés, observations et réponse(s) à la question
-LinkedContactsControl  = Contact(s) associés au contrôle
+Role                    = Rôle
+Equipement              = Equipement
+EstimatedLife           = Durée de vie restante
+ControlEquipementList   = Liste des équipements et moyens de contrôle
+Sheet                   = Modèle de contrôle
+ControlObservationList  = Liste des points contrôlés, observations et réponse(s) à la question
+LinkedContactsControl   = Contact(s) associés au contrôle
+LinkedControllerControl = Contrôleur(s) associés au contrôle
+NoEquipmentFound        = Aucun équipement trouvé.
