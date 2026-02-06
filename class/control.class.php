@@ -313,7 +313,6 @@ class Control extends SaturneObject
                     $fk_element              = 'fk_'. $object->element;
                     $controlLine->fk_control = $this->id;
                     $controlLine->fk_question = $question->id;
-                    $controlLine->fk_question_group = $question->fk_question_group;
                     $controlLine->answer      = '';
                     $controlLine->comment     = '';
                     $controlLine->entity      = $conf->entity;
@@ -1392,7 +1391,6 @@ class ControlLine extends SaturneObject
         'fk_user_modif'     => ['type' => 'integer:User:user/class/user.class.php',              'label' => 'UserModif',  'picto' => 'user',                                'enabled' => 1, 'position' => 75, 'notnull' => 0, 'visible' => -2, 'foreignkey' => 'user.rowid'],
         'fk_control'        => ['type' => 'integer:control:digiquali/class/control.class.php',    'label' => 'Control',    'picto' => 'fontawesome_fa-tasks_fas_#d35968',    'enabled' => 1, 'position' => 2,  'notnull' => 1, 'visible' => -1, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx', 'foreignkey' => 'digiquali_survey.rowid'],
         'fk_question'       => ['type' => 'integer:question:digiquali/class/question.class.php', 'label' => 'Question',   'picto' => 'fontawesome_fa-question_fas_#d35968', 'enabled' => 1, 'position' => 4,  'notnull' => 1, 'visible' => -1, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx', 'foreignkey' => 'digiquali_question.rowid'],
-        'fk_question_group' => ['type' => 'integer:questiongroup:digiquali/class/questiongroup.class.php', 'label' => 'QuestionGroup', 'picto' => 'fontawesome_fa-folder_fas_#d35968', 'enabled' => 1, 'position' => 6, 'notnull' => 1, 'default' => 0, 'visible' => -1, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx'],
     ];
 
     /**
@@ -1476,11 +1474,6 @@ class ControlLine extends SaturneObject
     public ?int $fk_question;
 
     /**
-     * @var int|null Question group ID
-     */
-    public ?int $fk_question_group = 0;
-
-    /**
      * Constructor
      *
      * @param DoliDb $db Database handler
@@ -1498,9 +1491,9 @@ class ControlLine extends SaturneObject
      * @return array|int              Int <0 if KO, array of pages if OK
      * @throws Exception
      */
-    public function fetchFromParentWithQuestion(int $controlID, int $questionID, int $questionGroupId = 0)
+    public function fetchFromParentWithQuestion(int $controlID, int $questionID)
     {
-        return $this->fetchAll('', '', 1, 0, ['customsql' => 't.fk_control = ' . $controlID . ' AND t.fk_question = ' . $questionID . ' AND t.status > 0 AND t.fk_question_group = ' . $questionGroupId]);
+        return $this->fetchAll('', '', 1, 0, ['customsql' => 't.fk_control = ' . $controlID . ' AND t.fk_question = ' . $questionID . ' AND t.status > 0']);
     }
 }
 
