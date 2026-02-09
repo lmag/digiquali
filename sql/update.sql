@@ -151,3 +151,4 @@ ALTER TABLE llx_digiquali_survey CHANGE fk_user_creat fk_user_creat INT(11) NULL
 
 -- 22.1.0
 ALTER TABLE llx_digiquali_controldet DROP COLUMN fk_question_group;
+ALTER TABLE llx_digiquali_surveydet DROP COLUMN fk_question_group;
