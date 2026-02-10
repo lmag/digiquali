@@ -52,7 +52,7 @@ window.digiquali.activity.init = function init() {
  */
 window.digiquali.activity.event = function initializeEvents() {
   $(document).on('input', '#label', window.digiquali.activity.updateModalActivityButton);
-  $(document).on('blur', '[contenteditable="true"]', window.digiquali.activity.updateContentEditable);
+  $(document).on('blur', '.activity-list-container [contenteditable="true"]', window.digiquali.activity.updateContentEditable);
 
   // Events for create activity
   $(document).on('click', '#activity_add', function createActivity() {
