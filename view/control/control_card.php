@@ -344,12 +344,13 @@ if ($action == 'create') {
 
     print '<table class="border centpercent tableforfieldcreate control-table">';
 
-    $object->fields['fk_user_controller']['visible'] = 1;
-    $object->fields['fk_user_controller']['default'] = $user->id;
-
     if ($fkSheet > 0) {
         $sheet->fetch($fkSheet);
         $_POST['label'] = $sheet->label;
+        $object->fields['label']['visible']              = 1;
+        $object->fields['fk_user_controller']['visible'] = 1;
+        $object->fields['fk_user_controller']['default'] = $user->id;
+        $object->fields['projectid']['visible']          = 1;
     }
 
     if ($viewmode == 'images') {
@@ -423,76 +424,80 @@ if ($action == 'create') {
     // Common attributes
     require_once DOL_DOCUMENT_ROOT . '/core/tpl/commonfields_add.tpl.php';
 
-    // Categories
-    if (!empty($conf->categorie->enabled)) {
-        print '<tr><td>' . ($source != 'pwa' ? $langs->trans('Categories') : img_picto('', 'fontawesome_fa-tags_fas_#000000_2em', 'class="pictofixedwidth"')) . '</td><td>';
-        $categoryArborescence = $form->select_all_categories('control', '', 'parent', 64, 0, 1);
-        print ($source != 'pwa' ? img_picto('', 'category', 'class="pictofixedwidth"') : '') . $form::multiselectarray('categories', $categoryArborescence, GETPOST('categories', 'array'), '', 0, 'minwidth100imp maxwidth500 widthcentpercentminusxx');
-        if ($source != 'pwa') {
-            print '<a class="butActionNew" href="' . DOL_URL_ROOT . '/categories/index.php?type=control&backtopage=' . urlencode($_SERVER['PHP_SELF'] . '?action=create') . '" target="_blank"><span class="fa fa-plus-circle valignmiddle paddingleft" title="' . $langs->trans('AddCategories') . '"></span></a>';
-        }
-        print '</td></tr>';
-    }
-
-    print '</table>';
-    print '<hr>';
-
-    print '<table class="centpercent tableforfieldcreate object-table linked-objects">';
-
-    print '<tr><td>';
-    print '<div class="fields-content">';
-
-    foreach($objectsMetadata as $objectType => $objectMetadata) {
-        if (!empty($objectMetadata['conf'] && (!empty(GETPOST('fromtype')) && GETPOST('fromtype') == $objectMetadata['link_name']) || (preg_match('/"'. $objectType .'":1/',$sheet->element_linked)))) {
-            $objectArray    = [];
-            $objectPostName = $objectMetadata['post_name'];
-            $objectPost     = GETPOST($objectPostName) ?: (GETPOST('fromtype') == $objectMetadata['link_name'] ? GETPOST('fromid') : '');
-
-            $objectFilter = [];
-            if ((dol_strlen($objectMetadata['fk_parent']) > 0 && GETPOST($objectMetadata['parent_post']) > 0)) {
-                $objectFilter = ['customsql' => $objectMetadata['fk_parent'] . ' = ' . GETPOST($objectMetadata['parent_post'])];
-            } elseif (!empty($objectMetadata['filter'])) {
-                $objectFilter = ['customsql' => $objectMetadata['filter']];
-            }
-            $objectList = saturne_fetch_all_object_type($objectMetadata['class_name'], '', '', 0, 0, $objectFilter);
-
-            if (is_array($objectList) && !empty($objectList)) {
-                foreach ($objectList as $objectSingle) {
-                    $objectName = '';
-                    $nameField = $objectMetadata['name_field'];
-                    if (strstr($nameField, ',')) {
-                        $nameFields = explode(', ', $nameField);
-                        if (is_array($nameFields) && !empty($nameFields)) {
-                            foreach ($nameFields as $subnameField) {
-                                $objectName .= $objectSingle->$subnameField . ' ';
-                            }
-                        }
-                    } elseif ($objectType == 'productlot') {
-                        $product->fetch($objectSingle->fk_product);
-                        $objectName = $objectSingle->$nameField . ' - ' . $product->ref;
-                    } else {
-                        $objectName = $objectSingle->$nameField;
-                    }
-                    $objectArray[$objectSingle->id] = $objectName;
-                }
-            }
-
-            print '<tr><td class="titlefieldcreate">' . ($source != 'pwa' ? $langs->transnoentities($objectMetadata['langs']) : img_picto('', $objectMetadata['picto'], 'class="pictofixedwidth fa-3x"')) . '</td><td>';
-            print($source != 'pwa' ? img_picto('', $objectMetadata['picto'], 'class="pictofixedwidth"') : '');
-            print $form->selectArray($objectPostName, $objectArray, $objectPost, $langs->trans('Select') . ' ' . strtolower($langs->trans($objectMetadata['langs'])), 0, 0, '', 0, 0, dol_strlen(GETPOST('fromtype')) > 0 && GETPOST('fromtype') != $objectMetadata['link_name'], '', 'maxwidth500 widthcentpercentminusxx');
+    if ($fkSheet > 0) {
+        // Categories
+        if (!empty($conf->categorie->enabled)) {
+            print '<tr><td>' . ($source != 'pwa' ? $langs->trans('Categories') : img_picto('', 'fontawesome_fa-tags_fas_#000000_2em', 'class="pictofixedwidth"')) . '</td><td>';
+            $categoryArborescence = $form->select_all_categories('control', '', 'parent', 64, 0, 1);
+            print ($source != 'pwa' ? img_picto('', 'category', 'class="pictofixedwidth"') : '') . $form::multiselectarray('categories', $categoryArborescence, GETPOST('categories', 'array'), '', 0, 'minwidth100imp maxwidth500 widthcentpercentminusxx');
             if ($source != 'pwa') {
-                print '<a class="butActionNew" href="' . DOL_URL_ROOT . '/' . $objectMetadata['create_url'] . '?action=create&backtopage=' . urlencode($_SERVER['PHP_SELF'] . '?action=create') . '" target="_blank"><span class="fa fa-plus-circle valignmiddle paddingleft" title="' . $langs->trans('Create') . ' ' . strtolower($langs->trans($objectMetadata['langs'])) . '"></span></a>';
+                print '<a class="butActionNew" href="' . DOL_URL_ROOT . '/categories/index.php?type=control&backtopage=' . urlencode($_SERVER['PHP_SELF'] . '?action=create') . '" target="_blank"><span class="fa fa-plus-circle valignmiddle paddingleft" title="' . $langs->trans('AddCategories') . '"></span></a>';
             }
             print '</td></tr>';
         }
+
+        // Other attributes
+        include DOL_DOCUMENT_ROOT . '/core/tpl/extrafields_add.tpl.php';
     }
 
-    print '</div>';
-
-    // Other attributes
-    include DOL_DOCUMENT_ROOT . '/core/tpl/extrafields_add.tpl.php';
-
     print '</table>';
+
+    if ($fkSheet > 0) {
+        print '<hr>';
+
+        print '<table class="centpercent tableforfieldcreate object-table linked-objects">';
+
+        print '<tr><td>';
+        print '<div class="fields-content">';
+
+        foreach($objectsMetadata as $objectType => $objectMetadata) {
+            if (!empty($objectMetadata['conf'] && (!empty(GETPOST('fromtype')) && GETPOST('fromtype') == $objectMetadata['link_name']) || (preg_match('/"'. $objectType .'":1/',$sheet->element_linked)))) {
+                $objectArray    = [];
+                $objectPostName = $objectMetadata['post_name'];
+                $objectPost     = GETPOST($objectPostName) ?: (GETPOST('fromtype') == $objectMetadata['link_name'] ? GETPOST('fromid') : '');
+
+                $objectFilter = [];
+                if ((dol_strlen($objectMetadata['fk_parent']) > 0 && GETPOST($objectMetadata['parent_post']) > 0)) {
+                    $objectFilter = ['customsql' => $objectMetadata['fk_parent'] . ' = ' . GETPOST($objectMetadata['parent_post'])];
+                } elseif (!empty($objectMetadata['filter'])) {
+                    $objectFilter = ['customsql' => $objectMetadata['filter']];
+                }
+                $objectList = saturne_fetch_all_object_type($objectMetadata['class_name'], '', '', 0, 0, $objectFilter);
+
+                if (is_array($objectList) && !empty($objectList)) {
+                    foreach ($objectList as $objectSingle) {
+                        $objectName = '';
+                        $nameField = $objectMetadata['name_field'];
+                        if (strstr($nameField, ',')) {
+                            $nameFields = explode(', ', $nameField);
+                            if (is_array($nameFields) && !empty($nameFields)) {
+                                foreach ($nameFields as $subnameField) {
+                                    $objectName .= $objectSingle->$subnameField . ' ';
+                                }
+                            }
+                        } elseif ($objectType == 'productlot') {
+                            $product->fetch($objectSingle->fk_product);
+                            $objectName = $objectSingle->$nameField . ' - ' . $product->ref;
+                        } else {
+                            $objectName = $objectSingle->$nameField;
+                        }
+                        $objectArray[$objectSingle->id] = $objectName;
+                    }
+                }
+
+                print '<tr><td class="titlefieldcreate">' . ($source != 'pwa' ? $langs->transnoentities($objectMetadata['langs']) : img_picto('', $objectMetadata['picto'], 'class="pictofixedwidth fa-3x"')) . '</td><td>';
+                print($source != 'pwa' ? img_picto('', $objectMetadata['picto'], 'class="pictofixedwidth"') : '');
+                print $form->selectArray($objectPostName, $objectArray, $objectPost, $langs->trans('Select') . ' ' . strtolower($langs->trans($objectMetadata['langs'])), 0, 0, '', 0, 0, dol_strlen(GETPOST('fromtype')) > 0 && GETPOST('fromtype') != $objectMetadata['link_name'], '', 'maxwidth500 widthcentpercentminusxx');
+                if ($source != 'pwa') {
+                    print '<a class="butActionNew" href="' . DOL_URL_ROOT . '/' . $objectMetadata['create_url'] . '?action=create&backtopage=' . urlencode($_SERVER['PHP_SELF'] . '?action=create') . '" target="_blank"><span class="fa fa-plus-circle valignmiddle paddingleft" title="' . $langs->trans('Create') . ' ' . strtolower($langs->trans($objectMetadata['langs'])) . '"></span></a>';
+                }
+                print '</td></tr>';
+            }
+        }
+
+        print '</div>';
+        print '</table>';
+    }
 
     print dol_get_fiche_end();
 
