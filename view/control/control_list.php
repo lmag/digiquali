@@ -135,7 +135,7 @@ if (is_array($signatoriesInDictionary) && !empty($signatoriesInDictionary)) {
     }
 }
 
-$object->fields['days_remaining_before_next_control'] = ['label' => 'DaysBeforeNextControl',      'enabled' => 1, 'position' => 66,  'visible' => 2, 'csslist' => 'center'];
+$object->fields['days_remaining_before_next_control'] = ['label' => 'DaysBeforeNextControl',      'enabled' => 1, 'position' => 66,  'visible' => 2, 'csslist' => 'center', 'otheralias' => ''];
 $object->fields['question_answered']                  = ['label' => 'QuestionAnswered',           'enabled' => 1, 'position' => 66,  'visible' => 2, 'css' => 'center minwidth200 maxwidth250 widthcentpercentminusxx'];
 $object->fields['last_status_date']                   = ['label' => 'LastStatusDate',             'enabled' => 1, 'position' => 67,  'visible' => 2, 'css' => 'center minwidth200 maxwidth300 widthcentpercentminusxx'];
 $object->fields['society_attendants']                 = ['label' => 'SocietyAttendants',          'enabled' => 1, 'position' => 115, 'visible' => 2, 'css' => 'minwidth300 maxwidth500 widthcentpercentminusxx', 'disablesort' => 1];
