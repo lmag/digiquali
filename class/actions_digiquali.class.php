@@ -576,7 +576,7 @@ class ActionsDigiquali
      */
     function completeTabsHead(array $parameters, $object) : int
     {
-        global $langs;
+        global $conf, $langs;
 
         if (strpos($parameters['context'], 'main') !== false) {
             if (!empty($parameters['head'])) {
@@ -588,6 +588,24 @@ class ActionsDigiquali
                                 $NbControls = count($object->linkedObjectsIds['digiquali_control']);
                                 $parameters['head'][$headKey][1] .= '<span class="badge marginleftonlyshort">' . $NbControls . '</span>';
                             }
+                        }
+                        if (isset($headTab[2]) && $headTab[2] === 'medias' && is_string($headTab[1]) && strpos($headTab[1], $langs->trans('Medias')) !== false && strpos($headTab[1], 'badge') === false) {
+                            $object = $parameters['object'];
+
+                            $object->fetchObjectLinked($object->fk_sheet, 'digiquali_sheet');
+                            $questionsLinked = $object->linkedObjects;
+                            $linkedMedias    = 0;
+
+                            if (is_array($questionsLinked['digiquali_question']) && !empty($questionsLinked['digiquali_question'])) {
+                                foreach ($questionsLinked['digiquali_question'] as $questionLinked) {
+                                    if ($questionLinked->authorize_answer_photo > 0) {
+                                        saturne_show_medias_linked('digiquali', $conf->digiquali->multidir_output[$conf->entity] . '/' . $object->element . '/' . $object->ref . '/answer_photo/' . $questionLinked->ref, ($conf->global->$confName ? 'large' : 'medium'), '', 0, 0, 0, 200, 200, 0, 0, 0, $object->element . '/' . $object->ref . '/answer_photo/' . $questionLinked->ref, $object, '', 0, 0);
+                                        $linkedMedias += $object->nbphoto;
+                                    }
+                                }
+                            }
+
+                            $parameters['head'][$headKey][1] .= '<span class="badge marginleftonlyshort">' . $linkedMedias . '</span>';
                         }
                     }
                 }
