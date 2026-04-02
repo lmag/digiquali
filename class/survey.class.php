@@ -241,15 +241,13 @@ class Survey extends SaturneObject
     /**
      * Create object into database
      *
-     * @param  User      $user      User that creates
-     * @param  bool      $notrigger false = launch triggers after, true = disable triggers
-     * @return int                  0 < if KO, ID of created object if OK
-     * @throws Exception
+     * @param  User        $user      User that creates
+     * @param  int<0,1>    $noTrigger 0 = launch triggers after, 1 = disable triggers
+     * @return int<-1,max>            Return integer 0 < if KO, ID of created object if OK
      */
-    public function create(User $user, bool $notrigger = false): int
+    public function create(User $user, int $noTrigger = 0): int
     {
-        global $conf;
-        $result = parent::create($user, $notrigger);
+        $result = parent::create($user, $noTrigger);
         if ($result > 0) {
             // Load Digiquali libraries
             require_once __DIR__ . '/sheet.class.php';

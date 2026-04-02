@@ -232,19 +232,19 @@ class Activity extends SaturneObject
     }
 
     /**
-     * Create object into database.
+     * Create object into database
      *
-     * @param  User $user      User that creates.
-     * @param  bool $notrigger false = launch triggers after, true = disable triggers.
-     * @return int             0 < if KO, ID of created object if OK.
+     * @param  User        $user      User that creates
+     * @param  int<0,1>    $noTrigger 0 = launch triggers after, 1 = disable triggers
+     * @return int<-1,max>            Return integer 0 < if KO, ID of created object if OK
      */
-    public function create(User $user, bool $notrigger = false): int
+    public function create(User $user, int $noTrigger = 0): int
     {
         $this->ref                 = $this->getNextNumRef();
         $this->status              = $this->status ?: 1;
-		$this->mandatory_questions = isset($this->mandatory_questions) ? $this->mandatory_questions : '{}';
+        $this->mandatory_questions = isset($this->mandatory_questions) ? $this->mandatory_questions : '{}';
 
-        return parent::create($user, $notrigger);
+        return parent::create($user, $noTrigger);
     }
 
     /**

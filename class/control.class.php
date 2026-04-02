@@ -271,16 +271,16 @@ class Control extends SaturneObject
     /**
      * Create object into database
      *
-     * @param  User      $user      User that creates
-     * @param  bool      $notrigger false = launch triggers after, true = disable triggers
-     * @return int                  0 < if KO, ID of created object if OK
+     * @param  User        $user      User that creates
+     * @param  int<0,1>    $noTrigger 0 = launch triggers after, 1 = disable triggers
+     * @return int<-1,max>            Return integer 0 < if KO, ID of created object if OK
      * @throws Exception
      */
-    public function create(User $user, bool $notrigger = false): int
+    public function create(User $user, int $noTrigger = 0): int
     {
         global $conf;
 
-        $result = parent::create($user, $notrigger);
+        $result = parent::create($user, $noTrigger);
         if ($result > 0) {
             // Load Digiquali libraries
             require_once __DIR__ . '/sheet.class.php';
@@ -878,17 +878,6 @@ class Control extends SaturneObject
         }
 
         return dolGetStatus($this->labelStatus[$status], $this->labelStatusShort[$status], '', $statusType, $mode);
-    }
-
-    /**
-     * Initialise object with example values.
-     * ID must be 0 if object instance is a specimen.
-     *
-     * @return void
-     */
-    public function initAsSpecimen()
-    {
-        $this->initAsSpecimenCommon();
     }
 
     /**
@@ -1532,7 +1521,7 @@ class ControlEquipment extends SaturneObject
 		'entity'        => ['type' => 'integer', 'label' => 'Entity', 'enabled' => '1', 'position' => 20, 'notnull' => 1, 'visible' => 0],
 		'date_creation' => ['type' => 'datetime', 'label' => 'DateCreation', 'enabled' => '1', 'position' => 30, 'notnull' => 1, 'visible' => 0],
 		'tms'           => ['type' => 'timestamp', 'label' => 'DateModification', 'enabled' => '1', 'position' => 40, 'notnull' => 0, 'visible' => 0],
-		'status'        => ['type' => 'status', 'label' => 'Status', 'enabled' => '1', 'position' => 50, 'notnull' => 1, 'visible' => 0],
+		'status'        => ['type' => 'status', 'label' => 'Status', 'enabled' => '1', 'position' => 50, 'notnull' => 1, 'visible' => 0, 'default' => self::STATUS_ENABLED],
 		'json'          => ['type' => 'text', 'label' => 'JSON', 'enabled' => '1', 'position' => 60, 'notnull' => 1, 'visible' => 0],
         'fk_product'    => ['type' => 'integer', 'label' => 'FkProduct', 'enabled' => '1', 'position' => 70, 'notnull' => 1, 'visible' => 0],
         'fk_lot'        => ['type' => 'integer', 'label' => 'FkLot', 'enabled' => '1', 'position' => 75, 'notnull' => 1, 'visible' => 0],
@@ -1540,44 +1529,9 @@ class ControlEquipment extends SaturneObject
 	];
 
     /**
-     * @var int ID.
+     * @var int Status
      */
-    public int $rowid;
-
-    /**
-     * @var string Ref.
-     */
-    public $ref;
-
-    /**
-     * @var string Ref ext.
-     */
-    public $ref_ext;
-
-    /**
-     * @var int Entity.
-     */
-    public $entity;
-
-    /**
-     * @var int|string Creation date.
-     */
-    public $date_creation;
-
-    /**
-     * @var int|string Timestamp.
-     */
-    public $tms;
-
-    /**
-     * @var string Import key.
-     */
-    public $import_key;
-
-    /**
-     * @var int Status.
-     */
-    public $status;
+    public $status = self::STATUS_ENABLED;
 
     /**
      * @var string Json.
@@ -1608,20 +1562,6 @@ class ControlEquipment extends SaturneObject
 	public function __construct(DoliDB $db)
 	{
 		parent::__construct($db, $this->module, $this->element);
-	}
-
-	/**
-	 * Create object into database.
-	 *
-	 * @param  User $user      User that creates.
-	 * @param  bool $notrigger false = launch triggers after, true = disable triggers.
-	 * @return int             0 < if KO, ID of created object if OK.
-	 */
-	public function create(User $user, bool $notrigger = false): int
-	{
-		$this->status = 1;
-
-		return parent::create($user, $notrigger);
 	}
 
     /**
