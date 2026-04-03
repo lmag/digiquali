@@ -257,7 +257,7 @@ class Control extends SaturneObject
     /**
      * Constructor
      *
-     * @param DoliDb $db Database handler
+     * @param DoliDB $db Database handler
      */
     public function __construct(DoliDB $db)
     {
@@ -1384,7 +1384,7 @@ class ControlLine extends SaturneObject
     /**
      * Constructor
      *
-     * @param DoliDb $db Database handler
+     * @param DoliDB $db Database handler
      */
     public function __construct(DoliDB $db)
     {
@@ -1476,7 +1476,7 @@ class ControlEquipment extends SaturneObject
 	/**
 	 * Constructor
 	 *
-	 * @param DoliDb $db Database handler
+	 * @param DoliDB $db Database handler
 	 */
 	public function __construct(DoliDB $db)
 	{

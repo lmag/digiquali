@@ -40,7 +40,7 @@ require_once __DIR__ . '/../../../../../../saturne/core/modules/saturne/modules_
 class pdf_controldocument extends SaturneDocumentModel
 {
     /**
-     * @var DoliDb Database handler
+     * @var DoliDB Database handler
      */
     public $db;
 
