@@ -1,5 +1,6 @@
 <?php
-/* Copyright (C) 2022-2023 EVARISK <technique@evarisk.com>
+
+/* Copyright (C) 2022-2026 EVARISK <technique@evarisk.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,31 +19,31 @@
 /**
  * \file    class/digiqualidocuments/controldocument.class.php
  * \ingroup digiquali
- * \brief   This file is a class file for ControlDocument.
+ * \brief   This file is a class file for ControlDocument
  */
 
-// Load Saturne libraries.
+// Load Saturne libraries
 require_once __DIR__ . '/../../../saturne/class/saturnedocuments.class.php';
 
 /**
- * Class for ControlDocument.
+ * Class for ControlDocument
  */
 class ControlDocument extends SaturneDocuments
 {
     /**
-     * @var string Module name.
+     * @var string Module name
      */
     public $module = 'digiquali';
 
     /**
-     * @var string Element type of object.
+     * @var string Element type of object
      */
     public $element = 'controldocument';
 
     /**
-     * Constructor.
+     * Constructor
      *
-     * @param DoliDb $db Database handler.
+     * @param DoliDB $db Database handler
      */
     public function __construct(DoliDB $db)
     {

@@ -1,5 +1,6 @@
 <?php
-/* Copyright (C) 2024 EVARISK <technique@evarisk.com>
+
+/* Copyright (C) 2024-2026 EVARISK <technique@evarisk.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +43,7 @@ class SurveyDocument extends SaturneDocuments
     /**
      * Constructor
      *
-     * @param DoliDb $db Database handler
+     * @param DoliDB $db Database handler
      */
     public function __construct(DoliDB $db)
     {
