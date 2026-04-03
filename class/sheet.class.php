@@ -815,19 +815,26 @@ class Sheet extends SaturneObject
         return $out;
     }
 
-    public function setLocked(User $user, int $notrigger = 0): int
+    /**
+     * Set locked status
+     *
+     * @param  User      $user      Object user that modify
+     * @param  int<0,1>  $noTrigger 0 = launch triggers after, 1 = disable triggers
+     * @return int<-1,1>            Return integer 0 < if KO, > 0 if OK
+     */
+    public function setLocked(User $user, int $noTrigger = 0): int
     {
         $questionsAndGroups = $this->fetchQuestionsAndGroups();
 
         if (is_array($questionsAndGroups) && !empty($questionsAndGroups)) {
             foreach($questionsAndGroups as $questionOrGroup) {
                 if ($questionOrGroup->status != $questionOrGroup::STATUS_LOCKED) {
-                    $questionOrGroup->setLocked($user, $notrigger);
+                    $questionOrGroup->setLocked($user, $noTrigger);
                 }
             }
         }
 
-        return parent::setLocked($user, $notrigger);
+        return parent::setLocked($user, $noTrigger);
     }
 
 

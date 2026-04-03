@@ -342,85 +342,6 @@ class Control extends SaturneObject
     }
 
     /**
-	 * Load list of objects in memory from the database.
-	 *
-	 * @param  string      $sortorder    Sort Order
-	 * @param  string      $sortfield    Sort field
-	 * @param  int         $limit        limit
-	 * @param  int         $offset       Offset
-	 * @param  array       $filter       Filter array. Example array('field'=>'valueforlike', 'customurl'=>...)
-	 * @param  string      $filtermode   Filter mode (AND or OR)
-	 * @return array|int                 int <0 if KO, array of pages if OK
-	 */
-	public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, array $filter = array(), $filtermode = 'AND', $fetchCategories = false)
-	{
-		dol_syslog(__METHOD__, LOG_DEBUG);
-
-		$records = array();
-
-		$sql                                                                              = 'SELECT ';
-		$sql                                                                             .= $this->getFieldList('t');
-		$sql                                                                             .= ' FROM ' . MAIN_DB_PREFIX . $this->table_element . ' as t';
-        if (isModEnabled('categorie') && $fetchCategories) {
-            $sql .= Categorie::getFilterJoinQuery('control', 't.rowid');
-        }
-		if (isset($this->ismultientitymanaged) && $this->ismultientitymanaged == 1) $sql .= ' WHERE t.entity IN (' . getEntity($this->table_element) . ')';
-		else $sql                                                                        .= ' WHERE 1 = 1';
-		// Manage filter
-		$sqlwhere = array();
-		if (count($filter) > 0) {
-			foreach ($filter as $key => $value) {
-				if ($key == 't.rowid') {
-					$sqlwhere[] = $key . '=' . $value;
-				} elseif (isset($this->fields[$key]['type']) && in_array($this->fields[$key]['type'], array('date', 'datetime', 'timestamp'))) {
-					$sqlwhere[] = $key . ' = \'' . $this->db->idate($value) . '\'';
-				} elseif ($key == 'customsql') {
-					$sqlwhere[] = $value;
-				} elseif (strpos($value, '%') === false) {
-					$sqlwhere[] = $key . ' IN (' . $this->db->sanitize($this->db->escape($value)) . ')';
-				} else {
-					$sqlwhere[] = $key . ' LIKE \'%' . $this->db->escape($value) . '%\'';
-				}
-			}
-		}
-		if (count($sqlwhere) > 0) {
-			$sql .= ' AND (' . implode(' ' . $filtermode . ' ', $sqlwhere) . ')';
-		}
-
-		if ( ! empty($sortfield)) {
-			$sql .= $this->db->order($sortfield, $sortorder);
-		}
-		if ( ! empty($limit)) {
-			$sql .= ' ' . $this->db->plimit($limit, $offset);
-		}
-
-		$resql = $this->db->query($sql);
-		if ($resql) {
-			$num = $this->db->num_rows($resql);
-			$i   = 0;
-			while ($i < ($limit ? min($limit, $num) : $num)) {
-				$obj = $this->db->fetch_object($resql);
-
-				$record = new self($this->db);
-				$record->setVarsFromFetchObj($obj);
-
-				$records[$record->id] = $record;
-
-				$i++;
-			}
-			$this->db->free($resql);
-
-			return $records;
-		} else {
-			$this->errors[] = 'Error ' . $this->db->lasterror();
-			dol_syslog(__METHOD__ . ' ' . join(',', $this->errors), LOG_ERR);
-
-			return -1;
-		}
-	}
-
-
-    /**
      * Load list of objects in memory from the database.
      *
      * @param  string      $sortorder    Sort Order
@@ -504,14 +425,13 @@ class Control extends SaturneObject
     }
 
     /**
-     * Set draft status.
+     * Set draft status
      *
-     * @param  User $user      Object user that modify.
-     * @param  int  $notrigger 1 = Does not execute triggers, 0 = Execute triggers.
-     * @return int             0 < if KO, > 0 if OK.
-     * @throws Exception
+     * @param  User      $user      Object user that modify
+     * @param  int<0,1>  $noTrigger 0 = launch triggers after, 1 = disable triggers
+     * @return int<-1,1>            Return integer 0 < if KO, > 0 if OK
      */
-    public function setDraft(User $user, int $notrigger = 0): int
+    public function setDraft(User $user, int $noTrigger = 0): int
     {
         // Protection
         if ($this->status <= self::STATUS_DRAFT) {
@@ -521,18 +441,17 @@ class Control extends SaturneObject
         $signatory = new SaturneSignature($this->db);
         $signatory->deleteSignatoriesSignatures($this->id, 'control');
 
-        return $this->setStatusCommon($user, self::STATUS_DRAFT, $notrigger, 'CONTROL_UNVALIDATE');
+        return $this->setStatusCommon($user, self::STATUS_DRAFT, $noTrigger, 'CONTROL_UNVALIDATE');
     }
 
     /**
      * Set locked status
      *
-     * @param  User     $user      Object user that modify
-     * @param  int      $notrigger 1 = Does not execute triggers, 0 = Execute triggers
-     * @return int                 0 < if KO, > 0 if OK
-     * @throws Exception
+     * @param  User      $user      Object user that modify
+     * @param  int<0,1>  $noTrigger 0 = launch triggers after, 1 = disable triggers
+     * @return int<-1,1>            Return integer 0 < if KO, > 0 if OK
      */
-    public function setLocked(User $user, int $notrigger = 0): int
+    public function setLocked(User $user, int $noTrigger = 0): int
     {
         global $langs;
 
@@ -603,7 +522,7 @@ class Control extends SaturneObject
             }
         }
 
-        return parent::setLocked($user, $notrigger);
+        return parent::setLocked($user, $noTrigger);
     }
 
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.ScopeNotCamelCaps

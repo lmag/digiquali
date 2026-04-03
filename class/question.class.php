@@ -536,17 +536,6 @@ class Question extends SaturneObject
 	}
 
 	/**
-	 * Initialise object with example values
-	 * Id must be 0 if object instance is a specimen
-	 *
-	 * @return void
-	 */
-	public function initAsSpecimen()
-	{
-		$this->initAsSpecimenCommon();
-	}
-
-	/**
 	 *  Output html form to select a third party
 	 *  Note, you must use the select_company to get the component to select a third party. This function must only be called by select_company
 	 *
