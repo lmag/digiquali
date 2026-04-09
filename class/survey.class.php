@@ -632,12 +632,11 @@ class Survey extends SaturneObject
     }
 
     /**
-     * Write information of trigger description
+     * Write generic information of trigger description
      *
-     * @param  SaturneObject $object Object calling the trigger
-     * @return string                Description to display in actioncomm->note_private
+     * @return string Description to display in actioncomm->note_private
      */
-    public function getTriggerDescription(SaturneObject $object): string
+    public function getTriggerDescription(): string
     {
         global $langs;
 
@@ -645,17 +644,17 @@ class Survey extends SaturneObject
         require_once __DIR__ . '/../class/sheet.class.php';
 
         $sheet = new Sheet($this->db);
-        $sheet->fetch($object->fk_sheet);
+        $sheet->fetch($this->fk_sheet);
 
-        $ret  = parent::getTriggerDescription($object);
+        $ret  = parent::getTriggerDescription();
         $ret .= $langs->transnoentities('Sheet') . ' : ' . $sheet->ref . ' - ' . $sheet->label . '</br>';
-        if ($object->projectid > 0) {
+        if ($this->projectid > 0) {
             require_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
             $project = new Project($this->db);
-            $project->fetch($object->projectid);
+            $project->fetch($this->projectid);
             $ret .= $langs->transnoentities('Project') . ' : ' . $project->ref . ' ' . $project->title . '</br>';
         }
-        $ret .= (!empty($object->photo) ? $langs->transnoentities('Photo') . ' : ' . $object->photo . '</br>' : '');
+        $ret .= (!empty($this->photo) ? $langs->transnoentities('Photo') . ' : ' . $this->photo . '</br>' : '');
 
         return $ret;
     }

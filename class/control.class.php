@@ -1164,10 +1164,9 @@ class Control extends SaturneObject
     /**
      * Write information of trigger description
      *
-     * @param  SaturneObject $object Object calling the trigger
-     * @return string                Description to display in actioncomm->note_private
+     * @return string Description to display in actioncomm->note_private
      */
-    public function getTriggerDescription(SaturneObject $object): string
+    public function getTriggerDescription(): string
     {
         global $db, $langs;
 
@@ -1175,20 +1174,20 @@ class Control extends SaturneObject
         require_once __DIR__ . '/../class/sheet.class.php';
 
         $sheet = new Sheet($db);
-        $sheet->fetch($object->fk_sheet);
+        $sheet->fetch($this->fk_sheet);
 
-        $ret  = parent::getTriggerDescription($object);
+        $ret  = parent::getTriggerDescription();
         $ret .= $langs->transnoentities('Sheet') . ' : ' . $sheet->ref . ' - ' . $sheet->label . '<br>';
-        if ($object->fk_user_controller > 0) {
+        if ($this->fk_user_controller > 0) {
             $user = new User($db);
-            $user->fetch($object->fk_user_controller);
+            $user->fetch($this->fk_user_controller);
             $ret .= $langs->transnoentities('Controller') . ' : ' . ucfirst($user->firstname) . ' ' . dol_strtoupper($user->lastname) . '<br>';
         }
-        if (!empty($object->project)) {
-            $ret .= $langs->transnoentities('Project') . ' : ' . $object->project->ref . ' ' . $object->project->title . '<br>';
+        if (!empty($this->project)) {
+            $ret .= $langs->transnoentities('Project') . ' : ' . $this->project->ref . ' ' . $this->project->title . '<br>';
         }
-        $ret .= (!empty($object->verdict) ? $langs->transnoentities('Verdict') . ' : ' . $langs->transnoentities($object->fields['verdict']['arrayofkeyval'][$object->verdict]) . '<br>' : '');
-        $ret .= (!empty($object->photo) ? $langs->transnoentities('Photo') . ' : ' . $object->photo . '<br>' : '');
+        $ret .= (!empty($this->verdict) ? $langs->transnoentities('Verdict') . ' : ' . $langs->transnoentities($this->fields['verdict']['arrayofkeyval'][$this->verdict]) . '<br>' : '');
+        $ret .= (!empty($this->photo) ? $langs->transnoentities('Photo') . ' : ' . $this->photo . '<br>' : '');
 
         return $ret;
     }

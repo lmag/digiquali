@@ -248,26 +248,25 @@ class Answer extends SaturneObject
         }
     }
 
-	/**
-	 * Write information of trigger description
-	 *
-	 * @param  Object $object Object calling the trigger
-	 * @return string         Description to display in actioncomm->note_private
-	 */
-	public function getTriggerDescription(SaturneObject $object): string
-	{
-		global $db, $langs;
+    /**
+     * Write information of trigger description
+     *
+     * @return string Description to display in actioncomm->note_private
+     */
+    public function getTriggerDescription(): string
+    {
+        global $db, $langs;
 
-		$ret   = parent::getTriggerDescription($object);
-		$ret  .= $langs->transnoentities('Position') . ' : ' . $object->position . '</br>';
-		$ret  .= $langs->transnoentities('Color') . ' : ' . $object->color . '</br>';
-		$ret  .= (dol_strlen($object->pictogram) > 0 ? $langs->transnoentities('Pictogram') . ' : ' . $object->pictogram . '</br>' : '');
-		if (!empty($object->fk_question)) {
-			$question = new Question($db);
-			$question->fetch($object->fk_question);
+        $ret   = parent::getTriggerDescription();
+        $ret  .= $langs->transnoentities('Position') . ' : ' . $this->position . '</br>';
+        $ret  .= $langs->transnoentities('Color') . ' : ' . $this->color . '</br>';
+        $ret  .= (dol_strlen($this->pictogram) > 0 ? $langs->transnoentities('Pictogram') . ' : ' . $this->pictogram . '</br>' : '');
+        if (!empty($this->fk_question)) {
+            $question = new Question($db);
+            $question->fetch($this->fk_question);
 
-			$ret .= $langs->transnoentities('Question') . ' : ' . $question->ref . ' - ' . $question->label . '</br>';
-		}
-		return $ret;
-	}
+            $ret .= $langs->transnoentities('Question') . ' : ' . $question->ref . ' - ' . $question->label . '</br>';
+        }
+        return $ret;
+    }
 }

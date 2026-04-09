@@ -673,19 +673,18 @@ class Question extends SaturneObject
 	/**
 	 * Write information of trigger description
 	 *
-	 * @param  Object $object Object calling the trigger
-	 * @return string         Description to display in actioncomm->note_private
+	 * @return string Description to display in actioncomm->note_private
 	 */
-	public function getTriggerDescription(SaturneObject $object): string
+	public function getTriggerDescription(): string
 	{
 		global $langs;
 
-		$ret   = parent::getTriggerDescription($object);
-		$ret  .= $langs->transnoentities('ShowPhoto') . ' : ' . ($object->show_photo ? $langs->transnoentities('Yes') : $langs->transnoentities('No')) . '</br>';
-		$ret  .= $langs->transnoentities('AuthorizeAnswerPhoto') . ' : ' . ($object->authorize_answer_photo ? $langs->transnoentities('Yes') : $langs->transnoentities('No')) . '</br>';
-		$ret  .= $langs->transnoentities('EnterComment') . ' : ' . ($object->enter_comment ? $langs->transnoentities('Yes') : $langs->transnoentities('No')) . '</br>';
-		$ret  .= (dol_strlen($object->photo_ok) > 0 ? $langs->transnoentities('PhotoOK') . ' : ' . $object->photo_ok . '</br>' : '');
-		$ret  .= (dol_strlen($object->photo_ko) > 0 ? $langs->transnoentities('PhotoKO') . ' : ' . $object->photo_ko . '</br>' : '');
+		$ret   = parent::getTriggerDescription();
+		$ret  .= $langs->transnoentities('ShowPhoto') . ' : ' . ($this->show_photo ? $langs->transnoentities('Yes') : $langs->transnoentities('No')) . '</br>';
+		$ret  .= $langs->transnoentities('AuthorizeAnswerPhoto') . ' : ' . ($this->authorize_answer_photo ? $langs->transnoentities('Yes') : $langs->transnoentities('No')) . '</br>';
+		$ret  .= $langs->transnoentities('EnterComment') . ' : ' . ($this->enter_comment ? $langs->transnoentities('Yes') : $langs->transnoentities('No')) . '</br>';
+		$ret  .= (dol_strlen($this->photo_ok) > 0 ? $langs->transnoentities('PhotoOK') . ' : ' . $this->photo_ok . '</br>' : '');
+		$ret  .= (dol_strlen($this->photo_ko) > 0 ? $langs->transnoentities('PhotoKO') . ' : ' . $this->photo_ko . '</br>' : '');
 
 		return $ret;
 	}

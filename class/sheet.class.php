@@ -656,16 +656,15 @@ class Sheet extends SaturneObject
 	/**
 	 * Write information of trigger description
 	 *
-	 * @param  Object $object Object calling the trigger
-	 * @return string         Description to display in actioncomm->note_private
+	 * @return string Description to display in actioncomm->note_private
 	 */
-	public function getTriggerDescription(SaturneObject $object): string
+	public function getTriggerDescription(): string
 	{
 		global $langs;
 
-		$linkedElement = json_decode($object->element_linked, true);
+		$linkedElement = json_decode($this->element_linked, true);
 
-		$ret  = parent::getTriggerDescription($object);
+		$ret  = parent::getTriggerDescription();
 		$ret .= $langs->transnoentities('ElementLinked') . ' : ';
 
 		if (is_array($linkedElement) && !empty($linkedElement)) {

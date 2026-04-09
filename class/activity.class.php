@@ -1,5 +1,6 @@
 <?php
-/* Copyright (C) 2025 EVARISK <technique@evarisk.com>
+
+/* Copyright (C) 2025-2026 EVARISK <technique@evarisk.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +19,7 @@
 /**
  * \file    class/activity.class.php
  * \ingroup digiquali
- * \brief   This file is a CRUD class file for Activity (Create/Read/Update/Delete).
+ * \brief   This file is a CRUD class file for Activity (Create/Read/Update/Delete)
  */
 
 // Load Saturne libraries
@@ -40,34 +41,17 @@ class Activity extends SaturneObject
     public $element = 'activity';
 
     /**
-     * @var string Name of table without prefix where object is stored. This is also the key used for extrafields management
+     * @var string Name of table without prefix where object is stored
+     *             This is also the key used for extrafields management
      */
     public $table_element = 'digiquali_activity';
 
     /**
-     * @var int Does this object support multicompany module ?
-     * 0 = No test on entity, 1 = Test with field entity, 'field@table' = Test with link by field@table
-     */
-    public $ismultientitymanaged = 1;
-
-    /**
-     * @var int Does object support extrafields ? 0 = No, 1 = Yes
-     */
-    public $isextrafieldmanaged = 1;
-
-    /**
-     * @var int Does object support category module ? 0 = No, 1 = Yes
-     */
-    public int $isCategoryManaged = 1;
-
-    /**
-     * @var string Name of icon for activity. Must be a 'fa-xxx' fontawesome code (or 'fa-xxx_fa_color_size') or 'activity@digiquali' if picto is file 'img/object_activity.png'
+     * @var string Name of icon for activity
+     *             Must be a 'fa-xxx' fontawesome code (or 'fa-xxx_fa_color_size')
+     *             or 'activity@digiquali' if picto is file 'img/object_activity.png'
      */
     public string $picto = 'fontawesome_fa-list_fas_#d35968';
-
-    public const STATUS_DELETED   = -1;
-    public const STATUS_VALIDATED = 1;
-    public const STATUS_ARCHIVED  = 3;
 
     /**
      * 'type' field format:
@@ -104,11 +88,12 @@ class Activity extends SaturneObject
      * 'validate' is 1 if you need to validate with $this->validateField()
      * 'copytoclipboard' is 1 or 2 to allow to add a picto to copy value into clipboard (1=picto after label, 2=picto after value)
      *
-     * Note: To have value dynamic, you can set value to 0 in definition and edit the value on the fly into the constructor.
+     * Note: To have value dynamic, you can set value to 0 in definition and edit the value on the fly into the constructor
      */
 
     /**
-     * @var array Array with all fields and their property. Do not use it as a static var. It may be modified by constructor.
+     * @var array Array with all fields and their property
+     *            Do not use it as a static var. It may be modified by constructor
      */
     public $fields = [
         'rowid'         => ['type' => 'integer',      'label' => 'TechnicalID',      'enabled' => 1, 'position' => 1,   'notnull' => 1, 'visible' => -2, 'noteditable' => 1, 'index' => 1, 'comment' => 'Id'],
@@ -118,7 +103,7 @@ class Activity extends SaturneObject
         'date_creation' => ['type' => 'datetime',     'label' => 'DateCreation',     'enabled' => 1, 'position' => 40,  'notnull' => 1, 'visible' => 2],
         'tms'           => ['type' => 'timestamp',    'label' => 'DateModification', 'enabled' => 1, 'position' => 50,  'notnull' => 1, 'visible' => -2],
         'import_key'    => ['type' => 'varchar(14)',  'label' => 'ImportId',         'enabled' => 1, 'position' => 60,  'notnull' => 0, 'visible' => -2, 'index' => 0],
-        'status'        => ['type' => 'smallint',     'label' => 'Status',           'enabled' => 1, 'position' => 70,  'notnull' => 1, 'visible' => 1, 'index' => 1, 'searchmulti' => 1, 'default' => 1, 'arrayofkeyval' => [1 => 'InProgress', 2 => 'Locked', 3 => 'Archived'], 'css' => 'minwidth200'],
+        'status'        => ['type' => 'smallint',     'label' => 'Status',           'enabled' => 1, 'position' => 70,  'notnull' => 1, 'visible' => 1, 'index' => 1, 'searchmulti' => 1, 'default' => self::STATUS_VALIDATED, 'arrayofkeyval' => [1 => 'Validated', 2 => 'Locked', 3 => 'Archived'], 'css' => 'minwidth200'],
         'label'         => ['type' => 'varchar(255)', 'label' => 'Label',            'enabled' => 1, 'position' => 80,  'notnull' => 0, 'visible' => 1, 'searchall' => 1],
         'source'        => ['type' => 'html',         'label' => 'Supplier',         'enabled' => 1, 'position' => 15,  'notnull' => 0, 'visible' => 1, 'searchall' => 1, 'css' => 'minwidth200', 'viewmode' => 'badge', 'picto' => 'fas fa-user-tie'],
         'source_from'   => ['type' => 'html',         'label' => 'SourceFrom',       'enabled' => 1, 'position' => 15,  'notnull' => 0, 'visible' => 1, 'searchall' => 1, 'css' => 'minwidth200', 'viewmode' => 'badge', 'picto' => 'fas fa-user'],
@@ -132,44 +117,9 @@ class Activity extends SaturneObject
     ];
 
     /**
-     * @var int ID
-     */
-    public int $rowid;
-
-    /**
-     * @var string Ref
-     */
-    public $ref;
-
-    /**
-     * @var string Ref ext
-     */
-    public $ref_ext;
-
-    /**
-     * @var int Entity
-     */
-    public $entity;
-
-    /**
-     * @var int|string Creation date
-     */
-    public $date_creation;
-
-    /**
-     * @var int|string Timestamp
-     */
-    public $tms;
-
-    /**
-     * @var string Import key
-     */
-    public $import_key;
-
-    /**
      * @var int Status
      */
-    public $status;
+    public $status = self::STATUS_VALIDATED;
 
     /**
      * @var string|null Label
@@ -199,27 +149,12 @@ class Activity extends SaturneObject
     /**
      * @var float|null Score
      */
-    public ?float $score;
+    public ?float $score = null;
 
     /**
      * @var float|null Target score
      */
-    public ?float $target_score;
-
-    /**
-     * @var int User ID
-     */
-    public $fk_user_creat;
-
-    /**
-     * @var int|null User ID
-     */
-    public $fk_user_modif;
-
-    /**
-     * @var int|string Element ID
-     */
-    public $fk_element;
+    public ?float $target_score = null;
 
     /**
      * Constructor
@@ -240,172 +175,38 @@ class Activity extends SaturneObject
      */
     public function create(User $user, int $noTrigger = 0): int
     {
-        $this->ref                 = $this->getNextNumRef();
-        $this->status              = $this->status ?: 1;
-        $this->mandatory_questions = isset($this->mandatory_questions) ? $this->mandatory_questions : '{}';
+        $this->ref = $this->getNextNumRef();
 
         return parent::create($user, $noTrigger);
     }
 
     /**
-     * Return the status.
+     * Write information of trigger description
      *
-     * @param  int    $status ID status.
-     * @param  int    $mode   0 = long label, 1 = short label, 2 = Picto + short label, 3 = Picto, 4 = Picto + long label, 5 = Short label + Picto, 6 = Long label + Picto.
-     * @return string         Label of status.
+     * @return string Description to display in actioncomm->note_private
      */
-    public function LibStatut(int $status, int $mode = 0): string
-    {
-        if (empty($this->labelStatus) || empty($this->labelStatusShort)) {
-            global $langs;
-            $this->labelStatus[self::STATUS_VALIDATED] = $langs->transnoentitiesnoconv('InProgress');
-            $this->labelStatus[self::STATUS_ARCHIVED]  = $langs->transnoentitiesnoconv('Archived');
-            $this->labelStatus[self::STATUS_DELETED]   = $langs->transnoentitiesnoconv('Deleted');
-
-            $this->labelStatusShort[self::STATUS_VALIDATED] = $langs->transnoentitiesnoconv('InProgress');
-            $this->labelStatusShort[self::STATUS_ARCHIVED]  = $langs->transnoentitiesnoconv('Archived');
-            $this->labelStatusShort[self::STATUS_DELETED]   = $langs->transnoentitiesnoconv('Deleted');
-        }
-
-        $statusType = 'status' . $status;
-        if ($status == self::STATUS_ARCHIVED) {
-            $statusType = 'status8';
-        }
-        if ($status == self::STATUS_DELETED) {
-            $statusType = 'status9';
-        }
-
-        return dolGetStatus($this->labelStatus[$status], $this->labelStatusShort[$status], '', $statusType, $mode);
-    }
-
-    /**
-     * Clone an object into another one
-     *
-     * @param   User      $user   User that creates
-     * @param   int       $fromID ID of object to clone
-     * @return  mixed             New object created, <0 if KO
-     * @throws  Exception
-     */
-    public function createFromClone(User $user, int $fromID): int
-    {
-        dol_syslog(__METHOD__, LOG_DEBUG);
-
-        $error = 0;
-
-        $object = new self($this->db);
-        $this->db->begin();
-
-        // Load source object
-        $object->fetchCommon($fromID);
-
-        // Reset some properties
-        unset($object->fk_user_creat);
-        unset($object->import_key);
-
-        // Clear fields
-        if (property_exists($object, 'ref')) {
-            $object->ref = '';
-        }
-        if (property_exists($object, 'date_creation')) {
-            $object->date_creation = dol_now();
-        }
-        if (property_exists($object, 'status')) {
-            $object->status = self::STATUS_VALIDATED;
-        }
-
-        $object->context['createfromclone'] = 'createfromclone';
-
-        $questionAndGroups = $object->fetchQuestionsAndGroups();
-
-        $activityID = $object->create($user);
-        if ($sheetID > 0) {
-            // Categories
-            $categoryIds = [];
-            $category    = new Categorie($this->db);
-            $categories  = $category->containing($fromID, 'sheet');
-            if (is_array($categories) && !empty($categories)) {
-                foreach($categories as $category) {
-                    $categoryIds[] = $category->id;
-                }
-                $object->setCategories($categoryIds);
-            }
-
-            $questionIds = [];
-            $questionGroupIds = [];
-
-            if (is_array($questionAndGroups) && !empty($questionAndGroups)) {
-                foreach ($questionAndGroups as $position => $questionOrGroup) {
-                    $questionOrGroup->add_object_linked('digiquali_' . $object->element, $sheetID);
-                    if ($questionOrGroup instanceof Question) {
-                        $questionIds[$position] = $questionOrGroup->id;
-                    } else {
-                        $questionGroupIds[$position] = $questionOrGroup->id;
-                    }
-                }
-                $object->updateQuestionsAndGroupsPosition($questionIds, $questionGroupIds);
-            }
-        } else {
-            $error++;
-            $this->error  = $object->error;
-            $this->errors = $object->errors;
-        }
-
-        unset($object->context['createfromclone']);
-
-        // End
-        if (!$error) {
-            $this->db->commit();
-            return $sheetID;
-        } else {
-            $this->db->rollback();
-            return -1;
-        }
-    }
-
-    public function initAsSpecimen()
+    public function getTriggerDescription(): string
     {
         global $langs;
 
-        parent::initAsSpecimen();
+        $linkedElement = json_decode($this->element_linked, true);
 
-        $this->ref          = 'A2024-0001';
-        $this->label        = $langs->trans('ActivityLabelSpecimen');
-        $this->source       = $langs->trans('ActivitySourceSpecimen');
-        $this->source_from  = $langs->trans('ActivitySourceFromSpecimen');
-        $this->input_data   = $langs->trans('ActivityInputDataSpecimen');
-        $this->output_data  = $langs->trans('ActivityOutputDataSpecimen');
-        $this->score        = 50;
-        $this->target_score = 70;
+        $ret  = parent::getTriggerDescription();
+        $ret .= $langs->transnoentities('ElementLinked') . ' : ';
+
+        if (is_array($linkedElement) && !empty($linkedElement)) {
+            foreach ($linkedElement as $objectType => $active) {
+                $objectTypeUppercase = ucfirst($objectType);
+
+                $ret .= $langs->transnoentities($objectTypeUppercase) . ' ';
+            }
+        } else {
+            $ret .= $langs->transnoentities('NoData');
+        }
+        $ret .= '</br>';
+
+        return $ret;
     }
-
-    /**
-	 * Write information of trigger description
-	 *
-	 * @param  Object $object Object calling the trigger
-	 * @return string         Description to display in actioncomm->note_private
-	 */
-	public function getTriggerDescription(SaturneObject $object): string
-	{
-		global $langs;
-
-		$linkedElement = json_decode($object->element_linked, true);
-
-		$ret  = parent::getTriggerDescription($object);
-		$ret .= $langs->transnoentities('ElementLinked') . ' : ';
-
-		if (is_array($linkedElement) && !empty($linkedElement)) {
-			foreach ($linkedElement as $objectType => $active) {
-				$objectTypeUppercase = ucfirst($objectType);
-
-				$ret .= $langs->transnoentities($objectTypeUppercase) . ' ';
-			}
-		} else {
-			$ret .= $langs->transnoentities('NoData');
-		}
-		$ret .= '</br>';
-
-		return $ret;
-	}
 
     public static function getNbActivities($object): int
     {
