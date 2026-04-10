@@ -304,11 +304,11 @@ class Question extends SaturneObject
         if ($result > 0) {
             if (GETPOST('question_group_id') > 0) {
                 $questionGroup = new QuestionGroup($this->db);
-                $questionGroup->fetch(GETPOST('question_group_id'));
+                $questionGroup->fetch(GETPOSTINT('question_group_id'));
                 $questionGroup->addQuestion($this->id);
             } else if (GETPOST('sheet_id') > 0) {
                $sheet = new Sheet($this->db);
-               $sheet->fetch(GETPOST('sheet_id'));
+               $sheet->fetch(GETPOSTINT('sheet_id'));
                $this->add_object_linked('digiquali_' . $sheet->element, GETPOST('sheet_id'));
 
                $sheet->updateQuestionsAndGroupsPosition([], [], true);

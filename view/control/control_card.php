@@ -377,7 +377,7 @@ if ($action == 'create') {
         }
         print '</div>';
         if (GETPOSTISSET('sheetCategoryID')) {
-            $category->fetch(GETPOST('sheetCategoryID'));
+            $category->fetch(GETPOSTINT('sheetCategoryID'));
             $mainSubCategories = $category->get_filles();
             if (is_array($mainSubCategories) && !empty($mainSubCategories)) {
                 print '<div class="titre center">' . $langs->trans('SheetSubCategories') . '</div>';

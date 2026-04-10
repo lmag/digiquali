@@ -217,7 +217,7 @@ class QuestionGroup extends SaturneObject
                 $this->add_object_linked('digiquali_questiongroup', GETPOST('parent_group_id'));
             } else if (GETPOST('sheet_id') > 0) {
                 $sheet = new Sheet($this->db);
-                $sheet->fetch(GETPOST('sheet_id'));
+                $sheet->fetch(GETPOSTINT('sheet_id'));
 
                 $this->add_object_linked('digiquali_sheet', GETPOST('sheet_id'));
 

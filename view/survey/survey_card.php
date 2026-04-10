@@ -251,7 +251,7 @@ if ($action == 'create') {
     print '<table class="border centpercent tableforfieldcreate">';
 
     if (!empty(GETPOST('fk_sheet'))) {
-        $sheet->fetch(GETPOST('fk_sheet'));
+        $sheet->fetch(GETPOSTINT('fk_sheet'));
     }
 
     //FK SHEET
