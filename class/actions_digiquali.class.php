@@ -340,7 +340,7 @@ class ActionsDigiquali
             $this->resprints = $sql;
         }
 
-        if (preg_match('/surveylist|controllist/', $parameters['context'])) {
+        if (preg_match('/\bcontrollist\b/', $parameters['context'])) {
             $sql = ', DATEDIFF(t.next_control_date, CURDATE()) AS days_remaining_before_next_control';
             $this->resprints = $sql;
         }
