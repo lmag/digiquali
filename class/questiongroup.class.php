@@ -420,7 +420,7 @@ class QuestionGroup extends SaturneObject
 	 *
 	 * @return void
 	 */
-	public function initAsSpecimen()
+	public function initAsSpecimen(): void
 	{
 		$this->initAsSpecimenCommon();
 	}
