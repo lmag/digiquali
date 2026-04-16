@@ -299,7 +299,7 @@ class ActionsDigiquali
             if (isModEnabled('easyurl')) {
                 require_once __DIR__ . '/../../easyurl/class/shortener.class.php';
                 $shortener = new Shortener($this->db);
-                $result    = $shortener->fetch('', '', ' AND t.original_url = \'' . $publicControlInterfaceUrl . '\'');
+                $result    = $shortener->fetch(0, '', ' AND t.original_url = \'' . $publicControlInterfaceUrl . '\'');
                 if ($result > 0) {
                     $publicControlInterfaceUrl = $shortener->short_url;
                 } else {
@@ -520,7 +520,7 @@ class ActionsDigiquali
             if (isModEnabled('easyurl')) {
                 require_once __DIR__ . '/../../easyurl/class/shortener.class.php';
                 $shortener = new Shortener($this->db);
-                $result    = $shortener->fetch('', '', ' AND t.original_url = \'' . $publicControlInterfaceUrl . '\'');
+                $result    = $shortener->fetch(0, '', ' AND t.original_url = \'' . $publicControlInterfaceUrl . '\'');
                 if ($result > 0) {
                     $publicControlInterfaceUrl = $shortener->short_url;
                 } else {
