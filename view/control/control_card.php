@@ -56,6 +56,10 @@ require_once __DIR__ . '/../../lib/digiquali_control.lib.php';
 require_once __DIR__ . '/../../lib/digiquali_answer.lib.php';
 require_once __DIR__ . '/../../lib/digiquali_sheet.lib.php';
 
+if (isModEnabled('dolicar')) {
+    require_once __DIR__ . '/../../../dolicar/class/registrationcertificatefr.class.php';
+}
+
 // Global variables definitions
 global $conf, $db, $hookmanager, $langs, $user;
 
@@ -478,6 +482,16 @@ if ($action == 'create') {
                         } elseif ($objectType == 'productlot') {
                             $product->fetch($objectSingle->fk_product);
                             $objectName = $objectSingle->$nameField . ' - ' . $product->ref;
+                            if (isModEnabled('dolicar')) {
+                                $registrationCertificate      = new RegistrationCertificateFr($db);
+                                $registrationCertificatesList = $registrationCertificate->fetchAll('', '', 0, 0, ['customsql' => 'fk_lot = ' . ((int) $objectSingle->id)]);
+                                if (is_array($registrationCertificatesList) && !empty($registrationCertificatesList)) {
+                                    $registrationCertificate = reset($registrationCertificatesList);
+                                    if (!empty($registrationCertificate->a_registration_number)) {
+                                        $objectName .= ' - ' . $registrationCertificate->a_registration_number;
+                                    }
+                                }
+                            }
                         } else {
                             $objectName = $objectSingle->$nameField;
                         }
