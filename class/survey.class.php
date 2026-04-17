@@ -687,7 +687,8 @@ class Survey extends SaturneObject
                         if ($question->checkAnswerIsCorrect($questionAnswer->answer) >= 0) {
                             $surveyCorrectAnswersTotalPoints += $question->points;
                         } elseif ($question->type == $question::TYPE_PERCENTAGE) {
-                            $surveyCorrectAnswersTotalPoints += round($questionAnswer->answer / 100, 2);
+                            $answer = $questionAnswer->answer !== '' ? $questionAnswer->answer : 0;
+                            $surveyCorrectAnswersTotalPoints += round($answer / 100, 2);
                         }
                         if ($questionAnswer->answer !== '') {
                             $numberOfAnsweredQuestions++;

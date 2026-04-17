@@ -203,6 +203,7 @@ ErrorSheetUsedInControl        = Le modèle %s ne peut pas être supprimé, il e
 AddSheetIntoCategory           = Assigner cette catégorie au modèle
 QuestionMandatorized           = La question %s a été rendue obligatoire
 QuestionUnMandatorized         = La question %s n'est plus obligatoire
+SetAllMandatory                = Rendre toutes les questions obligatoires / non obligatoires
 NoLinkedObjectSelected         = Veuillez sélectionner un type d'objet à contrôler
 ExportSheetData                = Export des données du modèle
 ExportSheetDataDescription     = Export des données du modèle et des questions associées
