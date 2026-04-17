@@ -389,8 +389,12 @@ class ActionsDigiquali
         }
 
         if (preg_match('/surveylist|controllist/', $parameters['context'])) {
+            if (!isset($conf->cache['objectsMetadata']) || empty($conf->cache['objectsMetadata'])) {
+                require_once __DIR__ . '/../../saturne/lib/object.lib.php';
+                $conf->cache['objectsMetadata'] = saturne_get_objects_metadata();
+            }
             $objectsMetadata = $conf->cache['objectsMetadata'];
-            foreach($objectsMetadata as $objectMetadata) {
+            foreach ($objectsMetadata as $objectMetadata) {
                 if ($objectMetadata['conf'] == 0) {
                     continue;
                 }
