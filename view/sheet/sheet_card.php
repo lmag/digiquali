@@ -805,7 +805,8 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
     print '<td>' . $langs->trans('Label') . '</td>';
     print '<td>' . $langs->trans('Description') . '</td>';
     print '<td>' . $langs->trans('QuestionType') . '</td>';
-    print '<td class="center">' . $langs->trans('Mandatory') . '</td>';
+    $mandatoryAllCheckbox = $object->status < Sheet::STATUS_LOCKED ? ' <input type="checkbox" id="mandatory-all" title="' . dol_escape_htmltag($langs->trans('SetAllMandatory')) . '">' : '';
+    print '<td class="center">' . $langs->trans('Mandatory') . $mandatoryAllCheckbox . '</td>';
     print '<td class="center">' . $langs->trans('PhotoOk') . '</td>';
     print '<td class="center">' . $langs->trans('PhotoKo') . '</td>';
     print '<td class="center">' . $langs->trans('Status') . '</td>';
