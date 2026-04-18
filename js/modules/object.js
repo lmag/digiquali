@@ -65,6 +65,7 @@ window.digiquali.object.event = function() {
   $(document).on( 'click', '.answer:not(.disable)', window.digiquali.object.selectAnswer);
   $(document).on( 'input', '.input-answer:not(.disable)', window.digiquali.object.selectAnswer);
   $(document).on( 'keyup', '.question-comment', window.digiquali.object.showCommentUnsaved);
+  $(document).on( 'blur', '.question-comment', window.digiquali.object.saveCommentAuto);
   $(document).on( 'change', '.question-answer', window.digiquali.object.changeStatusQuestion);
   $(document).on( 'click', '.answer:not(.disable)', window.digiquali.object.changeStatusQuestion);
   $(document).on('input', '.question-answer[type="range"]', function () {
@@ -299,3 +300,32 @@ window.digiquali.object.placePercents = function() {
     window.digiquali.object.rangePercent.call(this, true);
   });
 }
+
+/**
+ * Auto-save comment on blur
+ *
+ * @since   1.12.0
+ * @version 1.12.0
+ *
+ * @returns {void}
+ */
+window.digiquali.object.saveCommentAuto = function() {
+  let inputName = $(this).attr('name');
+  if (inputName && inputName.indexOf('comment') === 0) {
+    let questionId = inputName.replace('comment', '');
+    let comment    = $(this).val();
+    
+    // Find answer element. Fallback to common class if closest fails.
+    let answerElement = $(this).closest('.table-id-' + questionId).find('.question-answer');
+    if(answerElement.length === 0) {
+        answerElement = $(this).closest('.answer-cell').find('.question-answer');
+    }
+    let answer = answerElement.val() || '';
+    
+    let publicInterface = $(this).closest('.table-id-' + questionId).attr('data-publicInterface');
+
+    if (!publicInterface) {
+      window.digiquali.object.saveAnswer(questionId, answer, comment);
+    }
+  }
+};
