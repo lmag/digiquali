@@ -40,28 +40,27 @@ if ($action == 'save') {
                 foreach ($object->lines as $line) {
                     if ($line->fk_question === $question->id) {
 
-                        // Save answer value
-                        if ($data['autoSave'] && $question->id == $data['questionId']) {
-                            $questionAnswer = $data['answer'];
+                        $isAutoSave = isset($data['autoSave']) ? $data['autoSave'] : false;
+
+                        if ($isAutoSave) {
+                            if (isset($data['questionId']) && $question->id == $data['questionId']) {
+                                if (isset($data['answer'])) {
+                                    $line->answer = $data['answer'];
+                                }
+                                if (isset($data['comment'])) {
+                                    $line->comment = $data['comment'];
+                                }
+                                $line->update($user);
+                            }
                         } else {
-                            $questionAnswer = GETPOST('answer' . $question->id);
+                            if (isset($_POST['answer' . $question->id])) {
+                                $line->answer = GETPOST('answer' . $question->id);
+                            }
+                            if (isset($_POST['comment' . $question->id])) {
+                                $line->comment = GETPOST('comment' . $question->id);
+                            }
+                            $line->update($user);
                         }
-
-                        if (!empty($questionAnswer)) {
-                            $line->answer = $questionAnswer;
-                        }
-
-                        // Save answer comment
-                        if ($data['autoSave'] && $question->id == $data['questionId']) {
-                            $comment = $data['comment'];
-                        } else {
-                            $comment = GETPOST('comment' . $question->id);
-                        }
-                        if (dol_strlen($comment) > 0) {
-                            $line->comment = $comment;
-                        }
-
-                        $line->update($user);
                     }
                 }
             }
