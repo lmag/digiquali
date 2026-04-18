@@ -29,39 +29,86 @@
  */
 
 if ($action == 'save') {
-    $data = json_decode(file_get_contents('php://input'), true);
+    $isAutoSave = false;
+    $data = [];
+
+    $rawPost = file_get_contents('php://input');
+    if (!empty($rawPost) && strpos($_SERVER['CONTENT_TYPE'] ?? '', 'application/json') !== false) {
+        $jsonPost = json_decode($rawPost, true);
+        if (isset($jsonPost['autoSave']) && $jsonPost['autoSave'] == true) {
+            $isAutoSave = true;
+            $data = $jsonPost;
+        }
+    } elseif (GETPOST('autoSave', 'alpha') === 'true') {
+        $isAutoSave = true;
+        $data = $_POST;
+    }
+
+    $id = GETPOST('id', 'int');
+
+    if ($id > 0 && empty($object->id)) {
+        $object->fetch($id);
+    }
+
     $sheet->fetch($object->fk_sheet);
-
     $questions = $sheet->fetchAllQuestions();
-
+    
+    file_put_contents('c:/wamp64/www/dolibarr22/dolibarr/documents/debug.log', "Total questions fetched: " . (is_array($questions) || is_object($questions) ? count($questions) : 0) . "\n", FILE_APPEND);
+    
     if (!empty($questions)) {
+        $controlLineObj = new ControlLine($db);
         foreach ($questions as $question) {
-            if (!empty($object->lines)) {
-                foreach ($object->lines as $line) {
-                    if ($line->fk_question === $question->id) {
+            // If AutoSave, ONLY process the specific question to save time
+            if ($isAutoSave) {
+                if (!isset($data['questionId']) || $question->id != $data['questionId']) {
+                    continue;
+                }
+            }
 
-                        // Save answer value
-                        if ($data['autoSave'] && $question->id == $data['questionId']) {
-                            $questionAnswer = $data['answer'];
-                        } else {
-                            $questionAnswer = GETPOST('answer' . $question->id);
-                        }
+            $line = new ControlLine($db);
+            $resLines = $line->fetchFromParentWithQuestion($object->id, $question->id);
+            
+            $lineExists = false;
+            // fetchFromParentWithQuestion usually returns an array of objects
+            if (is_array($resLines) && count($resLines) > 0) {
+                $line = array_shift($resLines);
+                $lineExists = true;
+            } else {
+                // Init new line properties manually if it doesn't exist
+                $line->fk_control = $object->id;
+                $line->fk_question = $question->id;
+                $line->status = 1;
+            }
+            
+            if ($isAutoSave) {
+                if (isset($data['answer'])) {
+                    $line->answer = $data['answer'];
+                }
+                if (isset($data['comment'])) {
+                    $line->comment = $data['comment'];
+                }
+            } else {
+                if (isset($_POST['answer' . $question->id])) {
+                    $line->answer = GETPOST('answer' . $question->id);
+                }
+                if (isset($_POST['comment' . $question->id])) {
+                    $line->comment = GETPOST('comment' . $question->id);
+                }
+            }
 
-                        if (!empty($questionAnswer)) {
-                            $line->answer = $questionAnswer;
-                        }
-
-                        // Save answer comment
-                        if ($data['autoSave'] && $question->id == $data['questionId']) {
-                            $comment = $data['comment'];
-                        } else {
-                            $comment = GETPOST('comment' . $question->id);
-                        }
-                        if (dol_strlen($comment) > 0) {
-                            $line->comment = $comment;
-                        }
-
-                        $line->update($user);
+            if ($lineExists) {
+                if ($line->id > 0) {
+                    $res = $line->update($user);
+                    if ($res < 0) {
+                        setEventMessages($line->error, $line->errors, 'errors');
+                    }
+                }
+            } else {
+                if ($line->fk_control > 0 && $line->fk_question > 0) {
+                    $line->date_creation = dol_now();
+                    $res = $line->create($user);
+                    if ($res < 0) {
+                        setEventMessages($line->error, $line->errors, 'errors');
                     }
                 }
             }
@@ -73,10 +120,11 @@ if ($action == 'save') {
         if ($sheet->type == 'survey') {
             $object->setLocked($user);
         }
-    }
 
-    $object->call_trigger(dol_strtoupper($object->element) . '_SAVEANSWER', $user);
-    setEventMessages($langs->trans('AnswerSaved'), []);
-    header('Location: ' . $_SERVER['PHP_SELF'] . (GETPOSTISSET('track_id') ? '?track_id=' . GETPOST('track_id', 'alpha')  . '&object_type=' . GETPOST('object_type', 'alpha') . '&document_type=' . GETPOST('document_type', 'alpha') . '&entity=' . $conf->entity : '?id=' . GETPOST('id', 'int')));
-    exit;
+        $object->call_trigger(dol_strtoupper($object->element) . '_SAVEANSWER', $user);
+
+        setEventMessages($langs->trans('AnswerSaved'), []);
+        header('Location: ' . $_SERVER['PHP_SELF'] . (GETPOSTISSET('track_id') ? '?track_id=' . GETPOST('track_id', 'alpha')  . '&object_type=' . GETPOST('object_type', 'alpha') . '&document_type=' . GETPOST('document_type', 'alpha') . '&entity=' . $conf->entity : '?id=' . GETPOST('id', 'int')));
+        exit;
+    }
 }
