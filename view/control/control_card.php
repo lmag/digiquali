@@ -828,7 +828,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'create'))) {
                 $resultQuestion = $question->fetch($questionId);
                 $resultAnswer = $controldettmp->fetchFromParentWithQuestion($object->id, $questionId);
                 if (($resultAnswer > 0 && is_array($resultAnswer)) || !empty($controldettmp)) {
-                    $itemControlDet = !empty($resultAnswer) ? array_shift($resultAnswer) : $controldettmp;
+                    $itemControlDet = (is_array($resultAnswer) && !empty($resultAnswer)) ? array_shift($resultAnswer) : $controldettmp;
                     if ($resultQuestion > 0) {
                         if (empty($itemControlDet->comment) && empty($itemControlDet->answer)) {
                             $cantValidateControl++;
