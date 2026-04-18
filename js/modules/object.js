@@ -176,7 +176,11 @@ window.digiquali.object.updateButtonsStatus = function() {
   $('#saveButton').addClass('butAction');
   $('#saveButton').css('background', '#0d8aff');
   $('.fa-circle').css('display', 'inline');
-  $('#saveButton').attr('onclick','$("#saveObject").submit()');
+  $('#saveButton').removeAttr('onclick').off('click').on('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    $("#saveObject").submit();
+  });
 
   $('.validateButton').removeClass('butAction');
   $('#dialog-confirm-actionButtonValidate').removeAttr('id');
