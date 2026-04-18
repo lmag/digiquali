@@ -215,8 +215,20 @@ window.digiquali.object.saveAnswer = function(questionId, answer, comment) {
     success: function(resp) {
       $('.progress-info').replaceWith($(resp).find('.progress-info'));
       $('#dialog-confirm-actionButtonValidate>.confirmmessage').replaceWith($(resp).find('#dialog-confirm-actionButtonValidate>.confirmmessage'));
+      
+      let $saveBtn = $('#saveButton');
+      $saveBtn.removeClass('butActionRefused').addClass('butAction').css('background', '#28a745');
+      setTimeout(function() {
+        $saveBtn.removeClass('butAction').addClass('butActionRefused').css('background', '');
+      }, 1000);
     },
-    error: function() {}
+    error: function() {
+      let $saveBtn = $('#saveButton');
+      $saveBtn.removeClass('butActionRefused').addClass('butAction').css('background', '#dc3545');
+      setTimeout(function() {
+        $saveBtn.removeClass('butAction').addClass('butActionRefused').css('background', '');
+      }, 2000);
+    }
   });
 };
 
