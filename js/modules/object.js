@@ -204,31 +204,28 @@ window.digiquali.object.saveAnswer = function(questionId, answer, comment) {
   let querySeparator = window.saturne.toolbox.getQuerySeparator(document.URL);
 
   $.ajax({
-    url: document.URL + querySeparator + 'action=save&token=' + token,
+    url: document.URL + querySeparator + 'action=save',
     type: 'POST',
-    contentType: 'application/json; charset=utf-8',
-    data: JSON.stringify({
-      autoSave: true,
+    data: {
+      token: token,
+      autoSave: 'true',
       questionId: questionId,
       answer: answer,
       comment: comment
-    }),
+    },
     success: function(resp) {
       $('.progress-info').replaceWith($(resp).find('.progress-info'));
       $('#dialog-confirm-actionButtonValidate>.confirmmessage').replaceWith($(resp).find('#dialog-confirm-actionButtonValidate>.confirmmessage'));
-      
-      let $saveBtn = $('#saveButton');
-      $saveBtn.removeClass('butActionRefused').addClass('butAction').css('background', '#28a745');
-      setTimeout(function() {
-        $saveBtn.removeClass('butAction').addClass('butActionRefused').css('background', '');
-      }, 1000);
+      // Remove the red unsaved warning from the comment box that was saved
+      let $commentArea = $('.question-comment[name="comment' + questionId + '"]');
+      if ($commentArea.length) {
+          $commentArea.removeClass('show-comment-unsaved-message');
+          $commentArea.next('p').remove();
+      }
+      $.jnotify('Sauvegarde réussie', 'success', true, {autoHide: true, clickOverlay: false, minWidth: 250, TimeShown: 3000, ShowTimeEffect: 200, HideTimeEffect: 200, LongTrip: 20, HorizontalPosition: 'right', VerticalPosition: 'top', ShowOverlay: false, ColorOverlay: '#000', OpacityOverlay: 0.3});
     },
     error: function() {
-      let $saveBtn = $('#saveButton');
-      $saveBtn.removeClass('butActionRefused').addClass('butAction').css('background', '#dc3545');
-      setTimeout(function() {
-        $saveBtn.removeClass('butAction').addClass('butActionRefused').css('background', '');
-      }, 2000);
+      $.jnotify('Erreur de sauvegarde', 'error', true, {autoHide: true, clickOverlay: false, minWidth: 250, TimeShown: 3000, ShowTimeEffect: 200, HideTimeEffect: 200, LongTrip: 20, HorizontalPosition: 'right', VerticalPosition: 'top', ShowOverlay: false, ColorOverlay: '#000', OpacityOverlay: 0.3});
     }
   });
 };
