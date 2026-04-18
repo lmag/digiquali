@@ -38,7 +38,7 @@ if ($action == 'save') {
         foreach ($questions as $question) {
             if (!empty($object->lines)) {
                 foreach ($object->lines as $line) {
-                    if ($line->fk_question === $question->id) {
+                    if ($line->fk_question == $question->id) {
 
                         $isAutoSave = isset($data['autoSave']) ? $data['autoSave'] : false;
 
