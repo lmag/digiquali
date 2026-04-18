@@ -135,7 +135,7 @@ window.digiquali.object.selectAnswer = function() {
     $(this).closest('.answer-cell').find('.question-answer').val(answer);
   }
 
-  if (!publicInterface && autoSave == 1 && !$(this).hasClass('multiple-answers')) {
+  if (!publicInterface && !$(this).hasClass('multiple-answers')) {
     window.digiquali.object.saveAnswer(questionId, answer, comment);
   } else {
     window.digiquali.object.updateButtonsStatus();
@@ -266,7 +266,7 @@ window.digiquali.object.rangePercent = function(fromInit) {
   slider.parent().append(rangePercent);
 
   if (!fromInit) {
-    if (!publicInterface && autoSave == 1 && !$(this).hasClass('multiple-answers')) {
+    if (!publicInterface && !$(this).hasClass('multiple-answers')) {
       window.digiquali.object.saveAnswer(questionId, rangePercent, comment);
     } else {
       window.digiquali.object.updateButtonsStatus();
