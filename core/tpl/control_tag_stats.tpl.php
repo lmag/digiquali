@@ -90,6 +90,18 @@ foreach ($allQuestionsMap as $qId => $q) {
     }
 }
 
+// Virtual category for questions with no tag
+$noTagCatId = 0;
+$noTagCat   = (object)['id' => $noTagCatId, 'label' => $langs->trans('NoTag'), 'fk_parent' => -1];
+
+foreach ($allQuestionsMap as $qId => $q) {
+    if (!in_array($q->type, $typesWithAnswers) || !empty($questionCategories[$qId])) {
+        continue;
+    }
+    $questionCategories[$qId][$noTagCatId] = $noTagCat;
+    $allTagsMap[$noTagCatId]               = $noTagCat;
+}
+
 if (empty($allTagsMap)) {
     return;
 }
@@ -208,6 +220,7 @@ $jsonData = [
         'conformityRate' => $i18nDecode('ConformityRate'),
         'conformity'     => $i18nDecode('Conformity'),
         'allTags'        => $i18nDecode('AllTags'),
+        'noTag'          => $i18nDecode('NoTag'),
     ],
 ];
 ?>
