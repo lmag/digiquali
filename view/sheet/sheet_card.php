@@ -33,6 +33,7 @@ if (file_exists('../digiquali.main.inc.php')) {
 // Libraries
 require_once DOL_DOCUMENT_ROOT . '/core/class/doleditor.class.php';
 require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
+require_once DOL_DOCUMENT_ROOT . '/core/class/html.formprojet.class.php';
 
 require_once __DIR__ . '/../../class/sheet.class.php';
 require_once __DIR__ . '/../../class/question.class.php';
@@ -65,7 +66,8 @@ $extrafields   = new ExtraFields($db);
 $category      = new Categorie($db);
 
 // View objects
-$form = new Form($db);
+$form        = new Form($db);
+$formproject = new FormProjets($db);
 
 $hookmanager->initHooks(array('sheetcard', 'globalcard')); // Note that conf->hooks_modules contains array
 
@@ -240,6 +242,7 @@ if (empty($reshook)) {
 	}
 
 	if ($action == 'update' && $permissiontoadd) {
+		$showArray = [];
 		if (is_array(GETPOST('linked_object')) && !empty(GETPOST('linked_object'))) {
 			foreach (GETPOST('linked_object') as $linked_object_type) {
 				$showArray[$linked_object_type] = 1;
@@ -469,10 +472,17 @@ if ($action == 'create') {
     print $form::selectarray('type', $object->fields['type']['arrayofkeyval'], GETPOST('type'));
     print '</td></tr>';
 
+    // Project
+    if (!empty($conf->projet->enabled)) {
+        print '<tr><td class="">' . img_picto('', 'project', 'class="paddingrightonly"') . $langs->trans('Project') . '</td><td>';
+        print $formproject->select_projects(-1, GETPOSTINT('fk_project'), 'fk_project', 0, 0, 1, 0, 0, 0, 0, '', 1, 0, 'maxwidth500');
+        print '</td></tr>';
+    }
+
     //FK Element
     $nbLinkableElements = 0;
     foreach ($objectsMetadata as $objectType => $objectMetadata) {
-        if ($objectMetadata['conf'] == 0) {
+        if ($objectType === 'project' || $objectMetadata['conf'] == 0) {
             continue;
         }
 
@@ -554,19 +564,27 @@ if (($id || $ref) && $action == 'edit') {
     print $form::selectarray('type', $object->fields['type']['arrayofkeyval'], $object->type);
     print '</td></tr>';
 
+    // Project
+    if (!empty($conf->projet->enabled)) {
+        print '<tr><td class="">' . img_picto('', 'project', 'class="paddingrightonly"') . $langs->trans('Project') . '</td><td>';
+        print $formproject->select_projects(-1, $object->fk_project, 'fk_project', 0, 0, 1, 0, 0, 0, 0, '', 1, 0, 'maxwidth500');
+        print '</td></tr>';
+    }
+
     //FK Element
-	$elementLinked = json_decode($object->element_linked);
+	$elementLinked = json_decode($object->element_linked ?? '{}') ?? new stdClass();
 
 	foreach ($objectsMetadata as $key => $element) {
-		if (!empty($element['conf'])) {
-			print '<tr><td class="">' . img_picto('', $element['picto'], 'class="paddingrightonly"') . $langs->trans($element['langs']) . '</td><td>';
-			if ($conf->global->DIGIQUALI_SHEET_UNIQUE_LINKED_ELEMENT) {
-				print '<input type="radio" id="show_' . $key . '" name="linked_object[]" value="'.$key.'"'.(($elementLinked->$key > 0) ? 'checked=checked' : '').'>';
-			} else {
-				print '<input type="checkbox" id="show_' . $key . '" name="linked_object[]" value="'.$key.'"'.(($elementLinked->$key > 0) ? 'checked=checked' : '').'>';
-			}
-			print '</td></tr>';
+		if ($key === 'project' || empty($element['conf'])) {
+			continue;
 		}
+		print '<tr><td class="">' . img_picto('', $element['picto'], 'class="paddingrightonly"') . $langs->trans($element['langs']) . '</td><td>';
+		if ($conf->global->DIGIQUALI_SHEET_UNIQUE_LINKED_ELEMENT) {
+			print '<input type="radio" id="show_' . $key . '" name="linked_object[]" value="'.$key.'"'.(!empty($elementLinked->$key) ? 'checked=checked' : '').'>';
+		} else {
+			print '<input type="checkbox" id="show_' . $key . '" name="linked_object[]" value="'.$key.'"'.(!empty($elementLinked->$key) ? 'checked=checked' : '').'>';
+		}
+		print '</td></tr>';
 	}
 
 	// Tags-Categories
@@ -681,17 +699,16 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print "</td></tr>";
 	}
 
-	$elementLinked = json_decode($object->element_linked);
+	$elementLinked = json_decode($object->element_linked ?? '{}') ?? new stdClass();
 
 	//FK Element
 	foreach ($objectsMetadata as $key => $element) {
-		if ($elementLinked->$key > 0) {
-			if (!empty($element['conf'])) {
-				print '<tr><td class="">' . img_picto('', $element['picto'], 'class="paddingrightonly"') . $langs->trans($element['langs']) . '</td><td>';
-				print '<input type="radio" id="show_' . $key . '" name="show_' . $key . '" checked disabled>';
-				print '</td></tr>';
-			}
+		if ($key === 'project' || empty($elementLinked->$key) || empty($element['conf'])) {
+			continue;
 		}
+		print '<tr><td class="">' . img_picto('', $element['picto'], 'class="paddingrightonly"') . $langs->trans($element['langs']) . '</td><td>';
+		print '<input type="radio" id="show_' . $key . '" name="show_' . $key . '" checked disabled>';
+		print '</td></tr>';
 	}
 
     print '<tr class="linked-medias photo question-table"><td class=""><label for="photos">' . $langs->trans('Photo') . '</label></td><td class="linked-medias-list">';
@@ -752,11 +769,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			}
 
 			// Modify
-			if ($object->status == $object::STATUS_VALIDATED) {
-				print '<a class="butAction" id="actionButtonEdit" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=edit' . '"><i class="fas fa-edit"></i> ' . $langs->trans('Modify') . '</a>';
-			} else {
-				print '<span class="butActionRefused classfortooltip" title="' . dol_escape_htmltag($langs->trans('ObjectMustBeDraft', ucfirst($langs->transnoentities('The' . ucfirst($object->element))))) . '"><i class="fas fa-edit"></i> ' . $langs->trans('Modify') . '</span>';
-			}
+			print '<a class="butAction" id="actionButtonEdit" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=edit' . '"><i class="fas fa-edit"></i> ' . $langs->trans('Modify') . '</a>';
 
 			// Lock
 			if ($object->status == $object::STATUS_VALIDATED) {
