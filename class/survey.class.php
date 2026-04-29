@@ -634,9 +634,10 @@ class Survey extends SaturneObject
     /**
      * Write generic information of trigger description
      *
-     * @return string Description to display in actioncomm->note_private
+     * @param  SaturneObject $object Object to describe
+     * @return string                Description to display in actioncomm->note_private
      */
-    public function getTriggerDescription(): string
+    public function getTriggerDescription(SaturneObject $object): string
     {
         global $langs;
 
@@ -646,7 +647,7 @@ class Survey extends SaturneObject
         $sheet = new Sheet($this->db);
         $sheet->fetch($this->fk_sheet);
 
-        $ret  = parent::getTriggerDescription();
+        $ret  = parent::getTriggerDescription($object);
         $ret .= $langs->transnoentities('Sheet') . ' : ' . $sheet->ref . ' - ' . $sheet->label . '</br>';
         if ($this->projectid > 0) {
             require_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';

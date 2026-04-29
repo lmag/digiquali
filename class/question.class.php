@@ -679,13 +679,14 @@ class Question extends SaturneObject
 	/**
 	 * Write information of trigger description
 	 *
-	 * @return string Description to display in actioncomm->note_private
+	 * @param  SaturneObject $object Object to describe
+	 * @return string                Description to display in actioncomm->note_private
 	 */
-	public function getTriggerDescription(): string
+	public function getTriggerDescription(SaturneObject $object): string
 	{
 		global $langs;
 
-		$ret   = parent::getTriggerDescription();
+		$ret   = parent::getTriggerDescription($object);
 		$ret  .= $langs->transnoentities('ShowPhoto') . ' : ' . ($this->show_photo ? $langs->transnoentities('Yes') : $langs->transnoentities('No')) . '</br>';
 		$ret  .= $langs->transnoentities('AuthorizeAnswerPhoto') . ' : ' . ($this->authorize_answer_photo ? $langs->transnoentities('Yes') : $langs->transnoentities('No')) . '</br>';
 		$ret  .= $langs->transnoentities('EnterComment') . ' : ' . ($this->enter_comment ? $langs->transnoentities('Yes') : $langs->transnoentities('No')) . '</br>';
