@@ -929,11 +929,8 @@ class ActionsDigiquali
             $out = [];
 
             if ($parameters['key'] == 'nb_questions') {
-                $out[$parameters['key']]  = 0;
-                $object->fetchObjectLinked($object->id, 'digiquali_' . $object->element, null, '', 'OR', 1, 'position', 0);
-                if (isset($object->linkedObjectsIds['digiquali_question']) && is_array($object->linkedObjectsIds['digiquali_question'])) {
-                    $out[$parameters['key']] = count($object->linkedObjectsIds['digiquali_question']);
-                }
+                $allQuestions               = $object->fetchAllQuestions();
+                $out[$parameters['key']]    = is_array($allQuestions) ? count($allQuestions) : 0;
             }
 
             if ($parameters['key'] == 'photo') {
