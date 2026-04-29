@@ -152,16 +152,20 @@ class InterfaceDigiQualiTriggers extends DolibarrTriggers
                     require_once DOL_DOCUMENT_ROOT . '/core/modules/project/task/' . $taskAddon . '.php';
                     $refMod = new $taskAddon();
 
+                    $now             = dol_now();
                     $task            = new Task($this->db);
                     $controlLabel    = !empty($object->label) ? $object->label : $object->ref;
-                    $date            = dol_print_date($object->date_creation, 'day');
+                    $date            = dol_print_date($now, 'day');
                     $task->ref       = $refMod->getNextValue(null, $task);
-                    $task->fk_projet = $object->projectid;
+                    $task->fk_project = $object->projectid;
                     $task->label     = $controlLabel . ' - ' . $date;
-                    $task->dateo     = $object->date_creation;
+                    $task->date_start = $now;
                     $task->progress  = 0;
 
-                    $task->create($user);
+                    $taskId = $task->create($user);
+                    if ($taskId > 0) {
+                        $object->setValueFrom('fk_master_task', $taskId, '', null, 'text', '', $user, 'CONTROL_MODIFY');
+                    }
                 }
                 break;
         }

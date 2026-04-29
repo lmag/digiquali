@@ -155,3 +155,4 @@ ALTER TABLE llx_digiquali_surveydet DROP COLUMN fk_question_group;
 
 -- 22.2.0
 ALTER TABLE llx_digiquali_sheet ADD fk_project INTEGER NULL AFTER description;
+ALTER TABLE llx_digiquali_control ADD fk_master_task INTEGER NULL AFTER projectid;
