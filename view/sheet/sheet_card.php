@@ -482,7 +482,7 @@ if ($action == 'create') {
     //FK Element
     $nbLinkableElements = 0;
     foreach ($objectsMetadata as $objectType => $objectMetadata) {
-        if ($objectType === 'project' || $objectMetadata['conf'] == 0) {
+        if ($objectMetadata['conf'] == 0) {
             continue;
         }
 
@@ -575,7 +575,7 @@ if (($id || $ref) && $action == 'edit') {
 	$elementLinked = json_decode($object->element_linked ?? '{}') ?? new stdClass();
 
 	foreach ($objectsMetadata as $key => $element) {
-		if ($key === 'project' || empty($element['conf'])) {
+		if (empty($element['conf'])) {
 			continue;
 		}
 		print '<tr><td class="">' . img_picto('', $element['picto'], 'class="paddingrightonly"') . $langs->trans($element['langs']) . '</td><td>';
@@ -703,7 +703,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 	//FK Element
 	foreach ($objectsMetadata as $key => $element) {
-		if ($key === 'project' || empty($elementLinked->$key) || empty($element['conf'])) {
+		if (empty($elementLinked->$key) || empty($element['conf'])) {
 			continue;
 		}
 		print '<tr><td class="">' . img_picto('', $element['picto'], 'class="paddingrightonly"') . $langs->trans($element['langs']) . '</td><td>';
