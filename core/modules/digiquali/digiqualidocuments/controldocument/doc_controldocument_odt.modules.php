@@ -193,6 +193,7 @@ class doc_controldocument_odt extends SaturneDocumentModel
                                 switch ($question->type) {
                                     case 'OkKo' :
                                     case 'OkKoToFixNonApplicable' :
+                                    case 'MarqueNF' :
                                     case 'UniqueChoice' :
                                         $tmpArray['answer'] = $answersArray[$answerResult];
                                         break;

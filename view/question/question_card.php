@@ -362,6 +362,39 @@ if (empty($reshook)) {
                     $answer->create($user);
                 }
 
+                if ($object->type == 'MarqueNF') {
+                    $answer->fk_question = $result;
+                    $answer->value       = $langs->transnoentities('Conforme');
+                    $answer->pictogram   = 'check';
+                    $answer->color       = '#9C4DCC';
+                    $answer->correct     = true;
+
+                    $answer->create($user);
+
+                    $answer->fk_question = $result;
+                    $answer->value       = $langs->transnoentities('NCMajeur');
+                    $answer->pictogram   = 'times';
+                    $answer->color       = '#D9534F';
+                    $answer->correct     = false;
+
+                    $answer->create($user);
+
+                    $answer->fk_question = $result;
+                    $answer->value       = $langs->transnoentities('NCMineure');
+                    $answer->pictogram   = 'tools';
+                    $answer->color       = '#E6A817';
+                    $answer->correct     = false;
+
+                    $answer->create($user);
+
+                    $answer->fk_question = $result;
+                    $answer->value       = $langs->transnoentities('NonApplicable');
+                    $answer->pictogram   = 'N/A';
+                    $answer->color       = '#AAAAAA';
+                    $answer->correct     = false;
+
+                    $answer->create($user);
+                }
 
                 $urltogo = $backtopage ? str_replace('__ID__', $result, $backtopage) : $backurlforlist;
 				$urltogo = preg_replace('/--IDFORBACKTOPAGE--/', $object->id, $urltogo); // New method to autoselect project after a New on another form object creation
@@ -1426,7 +1459,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 					print '</td>';
 
 					print '<td class="center">';
-					if ($object->status < Question::STATUS_LOCKED && ($object->type != 'OkKo' && $object->type != 'OkKoToFixNonApplicable')) {
+					if ($object->status < Question::STATUS_LOCKED && ($object->type != 'OkKo' && $object->type != 'OkKoToFixNonApplicable' && $object->type != 'MarqueNF')) {
 						print '<a href="' . $_SERVER["PHP_SELF"] . '?id=' . $id . '&amp;action=editAnswer&answerId=' . $answerSingle->id . '#answerList">';
 						print '<div class="wpeo-button button-grey">';
 						print img_edit();
@@ -1450,7 +1483,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			}
 		}
 
-		if ($object->status < QUESTION::STATUS_LOCKED && ($object->type != 'OkKo' && $object->type != 'OkKoToFixNonApplicable')) {
+		if ($object->status < QUESTION::STATUS_LOCKED && ($object->type != 'OkKo' && $object->type != 'OkKoToFixNonApplicable' && $object->type != 'MarqueNF')) {
 			print '<form method="POST" action="' . $_SERVER["PHP_SELF"] . '">';
 			print '<input type="hidden" name="token" value="' . newToken() . '">';
 			print '<input type="hidden" name="action" value="addAnswer">';
