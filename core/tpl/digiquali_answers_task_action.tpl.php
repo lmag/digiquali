@@ -46,7 +46,7 @@ if ($action == 'add_task' && !empty($permissionToAddTask)) {
         $task->date_end = dol_stringtotime($data['date_end']);
     }
     $task->budget_amount  = $data['budget_amount'] ?? null;
-    $task->fk_task_parent = 0;
+    $task->fk_task_parent = !empty($object->fk_master_task) ? $object->fk_master_task : 0;
 
     $task->create($user);
     $task->add_object_linked($data['objectLine_element'], $data['objectLine_id']);

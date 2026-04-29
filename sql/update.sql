@@ -152,3 +152,7 @@ ALTER TABLE llx_digiquali_survey CHANGE fk_user_creat fk_user_creat INT(11) NULL
 -- 22.1.0
 ALTER TABLE llx_digiquali_controldet DROP COLUMN fk_question_group;
 ALTER TABLE llx_digiquali_surveydet DROP COLUMN fk_question_group;
+
+-- 22.2.0
+ALTER TABLE llx_digiquali_sheet ADD fk_project INTEGER NULL AFTER description;
+ALTER TABLE llx_digiquali_control ADD fk_master_task INTEGER NULL AFTER projectid;

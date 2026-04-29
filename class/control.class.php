@@ -132,7 +132,8 @@ class Control extends SaturneObject
         'fk_user_modif'      => ['type' => 'integer:User:user/class/user.class.php',           'label' => 'UserModif',   'picto' => 'user',                            'enabled' => 1, 'position' => 210, 'notnull' => 0, 'visible' => -2, 'foreignkey' => 'user.rowid'],
         'fk_sheet'           => ['type' => 'integer:Sheet:digiquali/class/sheet.class.php',    'label' => 'Sheet',       'picto' => 'fontawesome_fa-list_fas_#d35968', 'enabled' => 1, 'position' => 40,  'notnull' => 1, 'visible' => 5, 'index' => 1, 'css' => 'minwidth150 maxwidth500 widthcentpercentminusxx', 'csslist' => 'minwidth150', 'foreignkey' => 'digiquali_sheet.rowid'],
         'fk_user_controller' => ['type' => 'integer:User:user/class/user.class.php:1',         'label' => 'Controller',  'picto' => 'user',                            'enabled' => 1, 'position' => 50,  'notnull' => 1, 'visible' => 4, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx', 'foreignkey' => 'user.rowid',   'positioncard' => 1],
-        'projectid'          => ['type' => 'integer:Project:projet/class/project.class.php:1', 'label' => 'Project',     'picto' => 'project',                         'enabled' => 1, 'position' => 60,  'notnull' => 0, 'visible' => 4, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx', 'foreignkey' => 'projet.rowid', 'positioncard' => 2]
+        'projectid'          => ['type' => 'integer:Project:projet/class/project.class.php:1', 'label' => 'Project',     'picto' => 'project',                         'enabled' => 1, 'position' => 60,  'notnull' => 0, 'visible' => 4, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx', 'foreignkey' => 'projet.rowid', 'positioncard' => 2],
+        'fk_master_task'     => ['type' => 'integer:Task:projet/class/task.class.php',          'label' => 'MasterTask',  'picto' => 'projecttask',                     'enabled' => '$conf->projet->enabled', 'position' => 61,  'notnull' => -1, 'visible' => 0, 'foreignkey' => 'projet_task.rowid']
     ];
 
     /**
@@ -243,6 +244,11 @@ class Control extends SaturneObject
      * @var int|string|null Project ID.
      */
     public $projectid;
+
+    /**
+     * @var int|null Master task ID (auto-created on control creation).
+     */
+    public $fk_master_task;
 
     /**
      * @var string Name of subtable line

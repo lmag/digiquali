@@ -36,5 +36,6 @@ CREATE TABLE llx_digiquali_control(
     fk_user_modif      integer,
     fk_sheet           integer NOT NULL,
     fk_user_controller integer NOT NULL,
-    projectid          integer
+    projectid          integer,
+    fk_master_task     integer
 ) ENGINE=innodb;

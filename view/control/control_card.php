@@ -354,7 +354,12 @@ if ($action == 'create') {
         $object->fields['label']['visible']              = 1;
         $object->fields['fk_user_controller']['visible'] = 1;
         $object->fields['fk_user_controller']['default'] = $user->id;
-        $object->fields['projectid']['visible']          = 1;
+        if (!empty($conf->projet->enabled)) {
+            $object->fields['projectid']['visible'] = 1;
+            if (!empty($sheet->fk_project)) {
+                $_POST['projectid'] = $sheet->fk_project;
+            }
+        }
     }
 
     if ($viewmode == 'images') {

@@ -25,6 +25,7 @@ CREATE TABLE llx_digiquali_sheet(
   type                varchar(128) NOT NULL,
   label               varchar(255) NOT NULL,
   description         text,
+  fk_project          integer,
   element_linked      text,
   photo               text,
   success_rate        double(24,8),

@@ -186,7 +186,7 @@ class modDigiQuali extends DolibarrModules
 			$i++ => ['DIGIQUALI_SHEET_LINK_USER', 'integer', 0, '', 0, 'current'],
 			$i++ => ['DIGIQUALI_SHEET_LINK_THIRDPARTY', 'integer', 0, '', 0, 'current'],
 			$i++ => ['DIGIQUALI_SHEET_LINK_CONTACT', 'integer', 0, '', 0, 'current'],
-			$i++ => ['DIGIQUALI_SHEET_LINK_PROJECT', 'integer', 0, '', 0, 'current'],
+			$i++ => ['DIGIQUALI_SHEET_LINK_PROJECT', 'integer', 1, '', 0, 'current'],
 			$i++ => ['DIGIQUALI_SHEET_LINK_TASK', 'integer', 0, '', 0, 'current'],
             $i++ => ['DIGIQUALI_SHEET_LINK_INVOICE', 'integer', 0, '', 0, 'current'],
             $i++ => ['DIGIQUALI_SHEET_LINK_ORDER', 'integer', 0, '', 0, 'current'],
@@ -969,6 +969,11 @@ class modDigiQuali extends DolibarrModules
             }
 
             dolibarr_set_const($this->db, 'DIGIQUALI_SHEET_BACKWARD_COMPATIBILITY', 1, 'integer', 0, '', $conf->entity);
+        }
+
+        if (getDolGlobalInt('DIGIQUALI_SHEET_LINK_PROJECT_DEFAULT') == 0) {
+            dolibarr_set_const($this->db, 'DIGIQUALI_SHEET_LINK_PROJECT', 1, 'integer', 0, '', $conf->entity);
+            dolibarr_set_const($this->db, 'DIGIQUALI_SHEET_LINK_PROJECT_DEFAULT', 1, 'integer', 0, '', $conf->entity);
         }
 
 		// Permissions

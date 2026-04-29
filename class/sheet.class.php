@@ -119,6 +119,7 @@ class Sheet extends SaturneObject
         'type'                => ['type' => 'select',       'label' => 'Type',               'enabled' => 1, 'position' => 65,  'notnull' => 1, 'visible' => 1, 'arrayofkeyval' => ['control' => 'Control', 'survey' => 'Survey']],
         'label'               => ['type' => 'varchar(255)', 'label' => 'Label',              'enabled' => 1, 'position' => 11,  'notnull' => 1, 'visible' => 1, 'searchall' => 1, 'css' => 'tdoverflowmax200'],
         'description'         => ['type' => 'html',         'label' => 'Description',        'enabled' => 1, 'position' => 15,  'notnull' => 0, 'visible' => 1, 'searchall' => 1, 'css' => 'tdoverflowmax200'],
+        'fk_project'          => ['type' => 'integer:Project:projet/class/project.class.php:1', 'label' => 'Project', 'picto' => 'project', 'enabled' => '$conf->projet->enabled', 'position' => 20, 'notnull' => -1, 'visible' => 1, 'foreignkey' => 'projet.rowid'],
         'element_linked'      => ['type' => 'text',         'label' => 'ElementLinked',      'enabled' => 1, 'position' => 90,  'notnull' => 0, 'visible' => -2],
         'photo'               => ['type' => 'text',         'label' => 'Photo',              'enabled' => 1, 'position' => 95,  'notnull' => 0, 'visible' => -2, 'disablesearch' => 1, 'disablesort' => 1],
         'success_rate'        => ['type' => 'real',         'label' => 'SuccessScore',       'enabled' => 1, 'position' => 35,  'notnull' => 0, 'visible' => 2, 'help' => 'PercentageValue'],
@@ -181,6 +182,11 @@ class Sheet extends SaturneObject
      * @var string|null Description.
      */
     public ?string $description;
+
+    /**
+     * @var int|null Project ID.
+     */
+    public $fk_project;
 
     /**
      * @var string Element linked json.
