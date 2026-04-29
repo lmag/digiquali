@@ -2,7 +2,7 @@
   display: flex;
   gap: 4px;
   margin: 16px 0 0;
-  border-bottom: 2px solid $color__secondary;
+  border-bottom: 2px solid var(--colortopbordertitle1);
 
   .control-view-tab {
     padding: 8px 20px;
@@ -29,7 +29,7 @@
     &.active {
       background: #fff;
       color: $color__secondary;
-      border-color: $color__secondary;
+      border-color: var(--colortopbordertitle1);
       border-bottom: 2px solid #fff;
       margin-bottom: -2px;
     }

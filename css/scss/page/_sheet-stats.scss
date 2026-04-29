@@ -13,7 +13,7 @@
       padding: 10px;
       border-radius: 5px 5px 0 0;
       font-weight: bold;
-      border-bottom: 2px solid $color__secondary;
+      border-bottom: 2px solid var(--colortopbordertitle1);
     }
 
     .stats-content {
@@ -56,7 +56,7 @@
       background-color: #f8f8f8;
       padding: 10px;
       text-align: left;
-      border-bottom: 2px solid $color__secondary;
+      border-bottom: 2px solid var(--colortopbordertitle1);
     }
 
     td {
