@@ -1,3 +1,147 @@
+.control-view-nav {
+  display: flex;
+  gap: 4px;
+  margin: 16px 0 0;
+  border-bottom: 2px solid $color__secondary;
+
+  .control-view-tab {
+    padding: 8px 20px;
+    cursor: pointer;
+    border-radius: 6px 6px 0 0;
+    font-weight: 600;
+    font-size: 14px;
+    color: #555;
+    background: $color__grey;
+    border: 1px solid darken($color__grey, 10%);
+    border-bottom: none;
+    transition: background 0.15s, color 0.15s;
+    user-select: none;
+
+    i {
+      margin-right: 6px;
+    }
+
+    &:hover {
+      background: darken($color__grey, 5%);
+      color: $color__text-main;
+    }
+
+    &.active {
+      background: #fff;
+      color: $color__secondary;
+      border-color: $color__secondary;
+      border-bottom: 2px solid #fff;
+      margin-bottom: -2px;
+    }
+  }
+}
+
+#controlTagChartsRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+
+  &.control-charts-side-by-side {
+    flex-direction: row;
+    gap: 16px;
+    align-items: flex-start;
+
+    #controlTagBarSection,
+    #controlTagDonutSection {
+      flex: 1;
+      min-width: 0;
+    }
+  }
+}
+
+// ── Tag statistics section ──────────────────────────────────────────────────
+
+#controlTagStatsContainer {
+  margin-top: 20px;
+}
+
+.tag-stats-filter-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: #f8f8f8;
+  border-radius: 5px;
+}
+
+#controlTagStatsFilter {
+  min-width: 200px;
+}
+
+#controlTagBarChart {
+  max-height: 350px;
+}
+
+.bar-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 15px;
+  justify-content: center;
+}
+
+.legend-color-swatch {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+#controlTagDonutsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: flex-start;
+}
+
+.donut-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 220px;
+
+  .donut-card-title {
+    font-weight: bold;
+    margin-bottom: 8px;
+    align-self: center;
+  }
+
+  .donut-card-body {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    canvas {
+      flex-shrink: 0;
+    }
+  }
+
+  .donut-card-legend {
+    font-size: 0.85em;
+    text-align: left;
+  }
+
+  .donut-card-conformity {
+    font-weight: bold;
+    margin-top: 10px;
+  }
+
+  .donut-legend-swatch {
+    font-size: 1.1em;
+  }
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+
 .question-answer-container {
   * {
     box-sizing: border-box;

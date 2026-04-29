@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /* Copyright (C) 2022-2024 EVARISK <technique@evarisk.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -952,6 +952,14 @@ if ($object->id > 0 && (empty($action) || ($action != 'create'))) {
         print '</div>';
     }
 
+    // View section tabs
+    print '<div class="control-view-nav">';
+    print '<span class="control-view-tab active" data-section="controlQuestionsSection"><i class="fas fa-list-ul"></i> ' . $langs->trans('Questions') . '</span>';
+    print '<span class="control-view-tab" data-section="controlStatsSection"><i class="fas fa-chart-bar"></i> ' . $langs->trans('TagStatistics') . '</span>';
+    print '</div>';
+
+    print '<div id="controlQuestionsSection">';
+
     // QUESTION LINES
     print '<div class="div-table-responsive-no-min questionLines" style="overflow-x: unset !important">';
 
@@ -1012,9 +1020,16 @@ if ($object->id > 0 && (empty($action) || ($action != 'create'))) {
         print '</div>';
     }
 
-    print '</div>';
+    print '</div>'; // close questionLines
+    print '</div>'; // close controlQuestionsSection
     print '</form>';
+
+    print '<div id="controlStatsSection" style="display:none">';
+    require_once __DIR__ . '/../../core/tpl/control_tag_stats.tpl.php';
+    print '</div>';
+
     print dol_get_fiche_end();
+
 
     if ($action != 'presend') {
         print '<div class="fichecenter"><div class="fichehalfleft">';

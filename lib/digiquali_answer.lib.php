@@ -159,6 +159,7 @@ function show_answer_from_question(Question $question, CommonObject $object, str
         case 'UniqueChoice':
         case 'OkKo':
         case 'OkKoToFixNonApplicable':
+        case 'MarqueNF':
         case 'MultipleChoices':
             $answers = $answer->fetchAll('ASC', 'position', 0, 0, ['customsql' => 't.status = ' . Answer::STATUS_VALIDATED . ' AND t.fk_question = ' . $question->id]);
             $pictos  = get_answer_pictos_array();

@@ -183,6 +183,7 @@ class Question extends SaturneObject
 	public const TYPE_RANGE = 'Range';
 	public const TYPE_OK_KO = 'OkKo';
 	public const TYPE_OK_KO_TOFIX_NA = 'OkKoToFixNonApplicable';
+	public const TYPE_MARQUE_NF = 'MarqueNF';
 
     public const QUESTION_TYPES = [
 		self::TYPE_UNIQUE_CHOICE => [
@@ -216,6 +217,11 @@ class Question extends SaturneObject
 			'only_one_correct_answer' => true,
 		],
 		self::TYPE_OK_KO_TOFIX_NA => [
+			'default_points' => 1,
+			'correctable' => true,
+			'only_one_correct_answer' => true,
+		],
+		self::TYPE_MARQUE_NF => [
 			'default_points' => 1,
 			'correctable' => true,
 			'only_one_correct_answer' => true,
@@ -724,7 +730,7 @@ class Question extends SaturneObject
 		$retValue = 1;
 		if (in_array($this->type, [self::TYPE_PERCENTAGE, self::TYPE_RANGE])) {
 			$retValue = $this->isAnswerInQuestionRange($answerValue) ? 1 : -1;
-		} else if (in_array($this->type, [self::TYPE_OK_KO, self::TYPE_OK_KO_TOFIX_NA, self::TYPE_UNIQUE_CHOICE, self::TYPE_MULTIPLE_CHOICES])) {
+		} else if (in_array($this->type, [self::TYPE_OK_KO, self::TYPE_OK_KO_TOFIX_NA, self::TYPE_MARQUE_NF, self::TYPE_UNIQUE_CHOICE, self::TYPE_MULTIPLE_CHOICES])) {
 			$correctAnswers = $this->getAllCorrectAnswers();
 
 			if (is_array($correctAnswers)) {

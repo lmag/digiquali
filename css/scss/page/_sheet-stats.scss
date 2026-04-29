@@ -13,7 +13,7 @@
       padding: 10px;
       border-radius: 5px 5px 0 0;
       font-weight: bold;
-      border-bottom: 2px solid #d35968;
+      border-bottom: 2px solid $color__secondary;
     }
 
     .stats-content {
@@ -38,7 +38,7 @@
     .stat-value {
       font-size: 24px;
       font-weight: bold;
-      color: #d35968;
+      color: $color__secondary;
       margin-bottom: 5px;
     }
 
@@ -56,7 +56,7 @@
       background-color: #f8f8f8;
       padding: 10px;
       text-align: left;
-      border-bottom: 2px solid #d35968;
+      border-bottom: 2px solid $color__secondary;
     }
 
     td {
@@ -81,7 +81,7 @@
 
       .stat-bar {
         height: 10px;
-        background-color: #d35968;
+        background-color: $color__secondary;
         border-radius: 10px;
       }
     }
