@@ -88,7 +88,7 @@ class InterfaceDigiQualiTriggers extends DolibarrTriggers
         if (getDolGlobalInt('DIGIQUALI_ADVANCED_TRIGGER') === 1 &&
             method_exists($object, 'getTriggerDescription') &&
             !empty($object->fields)) {
-            $actionComm->note_private = $object->getTriggerDescription();
+            $actionComm->note_private = $object->getTriggerDescription($object);
         }
 
         $objects = [

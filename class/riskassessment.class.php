@@ -183,15 +183,16 @@ class RiskAssessment extends SaturneObject
     /**
      * Write information of trigger description
      *
-     * @return string Description to display in actioncomm->note_private
+     * @param  SaturneObject $object Object to describe
+     * @return string                Description to display in actioncomm->note_private
      */
-    public function getTriggerDescription(): string
+    public function getTriggerDescription(SaturneObject $object): string
     {
         global $langs;
 
         $linkedElement = json_decode($this->element_linked, true);
 
-        $ret  = parent::getTriggerDescription();
+        $ret  = parent::getTriggerDescription($object);
         $ret .= $langs->transnoentities('ElementLinked') . ' : ';
 
         if (is_array($linkedElement) && !empty($linkedElement)) {
