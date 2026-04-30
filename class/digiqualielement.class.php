@@ -52,5 +52,6 @@ class DigiQualiElement extends SaturneElement
         parent::__construct($db, $this->module, $this->element);
 
         $this->fields['element_type']['arrayofkeyval'] = [0 => 'Process', 1 => 'SubProcess'];
+        $this->fields['element_type']['prefix']       = [0 => 'P', 1 => 'SP'];
     }
 }
