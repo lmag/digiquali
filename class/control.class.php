@@ -1170,10 +1170,9 @@ class Control extends SaturneObject
     /**
      * Write information of trigger description
      *
-     * @param  SaturneObject $object Object to describe
-     * @return string                Description to display in actioncomm->note_private
+     * @return string Description to display in actioncomm->note_private
      */
-    public function getTriggerDescription(SaturneObject $object): string
+    public function getTriggerDescription(): string
     {
         global $db, $langs;
 
@@ -1183,7 +1182,7 @@ class Control extends SaturneObject
         $sheet = new Sheet($db);
         $sheet->fetch($this->fk_sheet);
 
-        $ret  = parent::getTriggerDescription($object);
+        $ret  = parent::getTriggerDescription();
         $ret .= $langs->transnoentities('Sheet') . ' : ' . $sheet->ref . ' - ' . $sheet->label . '<br>';
         if ($this->fk_user_controller > 0) {
             $user = new User($db);

@@ -251,14 +251,13 @@ class Answer extends SaturneObject
     /**
      * Write information of trigger description
      *
-     * @param  SaturneObject $object Object to describe
-     * @return string                Description to display in actioncomm->note_private
+     * @return string Description to display in actioncomm->note_private
      */
-    public function getTriggerDescription(SaturneObject $object): string
+    public function getTriggerDescription(): string
     {
         global $db, $langs;
 
-        $ret   = parent::getTriggerDescription($object);
+        $ret   = parent::getTriggerDescription();
         $ret  .= $langs->transnoentities('Position') . ' : ' . $this->position . '</br>';
         $ret  .= $langs->transnoentities('Color') . ' : ' . $this->color . '</br>';
         $ret  .= (dol_strlen($this->pictogram) > 0 ? $langs->transnoentities('Pictogram') . ' : ' . $this->pictogram . '</br>' : '');
