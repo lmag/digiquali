@@ -492,9 +492,15 @@ if ($action == 'create') {
                                 $registrationCertificatesList = $registrationCertificate->fetchAll('', '', 0, 0, ['customsql' => 'fk_lot = ' . ((int) $objectSingle->id)]);
                                 if (is_array($registrationCertificatesList) && !empty($registrationCertificatesList)) {
                                     $registrationCertificate = reset($registrationCertificatesList);
+                                    $parts = [];
                                     if (!empty($registrationCertificate->a_registration_number)) {
-                                        $objectName .= ' - ' . $registrationCertificate->a_registration_number;
+                                        $parts[] = $registrationCertificate->a_registration_number;
                                     }
+                                    if (!empty($registrationCertificate->e_vehicle_serial_number)) {
+                                        $parts[] = $registrationCertificate->e_vehicle_serial_number;
+                                    }
+                                    $parts[]    = $product->ref;
+                                    $objectName = implode(' - ', $parts);
                                 }
                             }
                         } else {
