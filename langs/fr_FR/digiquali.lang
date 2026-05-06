@@ -678,3 +678,12 @@ ControlObservationList  = Liste des points contrôlés, observations et réponse
 LinkedContactsControl   = Contact(s) associés au contrôle
 LinkedControllerControl = Contrôleur(s) associés au contrôle
 NoEquipmentFound        = Aucun équipement trouvé.
+
+#
+# Question categories - NF
+#
+
+NF        = NF
+NFSysteme = Système
+NFPoste   = Poste
+NFProduit = Produit

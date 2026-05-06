@@ -205,6 +205,7 @@ class modDigiQuali extends DolibarrModules
 			$i++ => ['DIGIQUALI_QUESTION_ADDON', 'chaine', 'mod_question_standard', '', 0, 'current'],
 			$i++ => ['DIGIQUALI_QUESTIONGROUP_ADDON', 'chaine', 'mod_questiongroup_standard', '', 0, 'current'],
             $i++ => ['DIGIQUALI_QUESTION_BACKWARD_COMPATIBILITY', 'integer', 1, '', 0, 'current'],
+			$i++ => ['DIGIQUALI_QUESTION_NF_TAGS_SET', 'integer', 0, '', 0, 'current'],
 
 			// CONST ANSWER
 			$i++ => ['DIGIQUALI_ANSWER_ADDON', 'chaine', 'mod_answer_standard', '', 0, 'current'],
@@ -877,6 +878,17 @@ class modDigiQuali extends DolibarrModules
 			$tags->create($user);
 
 			dolibarr_set_const($this->db, 'DIGIQUALI_SHEET_DEFAULT_TAG', $tags->id, 'integer', 0, '', $conf->entity);
+		}
+
+		if (empty($conf->global->DIGIQUALI_QUESTION_NF_TAGS_SET)) {
+			require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
+
+			$nfParentId = saturne_create_category($langs->transnoentities('NF'), 'question');
+			saturne_create_category($langs->transnoentities('NFSysteme'), 'question', $nfParentId);
+			saturne_create_category($langs->transnoentities('NFPoste'),   'question', $nfParentId);
+			saturne_create_category($langs->transnoentities('NFProduit'), 'question', $nfParentId);
+
+			dolibarr_set_const($this->db, 'DIGIQUALI_QUESTION_NF_TAGS_SET', 1, 'integer', 0, '', $conf->entity);
 		}
         // Create extrafields during init.
         include_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
