@@ -338,7 +338,7 @@ if (empty($reshook)) {
                     $answer->fk_question = $result;
                     $answer->value       = $langs->transnoentities('KO');
                     $answer->pictogram   = 'times';
-                    $answer->color       = '#e05353';
+                    $answer->color       = '#e88080';
 					$answer->correct	 = false;
 
                     $answer->create($user);
@@ -400,7 +400,7 @@ if (empty($reshook)) {
                     $answer->fk_question = $result;
                     $answer->value       = $langs->transnoentities('ISO9001Conforme');
                     $answer->pictogram   = 'check';
-                    $answer->color       = '#47e58e';
+                    $answer->color       = '#7ecfa0';
                     $answer->correct     = true;
 
                     $answer->create($user);
@@ -408,7 +408,7 @@ if (empty($reshook)) {
                     $answer->fk_question = $result;
                     $answer->value       = $langs->transnoentities('ISO9001NonConformite');
                     $answer->pictogram   = 'times';
-                    $answer->color       = '#e05353';
+                    $answer->color       = '#e88080';
                     $answer->correct     = false;
 
                     $answer->create($user);
@@ -416,7 +416,7 @@ if (empty($reshook)) {
                     $answer->fk_question = $result;
                     $answer->value       = $langs->transnoentities('ISO9001Observation');
                     $answer->pictogram   = 'eye';
-                    $answer->color       = '#4d90d9';
+                    $answer->color       = '#7aafd4';
                     $answer->correct     = false;
 
                     $answer->create($user);
@@ -424,7 +424,7 @@ if (empty($reshook)) {
                     $answer->fk_question = $result;
                     $answer->value       = $langs->transnoentities('ISO9001ProgressTrack');
                     $answer->pictogram   = 'level-up-alt';
-                    $answer->color       = '#e9ad4f';
+                    $answer->color       = '#f0c47a';
                     $answer->correct     = false;
 
                     $answer->create($user);
@@ -432,7 +432,7 @@ if (empty($reshook)) {
                     $answer->fk_question = $result;
                     $answer->value       = $langs->transnoentities('ISO9001StrongPoint');
                     $answer->pictogram   = 'star';
-                    $answer->color       = '#9C4DCC';
+                    $answer->color       = '#b87fd4';
                     $answer->correct     = false;
 
                     $answer->create($user);
