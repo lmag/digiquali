@@ -97,6 +97,21 @@ function get_answer_pictos_array(): array
 			'picto_source' => 'N/A',
 			'position' => 4
 		],
+		'eye' => [
+			'name' => $langs->transnoentities('Observation'),
+			'picto_source' => '<i class="fas fa-eye"></i>',
+			'position' => 5
+		],
+		'level-up-alt' => [
+			'name' => $langs->transnoentities('ProgressTrack'),
+			'picto_source' => '<i class="fas fa-level-up-alt"></i>',
+			'position' => 6
+		],
+		'star' => [
+			'name' => $langs->transnoentities('StrongPoint'),
+			'picto_source' => '<i class="fas fa-star"></i>',
+			'position' => 7
+		],
 	];
 	return $pictosArray;
 }
@@ -160,6 +175,7 @@ function show_answer_from_question(Question $question, CommonObject $object, str
         case 'OkKo':
         case 'OkKoToFixNonApplicable':
         case 'MarqueNF':
+        case 'Iso9001':
         case 'MultipleChoices':
             $answers = $answer->fetchAll('ASC', 'position', 0, 0, ['customsql' => 't.status = ' . Answer::STATUS_VALIDATED . ' AND t.fk_question = ' . $question->id]);
             $pictos  = get_answer_pictos_array();
@@ -180,7 +196,7 @@ function show_answer_from_question(Question $question, CommonObject $object, str
 					}
 
                     $out .= '<input type="hidden" class="answer-color answer-color-' . $answer->position . '" value="' . $answer->color . '">';
-                    $out .= '<span class="answer' . ($answerCssClass ?? '') . (!empty($answer->pictogram) ? ' answer-icon' : '' ) . ($question->type == 'MultipleChoices' ? ' multiple-answers square' : ' single-answer') . (in_array($answer->position, $questionAnswers) ? ' active' : '') . ($object->status > 0 ? ' disable' : '') . '" style="' . (in_array($answer->position, $questionAnswers) ? 'background:' . $answer->color . '; ' : '') . 'color:' . $answer->color . ';' . 'box-shadow: 0 0 0 3px ' . $answer->color . ';" value="' . $answer->position . '">';
+                    $out .= '<span class="answer' . ($answerCssClass ?? '') . (!empty($answer->pictogram) ? ' answer-icon wpeo-tooltip-event' : '') . ($question->type == 'MultipleChoices' ? ' multiple-answers square' : ' single-answer') . (in_array($answer->position, $questionAnswers) ? ' active' : '') . ($object->status > 0 ? ' disable' : '') . '" style="' . (in_array($answer->position, $questionAnswers) ? 'background:' . $answer->color . '; ' : '') . 'color:' . $answer->color . '; box-shadow: 0 0 0 3px ' . $answer->color . ';" value="' . $answer->position . '"' . (!empty($answer->pictogram) ? ' aria-label="' . dol_escape_htmltag($answer->value) . '" data-direction="top"' : '') . '>';
                     $out .= !empty($answer->pictogram) ? $pictos[$answer->pictogram]['picto_source'] : $answer->value;
                     $out .= '</span>';
                 }
