@@ -643,11 +643,13 @@ class Survey extends SaturneObject
         // Load DigiQuali libraries
         require_once __DIR__ . '/../class/sheet.class.php';
 
-        $sheet = new Sheet($this->db);
-        $sheet->fetch($this->fk_sheet);
-
-        $ret  = parent::getTriggerDescription();
-        $ret .= $langs->transnoentities('Sheet') . ' : ' . $sheet->ref . ' - ' . $sheet->label . '</br>';
+        $ret = parent::getTriggerDescription();
+        if ($this->fk_sheet > 0) {
+            $sheet = new Sheet($this->db);
+            if ($sheet->fetch($this->fk_sheet) > 0) {
+                $ret .= $langs->transnoentities('Sheet') . ' : ' . $sheet->ref . ' - ' . $sheet->label . '</br>';
+            }
+        }
         if ($this->projectid > 0) {
             require_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
             $project = new Project($this->db);
