@@ -338,7 +338,7 @@ if (empty($reshook)) {
                     $answer->fk_question = $result;
                     $answer->value       = $langs->transnoentities('KO');
                     $answer->pictogram   = 'times';
-                    $answer->color       = '#e05353';
+                    $answer->color       = '#e88080';
 					$answer->correct	 = false;
 
                     $answer->create($user);
@@ -391,6 +391,48 @@ if (empty($reshook)) {
                     $answer->value       = $langs->transnoentities('NonApplicable');
                     $answer->pictogram   = 'N/A';
                     $answer->color       = '#AAAAAA';
+                    $answer->correct     = false;
+
+                    $answer->create($user);
+                }
+
+                if ($object->type == 'Iso9001') {
+                    $answer->fk_question = $result;
+                    $answer->value       = $langs->transnoentities('ISO9001Conforme');
+                    $answer->pictogram   = 'check';
+                    $answer->color       = '#7ecfa0';
+                    $answer->correct     = true;
+
+                    $answer->create($user);
+
+                    $answer->fk_question = $result;
+                    $answer->value       = $langs->transnoentities('ISO9001NonConformite');
+                    $answer->pictogram   = 'times';
+                    $answer->color       = '#e88080';
+                    $answer->correct     = false;
+
+                    $answer->create($user);
+
+                    $answer->fk_question = $result;
+                    $answer->value       = $langs->transnoentities('ISO9001Observation');
+                    $answer->pictogram   = 'eye';
+                    $answer->color       = '#7aafd4';
+                    $answer->correct     = false;
+
+                    $answer->create($user);
+
+                    $answer->fk_question = $result;
+                    $answer->value       = $langs->transnoentities('ISO9001ProgressTrack');
+                    $answer->pictogram   = 'level-up-alt';
+                    $answer->color       = '#f0c47a';
+                    $answer->correct     = false;
+
+                    $answer->create($user);
+
+                    $answer->fk_question = $result;
+                    $answer->value       = $langs->transnoentities('ISO9001StrongPoint');
+                    $answer->pictogram   = 'star';
+                    $answer->color       = '#b87fd4';
                     $answer->correct     = false;
 
                     $answer->create($user);
@@ -616,6 +658,48 @@ if (empty($reshook)) {
 						$answer->pictogram = 'N/A';
 						$answer->color = '#989898';
 						$answer->correct = false;
+
+						$answer->create($user);
+					}
+
+					if ($object->type == 'Iso9001') {
+						$answer->fk_question = $result;
+						$answer->value       = $langs->transnoentities('ISO9001Conforme');
+						$answer->pictogram   = 'check';
+						$answer->color       = '#47e58e';
+						$answer->correct     = true;
+
+						$answer->create($user);
+
+						$answer->fk_question = $result;
+						$answer->value       = $langs->transnoentities('ISO9001NonConformite');
+						$answer->pictogram   = 'times';
+						$answer->color       = '#e05353';
+						$answer->correct     = false;
+
+						$answer->create($user);
+
+						$answer->fk_question = $result;
+						$answer->value       = $langs->transnoentities('ISO9001Observation');
+						$answer->pictogram   = 'eye';
+						$answer->color       = '#4d90d9';
+						$answer->correct     = false;
+
+						$answer->create($user);
+
+						$answer->fk_question = $result;
+						$answer->value       = $langs->transnoentities('ISO9001ProgressTrack');
+						$answer->pictogram   = 'level-up-alt';
+						$answer->color       = '#e9ad4f';
+						$answer->correct     = false;
+
+						$answer->create($user);
+
+						$answer->fk_question = $result;
+						$answer->value       = $langs->transnoentities('ISO9001StrongPoint');
+						$answer->pictogram   = 'star';
+						$answer->color       = '#9C4DCC';
+						$answer->correct     = false;
 
 						$answer->create($user);
 					}
@@ -1349,7 +1433,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print '</div>';
 	}
 
-	if ($object->type == 'MultipleChoices' || $object->type == 'UniqueChoice' || $object->type == 'OkKo' || $object->type == 'OkKoToFixNonApplicable') {
+	if ($object->type == 'MultipleChoices' || $object->type == 'UniqueChoice' || $object->type == 'OkKo' || $object->type == 'OkKoToFixNonApplicable' || $object->type == 'Iso9001') {
 
 		$pictosArray = get_answer_pictos_array();
 

@@ -156,3 +156,6 @@ ALTER TABLE llx_digiquali_surveydet DROP COLUMN fk_question_group;
 -- 22.2.0
 ALTER TABLE llx_digiquali_sheet ADD fk_project INTEGER NULL AFTER description;
 ALTER TABLE llx_digiquali_control ADD fk_master_task INTEGER NULL AFTER projectid;
+
+-- 23.0.0
+INSERT INTO llx_c_question_type (rowid, entity, ref, label, description, active, position) VALUES(9, 0, 'Iso9001', 'Iso9001', '', 1, 80) ON DUPLICATE KEY UPDATE ref = ref;
