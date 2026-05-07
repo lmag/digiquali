@@ -1,5 +1,6 @@
 <?php
-/* Copyright (C) 2025 EVARISK <technique@evarisk.com>
+
+/* Copyright (C) 2025-2026 EVARISK <technique@evarisk.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,34 +48,17 @@ class RiskAssessment extends SaturneObject
     public $element = 'riskassessment';
 
     /**
-     * @var string Name of table without prefix where object is stored. This is also the key used for extrafields management
+     * @var string Name of table without prefix where object is stored
+     *             This is also the key used for extrafields management
      */
     public $table_element = 'digiquali_riskassessment';
 
     /**
-     * @var int Does this object support multicompany module ?
-     * 0 = No test on entity, 1 = Test with field entity, 'field@table' = Test with link by field@table
-     */
-    public $ismultientitymanaged = 1;
-
-    /**
-     * @var int Does object support extrafields ? 0 = No, 1 = Yes
-     */
-    public $isextrafieldmanaged = 1;
-
-    /**
-     * @var int Does object support category module ? 0 = No, 1 = Yes
-     */
-    public int $isCategoryManaged = 1;
-
-    /**
-     * @var string Name of icon for riskassessment. Must be a 'fa-xxx' fontawesome code (or 'fa-xxx_fa_color_size') or 'riskassessment@digiquali' if picto is file 'img/object_riskassessment.png'
+     * @var string Name of icon for riskassessment
+     *             Must be a 'fa-xxx' fontawesome code (or 'fa-xxx_fa_color_size')
+     *             or 'riskassessment@digiquali' if picto is file 'img/object_riskassessment.png'
      */
     public string $picto = 'fontawesome_fa-exclamation-triangle_fas_#d35968';
-
-    public const STATUS_DELETED   = -1;
-    public const STATUS_VALIDATED = 1;
-    public const STATUS_ARCHIVED  = 3;
 
     /**
      * 'type' field format:
@@ -111,11 +95,12 @@ class RiskAssessment extends SaturneObject
      * 'validate' is 1 if you need to validate with $this->validateField()
      * 'copytoclipboard' is 1 or 2 to allow to add a picto to copy value into clipboard (1=picto after label, 2=picto after value)
      *
-     * Note: To have value dynamic, you can set value to 0 in definition and edit the value on the fly into the constructor.
+     * Note: To have value dynamic, you can set value to 0 in definition and edit the value on the fly into the constructor
      */
 
     /**
-     * @var array Array with all fields and their property. Do not use it as a static var. It may be modified by constructor.
+     * @var array Array with all fields and their property.
+     *            Do not use it as a static var. It may be modified by constructor
      */
     public $fields = [
         'rowid'                => ['type' => 'integer',      'label' => 'TechnicalID',       'enabled' => 1, 'position' => 1,   'notnull' => 1, 'visible' => -2, 'noteditable' => 1, 'index' => 1, 'comment' => 'Id'],
@@ -125,7 +110,7 @@ class RiskAssessment extends SaturneObject
         'date_creation'        => ['type' => 'datetime',     'label' => 'DateCreation',      'enabled' => 1, 'position' => 40,  'notnull' => 1, 'visible' => 2],
         'tms'                  => ['type' => 'timestamp',    'label' => 'DateModification',  'enabled' => 1, 'position' => 50,  'notnull' => 1, 'visible' => -2],
         'import_key'           => ['type' => 'varchar(14)',  'label' => 'ImportId',          'enabled' => 1, 'position' => 60,  'notnull' => 0, 'visible' => -2, 'index' => 0],
-        'status'               => ['type' => 'smallint',     'label' => 'Status',            'enabled' => 1, 'position' => 70,  'notnull' => 1, 'visible' => 1,  'index' => 1, 'searchmulti' => 1, 'default' => 1, 'arrayofkeyval' => [1 => 'InProgress', 2 => 'Locked', 3 => 'Archived'], 'css' => 'minwidth200'],
+        'status'               => ['type' => 'smallint',     'label' => 'Status',            'enabled' => 1, 'position' => 70,  'notnull' => 1, 'visible' => 1,  'index' => 1, 'searchmulti' => 1, 'default' => self::STATUS_VALIDATED, 'arrayofkeyval' => [1 => 'InProgress', 2 => 'Locked', 3 => 'Archived'], 'css' => 'minwidth200'],
         'photo'                => ['type' => 'varchar(255)', 'label' => 'Photo',             'enabled' => 1, 'position' => 80,  'notnull' => 0, 'visible' => 1],
         'comment'              => ['type' => 'html',         'label' => 'Comment',           'enabled' => 1, 'position' => 90,  'notnull' => 0, 'visible' => 1],
         'gravity_percentage'   => ['type' => 'real',         'label' => 'Gravity',           'enabled' => 1, 'position' => 100, 'notnull' => 1, 'visible' => 1, 'default' => 0.00],
@@ -137,44 +122,9 @@ class RiskAssessment extends SaturneObject
     ];
 
     /**
-     * @var int ID
-     */
-    public int $rowid;
-
-    /**
-     * @var string Ref
-     */
-    public $ref;
-
-    /**
-     * @var string Ref ext
-     */
-    public $ref_ext;
-
-    /**
-     * @var int Entity
-     */
-    public $entity;
-
-    /**
-     * @var int|string Creation date
-     */
-    public $date_creation;
-
-    /**
-     * @var int|string Timestamp
-     */
-    public $tms;
-
-    /**
-     * @var string Import key
-     */
-    public $import_key;
-
-    /**
      * @var int Status
      */
-    public $status;
+    public $status = self::STATUS_VALIDATED;
 
     /**
      * @var string|null Photo
@@ -202,24 +152,14 @@ class RiskAssessment extends SaturneObject
     public float $control_percentage = 0.00;
 
     /**
-     * @var int User ID
+     * @var int Activity ID
      */
-    public $fk_user_creat;
-
-    /**
-     * @var int|null User ID
-     */
-    public $fk_user_modif;
-
-    /**
-     * @var int|string Activity ID
-     */
-    public $fk_activity;
+    public int $fk_activity;
 
     /**
      * Constructor
      *
-     * @param DoliDb $db Database handler
+     * @param DoliDB $db Database handler
      */
     public function __construct(DoliDB $db)
     {
@@ -229,62 +169,29 @@ class RiskAssessment extends SaturneObject
     /**
      * Create object into database
      *
-     * @param  User $user      User that creates
-     * @param  bool $notrigger false = launch triggers after, true = disable triggers
-     * @return int             0 < if KO, ID of created object if OK
+     * @param  User        $user      User that creates
+     * @param  int<0,1>    $noTrigger 0 = launch triggers after, 1 = disable triggers
+     * @return int<-1,max>            Return integer 0 < if KO, ID of created object if OK
      */
-    public function create(User $user, bool $notrigger = false): int
+    public function create(User $user, int $noTrigger = 0): int
     {
-        $this->ref    = $this->getNextNumRef();
-        $this->status = $this->status ?: 1;
+        $this->ref = $this->getNextNumRef();
 
-        return parent::create($user, $notrigger);
-    }
-
-    /**
-     * Return the status
-     *
-     * @param  int    $status ID status
-     * @param  int    $mode   0 = long label, 1 = short label, 2 = Picto + short label, 3 = Picto, 4 = Picto + long label, 5 = Short label + Picto, 6 = Long label + Picto
-     * @return string         Label of status
-     */
-    public function LibStatut(int $status, int $mode = 0): string
-    {
-        if (empty($this->labelStatus) || empty($this->labelStatusShort)) {
-            global $langs;
-            $this->labelStatus[self::STATUS_VALIDATED] = $langs->transnoentitiesnoconv('InProgress');
-            $this->labelStatus[self::STATUS_ARCHIVED]  = $langs->transnoentitiesnoconv('Archived');
-            $this->labelStatus[self::STATUS_DELETED]   = $langs->transnoentitiesnoconv('Deleted');
-
-            $this->labelStatusShort[self::STATUS_VALIDATED] = $langs->transnoentitiesnoconv('InProgress');
-            $this->labelStatusShort[self::STATUS_ARCHIVED]  = $langs->transnoentitiesnoconv('Archived');
-            $this->labelStatusShort[self::STATUS_DELETED]   = $langs->transnoentitiesnoconv('Deleted');
-        }
-
-        $statusType = 'status' . $status;
-        if ($status == self::STATUS_ARCHIVED) {
-            $statusType = 'status8';
-        }
-        if ($status == self::STATUS_DELETED) {
-            $statusType = 'status9';
-        }
-
-        return dolGetStatus($this->labelStatus[$status], $this->labelStatusShort[$status], '', $statusType, $mode);
+        return parent::create($user, $noTrigger);
     }
 
     /**
      * Write information of trigger description
      *
-     * @param SaturneObject $object Object calling the trigger
-     * @return string       $ret    Description to display in actioncomm->note_private
+     * @return string Description to display in actioncomm->note_private
      */
-    public function getTriggerDescription(SaturneObject $object): string
+    public function getTriggerDescription(): string
     {
         global $langs;
 
-        $linkedElement = json_decode($object->element_linked, true);
+        $linkedElement = json_decode($this->element_linked, true);
 
-        $ret  = parent::getTriggerDescription($object);
+        $ret  = parent::getTriggerDescription();
         $ret .= $langs->transnoentities('ElementLinked') . ' : ';
 
         if (is_array($linkedElement) && !empty($linkedElement)) {

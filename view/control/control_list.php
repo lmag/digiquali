@@ -98,10 +98,11 @@ if (!$sortorder) {
 }
 
 // Definition of custom fields for columns
-$nbLinkableElements = 0;
-$objectPosition     = 21;
-$excludeFields      = [];
-$objectsMetadata    = saturne_get_objects_metadata();
+$nbLinkableElements             = 0;
+$objectPosition                 = 21;
+$excludeFields                  = [];
+$objectsMetadata                = saturne_get_objects_metadata();
+$conf->cache['objectsMetadata'] = $objectsMetadata;
 foreach($objectsMetadata as $objectMetadata) {
     if ($objectMetadata['conf'] == 0) {
         continue;
@@ -134,7 +135,7 @@ if (is_array($signatoriesInDictionary) && !empty($signatoriesInDictionary)) {
     }
 }
 
-$object->fields['days_remaining_before_next_control'] = ['label' => 'DaysBeforeNextControl',      'enabled' => 1, 'position' => 66,  'visible' => 2, 'csslist' => 'center'];
+$object->fields['days_remaining_before_next_control'] = ['label' => 'DaysBeforeNextControl',      'enabled' => 1, 'position' => 66,  'visible' => 2, 'csslist' => 'center', 'otheralias' => ''];
 $object->fields['question_answered']                  = ['label' => 'QuestionAnswered',           'enabled' => 1, 'position' => 66,  'visible' => 2, 'css' => 'center minwidth200 maxwidth250 widthcentpercentminusxx'];
 $object->fields['last_status_date']                   = ['label' => 'LastStatusDate',             'enabled' => 1, 'position' => 67,  'visible' => 2, 'css' => 'center minwidth200 maxwidth300 widthcentpercentminusxx'];
 $object->fields['society_attendants']                 = ['label' => 'SocietyAttendants',          'enabled' => 1, 'position' => 115, 'visible' => 2, 'css' => 'minwidth300 maxwidth500 widthcentpercentminusxx', 'disablesort' => 1];
@@ -223,8 +224,8 @@ if (empty($resHook)) {
         foreach ($object->fields as $key => $val) {
             $search[$key] = '';
             if (isset($val['type']) && in_array($val['type'], ['date', 'datetime', 'timestamp'])) {
-                $search[$key.'_dtstart'] = '';
-                $search[$key.'_dtend']   = '';
+                $search[$key . '_dtstart'] = '';
+                $search[$key . '_dtend']   = '';
             }
         }
         $searchAll            = '';

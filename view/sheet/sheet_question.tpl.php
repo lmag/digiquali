@@ -10,7 +10,7 @@ print '<td>' . $langs->transnoentities($question->type) . '</td>';
 $mandatoryArray = json_decode($sheetObject->mandatory_questions, true);
 
 print '<td class="center">';
-print '<form method="POST" action="' . $_SERVER["PHP_SELF"] . '?id=' . $sheetObject->id . '">';
+print '<form class="mandatory-form" method="POST" action="' . $_SERVER["PHP_SELF"] . '?id=' . $sheetObject->id . '">';
 print '<input type="hidden" name="token" value="' . newToken() . '">';
 print '<input type="hidden" name="action" value="set_mandatory">';
 print '<input type="hidden" name="questionId" value="' . $question->id . '">';

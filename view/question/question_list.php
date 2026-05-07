@@ -216,7 +216,7 @@ if (empty($resHook)) {
             $totalQuestions  = 0;
             $questionInArray = [];
             if (GETPOSTISSET('sheet') && GETPOST('sheet') > 0) {
-                $sheet->fetch(GETPOST('sheet'));
+                $sheet->fetch(GETPOSTINT('sheet'));
                 $sheet->fetchObjectLinked($sheet->id, $object->module . '_' . $sheet->element, null, $object->module . '_' . $object->element, 'OR', 1, 'position');
                 foreach ($toselect as $selected) {
                     $object->fetch($selected);

@@ -53,7 +53,7 @@ class digiqualiwidget1 extends ModeleBoxes
 	public $depends = array('digiquali');
 
 	/**
-	 * @var DoliDb Database handler
+	 * @var DoliDB Database handler
 	 */
 	public $db;
 

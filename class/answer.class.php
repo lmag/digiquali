@@ -206,7 +206,7 @@ class Answer extends SaturneObject
     /**
      * Constructor.
      *
-     * @param DoliDb $db Database handler.
+     * @param DoliDB $db Database handler.
      */
     public function __construct(DoliDB $db)
     {
@@ -214,19 +214,19 @@ class Answer extends SaturneObject
     }
 
     /**
-     * Create object into database.
+     * Create object into database
      *
-     * @param  User $user      User that creates.
-     * @param  bool $notrigger false = launch triggers after, true = disable triggers.
-     * @return int             0 < if KO, ID of created object if OK.
+     * @param  User        $user      User that creates
+     * @param  int<0,1>    $noTrigger 0 = launch triggers after, 1 = disable triggers
+     * @return int<-1,max>            Return integer 0 < if KO, ID of created object if OK
      */
-    public function create(User $user, bool $notrigger = false): int
+    public function create(User $user, int $noTrigger = 0): int
     {
         $this->ref      = $this->getNextNumRef();
         $this->position = $this->getMaxPosition() + 1;
-		$this->status   = $this->status ?: self::STATUS_VALIDATED;
+        $this->status   = $this->status ?: self::STATUS_VALIDATED;
 
-        return parent::create($user, $notrigger);
+        return parent::create($user, $noTrigger);
     }
 
     /**
@@ -248,26 +248,25 @@ class Answer extends SaturneObject
         }
     }
 
-	/**
-	 * Write information of trigger description
-	 *
-	 * @param  Object $object Object calling the trigger
-	 * @return string         Description to display in actioncomm->note_private
-	 */
-	public function getTriggerDescription(SaturneObject $object): string
-	{
-		global $db, $langs;
+    /**
+     * Write information of trigger description
+     *
+     * @return string Description to display in actioncomm->note_private
+     */
+    public function getTriggerDescription(): string
+    {
+        global $db, $langs;
 
-		$ret   = parent::getTriggerDescription($object);
-		$ret  .= $langs->transnoentities('Position') . ' : ' . $object->position . '</br>';
-		$ret  .= $langs->transnoentities('Color') . ' : ' . $object->color . '</br>';
-		$ret  .= (dol_strlen($object->pictogram) > 0 ? $langs->transnoentities('Pictogram') . ' : ' . $object->pictogram . '</br>' : '');
-		if (!empty($object->fk_question)) {
-			$question = new Question($db);
-			$question->fetch($object->fk_question);
+        $ret   = parent::getTriggerDescription();
+        $ret  .= $langs->transnoentities('Position') . ' : ' . $this->position . '</br>';
+        $ret  .= $langs->transnoentities('Color') . ' : ' . $this->color . '</br>';
+        $ret  .= (dol_strlen($this->pictogram) > 0 ? $langs->transnoentities('Pictogram') . ' : ' . $this->pictogram . '</br>' : '');
+        if (!empty($this->fk_question)) {
+            $question = new Question($db);
+            $question->fetch($this->fk_question);
 
-			$ret .= $langs->transnoentities('Question') . ' : ' . $question->ref . ' - ' . $question->label . '</br>';
-		}
-		return $ret;
-	}
+            $ret .= $langs->transnoentities('Question') . ' : ' . $question->ref . ' - ' . $question->label . '</br>';
+        }
+        return $ret;
+    }
 }

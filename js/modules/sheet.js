@@ -15,8 +15,9 @@ window.digiquali.sheet = {};
  * @return {void}
  */
 window.digiquali.sheet.init = function() {
-	window.digiquali.sheet.event();
-  window.digiquali.sheet.displayOpenedGroups();
+    window.digiquali.sheet.event();
+    window.digiquali.sheet.displayOpenedGroups();
+    window.digiquali.sheet.initMandatoryAll();
 };
 
 /**
@@ -29,9 +30,10 @@ window.digiquali.sheet.init = function() {
  */
 window.digiquali.sheet.event = function() {
 
-  $( document ).on( 'click', '.toggle-group-in-tree', window.digiquali.sheet.toggleGroupInTree );
-  $( document ).on( 'click', '.addQuestionButton, .addGroupButton', window.digiquali.sheet.buttonActions );
-  window.digiquali.sheet.initDragAndDropInParent();
+    $(document).on('click', '.toggle-group-in-tree', window.digiquali.sheet.toggleGroupInTree);
+    $(document).on('click', '.addQuestionButton, .addGroupButton', window.digiquali.sheet.buttonActions);
+    $(document).on('change', '#mandatory-all', window.digiquali.sheet.toggleAllMandatory);
+    window.digiquali.sheet.initDragAndDropInParent();
 
   const savedState = JSON.parse(localStorage.getItem('digiqualiGroupStates') || '{}');
 
@@ -186,6 +188,68 @@ window.digiquali.sheet.greyOut = function () {
   questions.removeClass('selected');
   sheets.removeClass('selected');
 }
+
+/**
+ * Set initial checked / indeterminate state of the "mandatory-all" checkbox
+ * based on the current mandatory state of all questions.
+ *
+ * @since   21.3.0
+ * @version 21.3.0
+ *
+ * @return {void}
+ */
+window.digiquali.sheet.initMandatoryAll = function() {
+    var checkboxes  = $('.question .mandatory-form input[name="mandatory"]');
+    var mandatoryAll = $('#mandatory-all');
+
+    if (checkboxes.length === 0 || mandatoryAll.length === 0) {
+        return;
+    }
+
+    var checkedCount = checkboxes.filter(':checked').length;
+
+    if (checkedCount === checkboxes.length) {
+        mandatoryAll.prop('checked', true).prop('indeterminate', false);
+    } else if (checkedCount === 0) {
+        mandatoryAll.prop('checked', false).prop('indeterminate', false);
+    } else {
+        mandatoryAll.prop('indeterminate', true);
+    }
+};
+
+/**
+ * Toggle all question mandatory checkboxes in one click via AJAX, without page reload.
+ * Updates each checkbox visually then persists the change server-side.
+ *
+ * @since   21.3.0
+ * @version 21.3.0
+ *
+ * @return {void}
+ */
+window.digiquali.sheet.toggleAllMandatory = function() {
+    var checked = $(this).prop('checked');
+
+    $('.question .mandatory-form').each(function() {
+        var form     = $(this);
+        var checkbox = form.find('input[name="mandatory"]');
+
+        if (checkbox.prop('checked') === checked) {
+            return;
+        }
+
+        // Update visual state without triggering onchange
+        checkbox.prop('checked', checked);
+
+        // Persist the toggle server-side (fire and forget)
+        $.ajax({
+            url:  form.attr('action'),
+            type: 'POST',
+            data: form.serialize()
+        });
+    });
+
+    $(this).prop('indeterminate', false);
+};
 
 /**
  * Drag and drop for questions and groups inside their parent

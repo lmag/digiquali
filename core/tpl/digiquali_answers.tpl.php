@@ -29,6 +29,10 @@
  */
 
 foreach ($questionsAndGroups as $questionOrGroup) {
+    if (!isset($objectLineClass) && is_object($objectLine)) {
+        $objectLineClass = get_class($objectLine);
+    }
+    
     $questionAnswer = '';
     $comment        = '';
 
@@ -66,12 +70,15 @@ foreach ($questionsAndGroups as $questionOrGroup) {
         if (is_array($groupQuestions) && !empty($groupQuestions)) {
             print '<div class="group-questions">';
             foreach ($groupQuestions as $question) {
-                $result = $objectLine->fetchFromParentWithQuestion($object->id, $question->id, $questionGroupId);
+                $tmpObjectLine = new $objectLineClass($object->db);
+                $result = $tmpObjectLine->fetchFromParentWithQuestion($object->id, $question->id);
                 if (is_array($result) && !empty($result)) {
                     $objectLine = array_shift($result);
                     $questionAnswer = $objectLine->answer;
                     $comment = $objectLine->comment;
                     $objectLine->fetchObjectLinked($objectLine->id, $objectLine->element);
+                } else {
+                    $objectLine = clone $tmpObjectLine;
                 }
 
                 $question = $question;
@@ -83,12 +90,15 @@ foreach ($questionsAndGroups as $questionOrGroup) {
 
         print '</div>';
     } else {
-        $result = $objectLine->fetchFromParentWithQuestion($object->id, $questionOrGroup->id, 0);
+        $tmpObjectLine = new $objectLineClass($object->db);
+        $result = $tmpObjectLine->fetchFromParentWithQuestion($object->id, $questionOrGroup->id);
         if (is_array($result) && !empty($result)) {
             $objectLine = array_shift($result);
             $questionAnswer = $objectLine->answer;
             $comment = $objectLine->comment;
             $objectLine->fetchObjectLinked($objectLine->id, $objectLine->element);
+        } else {
+            $objectLine = clone $tmpObjectLine;
         }
         $question = $questionOrGroup;
 

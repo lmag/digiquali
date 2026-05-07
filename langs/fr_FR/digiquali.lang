@@ -85,6 +85,7 @@ Question                      = Question
 Questions                     = questions
 TheQuestion                   = la question
 QuestionList                  = Liste des questions
+ControldetList                = Liste des réponses aux controles
 SelectMultipleQuestion        = Sélectionnez une ou plusieurs questions
 NewQuestion                   = Nouvelle question
 ModifyQuestion                = Modifier une question
@@ -122,8 +123,29 @@ UniqueChoice                  = Choix unique
 Range                         = Valeur numérique
 OkKo                          = Sélecteur OK/KO
 OkKoToFixNonApplicable        = Sélecteur OK/KO/NA/A réparer
+MarqueNF                      = Sélecteur Marque NF
+Iso9001                       = Sélecteur ISO 9001
 ToFix                         = A réparer
 NonApplicable                 = NA
+Conforme                      = Conforme
+NCMajeur                      = NC Majeur
+NCMineure                     = NC Mineure
+Observation                   = Observation
+ProgressTrack                 = Piste de progrès
+StrongPoint                   = Point fort
+ISO9001Conforme               = C - Conforme
+ISO9001NonConformite          = NC - Non-Conformité
+ISO9001Observation            = OBS - Observation
+ISO9001ProgressTrack          = PS - Piste de progrès
+ISO9001StrongPoint            = PF - Point fort
+TagStatistics                 = Statistiques par tag
+AnswersRepartitionByTag       = Répartition des réponses par tag
+StatsByTagAndStatus           = Tableau de statistiques par tag et statut
+DetailByTag                   = Détail par tag
+AllTags                       = Tous les tags
+NoTag                         = Pas de tag
+ConformityRate                = Conformité
+Conformity                    = Conformité
 Answer                        = Réponse
 EmptyValue                    = La valeur de la réponse est vide
 ErrorCreateAnswer             = Une erreur est survenue lors de la création de la réponse
@@ -202,6 +224,7 @@ ErrorSheetUsedInControl        = Le modèle %s ne peut pas être supprimé, il e
 AddSheetIntoCategory           = Assigner cette catégorie au modèle
 QuestionMandatorized           = La question %s a été rendue obligatoire
 QuestionUnMandatorized         = La question %s n'est plus obligatoire
+SetAllMandatory                = Rendre toutes les questions obligatoires / non obligatoires
 NoLinkedObjectSelected         = Veuillez sélectionner un type d'objet à contrôler
 ExportSheetData                = Export des données du modèle
 ExportSheetDataDescription     = Export des données du modèle et des questions associées
@@ -455,7 +478,7 @@ NoObjectLineAnswersPhoto                = Pas de photos sur les réponses du %s
 # Data - Donnée
 ControlDocument                         = Fiche de Contrôle
 Controldocument                         = Fiche de Contrôle
-ControlDocumentPDF                      = Fiche de Contrôle PDF
+ControlDocumentPDF                      = FC-A4-MEDIA-PDF
 ControlDocumentsMin                     = fiches de contôle
 ControlDocumentDisplayMedias            = Afficher les médias dans la fiche de contrôle
 ControlDocumentDisplayMediasDescription = Afficher les médias des questions dans la fiche de contrôle ODT
@@ -646,10 +669,21 @@ FieldMinValue = Le champ '%s' doit être supérieure ou égale à %s
 # Control Document PDF
 #
 
-Role                   = Rôle
-Equipement             = Equipement
-EstimatedLife          = Durée de vie restante
-ControlEquipementList  = Liste des équipements et moyens de contrôle
-Sheet                  = Modèle de contrôle
-ControlObservationList = Liste des points contrôlés, observations et réponse(s) à la question
-LinkedContactsControl  = Contact(s) associés au contrôle
+Role                    = Rôle
+Equipement              = Equipement
+EstimatedLife           = Durée de vie restante
+ControlEquipementList   = Liste des équipements et moyens de contrôle
+Sheet                   = Modèle de contrôle
+ControlObservationList  = Liste des points contrôlés, observations et réponse(s) à la question
+LinkedContactsControl   = Contact(s) associés au contrôle
+LinkedControllerControl = Contrôleur(s) associés au contrôle
+NoEquipmentFound        = Aucun équipement trouvé.
+
+#
+# Question categories - NF
+#
+
+NF        = NF
+NFSysteme = Système
+NFPoste   = Poste
+NFProduit = Produit

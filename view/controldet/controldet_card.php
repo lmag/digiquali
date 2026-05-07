@@ -35,8 +35,8 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/html.formcompany.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formfile.class.php';
 require_once DOL_DOCUMENT_ROOT.'/core/class/html.formprojet.class.php';
 
-require_once DOL_DOCUMENT_ROOT.'/custom/digiquali/class/control.class.php';
-require_once DOL_DOCUMENT_ROOT.'/custom/digiquali/lib/digiquali_control.lib.php';
+require_once __DIR__ . '/../../class/control.class.php';
+require_once __DIR__ . '/../../lib/digiquali_control.lib.php';
 
 
 /**

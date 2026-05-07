@@ -183,6 +183,8 @@ class Question extends SaturneObject
 	public const TYPE_RANGE = 'Range';
 	public const TYPE_OK_KO = 'OkKo';
 	public const TYPE_OK_KO_TOFIX_NA = 'OkKoToFixNonApplicable';
+	public const TYPE_MARQUE_NF = 'MarqueNF';
+	public const TYPE_ISO9001 = 'Iso9001';
 
     public const QUESTION_TYPES = [
 		self::TYPE_UNIQUE_CHOICE => [
@@ -216,6 +218,16 @@ class Question extends SaturneObject
 			'only_one_correct_answer' => true,
 		],
 		self::TYPE_OK_KO_TOFIX_NA => [
+			'default_points' => 1,
+			'correctable' => true,
+			'only_one_correct_answer' => true,
+		],
+		self::TYPE_MARQUE_NF => [
+			'default_points' => 1,
+			'correctable' => true,
+			'only_one_correct_answer' => true,
+		],
+		self::TYPE_ISO9001 => [
 			'default_points' => 1,
 			'correctable' => true,
 			'only_one_correct_answer' => true,
@@ -280,7 +292,7 @@ class Question extends SaturneObject
     /**
      * Constructor
      *
-     * @param DoliDb $db Database handler
+     * @param DoliDB $db Database handler
      */
     public function __construct(DoliDB $db)
     {
@@ -290,25 +302,25 @@ class Question extends SaturneObject
     /**
      * Create object into database
      *
-     * @param  User $user      User that creates
-     * @param  bool $notrigger false = launch triggers after, true = disable triggers
-     * @return int             0 < if KO, ID of created object if OK
+     * @param  User        $user      User that creates
+     * @param  int<0,1>    $noTrigger 0 = launch triggers after, 1 = disable triggers
+     * @return int<-1,max>            Return integer 0 < if KO, ID of created object if OK
      */
-    public function create(User $user, bool $notrigger = false): int
+    public function create(User $user, int $noTrigger = 0): int
     {
         $this->ref      = $this->getNextNumRef();
 		$this->status   = $this->status ?: 1;
 
-        $result = parent::create($user, $notrigger);
+        $result = parent::create($user, $noTrigger);
 
         if ($result > 0) {
             if (GETPOST('question_group_id') > 0) {
                 $questionGroup = new QuestionGroup($this->db);
-                $questionGroup->fetch(GETPOST('question_group_id'));
+                $questionGroup->fetch(GETPOSTINT('question_group_id'));
                 $questionGroup->addQuestion($this->id);
             } else if (GETPOST('sheet_id') > 0) {
                $sheet = new Sheet($this->db);
-               $sheet->fetch(GETPOST('sheet_id'));
+               $sheet->fetch(GETPOSTINT('sheet_id'));
                $this->add_object_linked('digiquali_' . $sheet->element, GETPOST('sheet_id'));
 
                $sheet->updateQuestionsAndGroupsPosition([], [], true);
@@ -536,17 +548,6 @@ class Question extends SaturneObject
 	}
 
 	/**
-	 * Initialise object with example values
-	 * Id must be 0 if object instance is a specimen
-	 *
-	 * @return void
-	 */
-	public function initAsSpecimen()
-	{
-		$this->initAsSpecimenCommon();
-	}
-
-	/**
 	 *  Output html form to select a third party
 	 *  Note, you must use the select_company to get the component to select a third party. This function must only be called by select_company
 	 *
@@ -684,19 +685,18 @@ class Question extends SaturneObject
 	/**
 	 * Write information of trigger description
 	 *
-	 * @param  Object $object Object calling the trigger
-	 * @return string         Description to display in actioncomm->note_private
+	 * @return string Description to display in actioncomm->note_private
 	 */
-	public function getTriggerDescription(SaturneObject $object): string
+	public function getTriggerDescription(): string
 	{
 		global $langs;
 
-		$ret   = parent::getTriggerDescription($object);
-		$ret  .= $langs->transnoentities('ShowPhoto') . ' : ' . ($object->show_photo ? $langs->transnoentities('Yes') : $langs->transnoentities('No')) . '</br>';
-		$ret  .= $langs->transnoentities('AuthorizeAnswerPhoto') . ' : ' . ($object->authorize_answer_photo ? $langs->transnoentities('Yes') : $langs->transnoentities('No')) . '</br>';
-		$ret  .= $langs->transnoentities('EnterComment') . ' : ' . ($object->enter_comment ? $langs->transnoentities('Yes') : $langs->transnoentities('No')) . '</br>';
-		$ret  .= (dol_strlen($object->photo_ok) > 0 ? $langs->transnoentities('PhotoOK') . ' : ' . $object->photo_ok . '</br>' : '');
-		$ret  .= (dol_strlen($object->photo_ko) > 0 ? $langs->transnoentities('PhotoKO') . ' : ' . $object->photo_ko . '</br>' : '');
+		$ret   = parent::getTriggerDescription();
+		$ret  .= $langs->transnoentities('ShowPhoto') . ' : ' . ($this->show_photo ? $langs->transnoentities('Yes') : $langs->transnoentities('No')) . '</br>';
+		$ret  .= $langs->transnoentities('AuthorizeAnswerPhoto') . ' : ' . ($this->authorize_answer_photo ? $langs->transnoentities('Yes') : $langs->transnoentities('No')) . '</br>';
+		$ret  .= $langs->transnoentities('EnterComment') . ' : ' . ($this->enter_comment ? $langs->transnoentities('Yes') : $langs->transnoentities('No')) . '</br>';
+		$ret  .= (dol_strlen($this->photo_ok) > 0 ? $langs->transnoentities('PhotoOK') . ' : ' . $this->photo_ok . '</br>' : '');
+		$ret  .= (dol_strlen($this->photo_ko) > 0 ? $langs->transnoentities('PhotoKO') . ' : ' . $this->photo_ko . '</br>' : '');
 
 		return $ret;
 	}
@@ -736,7 +736,7 @@ class Question extends SaturneObject
 		$retValue = 1;
 		if (in_array($this->type, [self::TYPE_PERCENTAGE, self::TYPE_RANGE])) {
 			$retValue = $this->isAnswerInQuestionRange($answerValue) ? 1 : -1;
-		} else if (in_array($this->type, [self::TYPE_OK_KO, self::TYPE_OK_KO_TOFIX_NA, self::TYPE_UNIQUE_CHOICE, self::TYPE_MULTIPLE_CHOICES])) {
+		} else if (in_array($this->type, [self::TYPE_OK_KO, self::TYPE_OK_KO_TOFIX_NA, self::TYPE_MARQUE_NF, self::TYPE_UNIQUE_CHOICE, self::TYPE_MULTIPLE_CHOICES])) {
 			$correctAnswers = $this->getAllCorrectAnswers();
 
 			if (is_array($correctAnswers)) {
@@ -924,6 +924,6 @@ class Question extends SaturneObject
     {
 		global $langs;
 		$question = $this;
-		include DOL_DOCUMENT_ROOT . '/custom/digiquali/view/sheet/sheet_question.tpl.php';
+        require __DIR__ . '/../view/sheet/sheet_question.tpl.php';
     }
 }

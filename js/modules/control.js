@@ -106,7 +106,7 @@ window.digiquali.control.showSelectObjectLinked = function() {
 
   let url = document.URL + querySeparator + 'fk_sheet=' + sheetID + '&token=' + token;
 
-  window.saturne.loader.display($('.linked-objects'));
+  window.saturne.loader.display($('#createObjectForm'));
 
   $.ajax({
     url: url,
@@ -114,7 +114,7 @@ window.digiquali.control.showSelectObjectLinked = function() {
     processData: false,
     contentType: false,
     success: function(resp) {
-      $('.linked-objects').replaceWith($(resp).find('.linked-objects'));
+      $('#createObjectForm').replaceWith($(resp).find('#createObjectForm'));
     },
     error: function() {}
   });

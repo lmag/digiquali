@@ -29,6 +29,5 @@ CREATE TABLE llx_digiquali_controldet(
 	fk_user_creat     integer NOT NULL,
 	fk_user_modif     integer,
 	fk_control        integer NOT NULL,
-	fk_question       integer,
-	fk_question_group integer DEFAULT 0 NOT NULL
+	fk_question       integer
 ) ENGINE=innodb;

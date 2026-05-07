@@ -119,6 +119,7 @@ class Sheet extends SaturneObject
         'type'                => ['type' => 'select',       'label' => 'Type',               'enabled' => 1, 'position' => 65,  'notnull' => 1, 'visible' => 1, 'arrayofkeyval' => ['control' => 'Control', 'survey' => 'Survey']],
         'label'               => ['type' => 'varchar(255)', 'label' => 'Label',              'enabled' => 1, 'position' => 11,  'notnull' => 1, 'visible' => 1, 'searchall' => 1, 'css' => 'tdoverflowmax200'],
         'description'         => ['type' => 'html',         'label' => 'Description',        'enabled' => 1, 'position' => 15,  'notnull' => 0, 'visible' => 1, 'searchall' => 1, 'css' => 'tdoverflowmax200'],
+        'fk_project'          => ['type' => 'integer:Project:projet/class/project.class.php:1', 'label' => 'Project', 'picto' => 'project', 'enabled' => '$conf->projet->enabled', 'position' => 20, 'notnull' => -1, 'visible' => 1, 'foreignkey' => 'projet.rowid'],
         'element_linked'      => ['type' => 'text',         'label' => 'ElementLinked',      'enabled' => 1, 'position' => 90,  'notnull' => 0, 'visible' => -2],
         'photo'               => ['type' => 'text',         'label' => 'Photo',              'enabled' => 1, 'position' => 95,  'notnull' => 0, 'visible' => -2, 'disablesearch' => 1, 'disablesort' => 1],
         'success_rate'        => ['type' => 'real',         'label' => 'SuccessScore',       'enabled' => 1, 'position' => 35,  'notnull' => 0, 'visible' => 2, 'help' => 'PercentageValue'],
@@ -183,6 +184,11 @@ class Sheet extends SaturneObject
     public ?string $description;
 
     /**
+     * @var int|null Project ID.
+     */
+    public $fk_project;
+
+    /**
      * @var string Element linked json.
      */
     public string $element_linked = '';
@@ -215,7 +221,7 @@ class Sheet extends SaturneObject
     /**
      * Constructor.
      *
-     * @param DoliDb $db Database handler.
+     * @param DoliDB $db Database handler.
      */
     public function __construct(DoliDB $db)
     {
@@ -223,19 +229,19 @@ class Sheet extends SaturneObject
     }
 
     /**
-     * Create object into database.
+     * Create object into database
      *
-     * @param  User $user      User that creates.
-     * @param  bool $notrigger false = launch triggers after, true = disable triggers.
-     * @return int             0 < if KO, ID of created object if OK.
+     * @param  User        $user      User that creates
+     * @param  int<0,1>    $noTrigger 0 = launch triggers after, 1 = disable triggers
+     * @return int<-1,max>            Return integer 0 < if KO, ID of created object if OK
      */
-    public function create(User $user, bool $notrigger = false): int
+    public function create(User $user, int $noTrigger = 0): int
     {
         $this->ref                 = $this->getNextNumRef();
         $this->status              = $this->status ?: 1;
 		$this->mandatory_questions = isset($this->mandatory_questions) ? $this->mandatory_questions : '{}';
 
-        return parent::create($user, $notrigger);
+        return parent::create($user, $noTrigger);
     }
 
     /**
@@ -656,16 +662,15 @@ class Sheet extends SaturneObject
 	/**
 	 * Write information of trigger description
 	 *
-	 * @param  Object $object Object calling the trigger
-	 * @return string         Description to display in actioncomm->note_private
+	 * @return string Description to display in actioncomm->note_private
 	 */
-	public function getTriggerDescription(SaturneObject $object): string
+	public function getTriggerDescription(): string
 	{
 		global $langs;
 
-		$linkedElement = json_decode($object->element_linked, true);
+		$linkedElement = json_decode($this->element_linked, true);
 
-		$ret  = parent::getTriggerDescription($object);
+		$ret  = parent::getTriggerDescription();
 		$ret .= $langs->transnoentities('ElementLinked') . ' : ';
 
 		if (is_array($linkedElement) && !empty($linkedElement)) {
@@ -815,19 +820,26 @@ class Sheet extends SaturneObject
         return $out;
     }
 
-    public function setLocked(User $user, int $notrigger = 0): int
+    /**
+     * Set locked status
+     *
+     * @param  User      $user      Object user that modify
+     * @param  int<0,1>  $noTrigger 0 = launch triggers after, 1 = disable triggers
+     * @return int<-1,1>            Return integer 0 < if KO, > 0 if OK
+     */
+    public function setLocked(User $user, int $noTrigger = 0): int
     {
         $questionsAndGroups = $this->fetchQuestionsAndGroups();
 
         if (is_array($questionsAndGroups) && !empty($questionsAndGroups)) {
             foreach($questionsAndGroups as $questionOrGroup) {
                 if ($questionOrGroup->status != $questionOrGroup::STATUS_LOCKED) {
-                    $questionOrGroup->setLocked($user, $notrigger);
+                    $questionOrGroup->setLocked($user, $noTrigger);
                 }
             }
         }
 
-        return parent::setLocked($user, $notrigger);
+        return parent::setLocked($user, $noTrigger);
     }
 
 
@@ -975,7 +987,7 @@ class Sheet extends SaturneObject
             $positionPath = 1;
             foreach ($questionsAndGroups as $questionOrGroup) {
                 $object = $this;
-                include DOL_DOCUMENT_ROOT . '/custom/digiquali/view/sheet/sheet_questiongroup.tpl.php';
+                require __DIR__ . '/../view/sheet/sheet_questiongroup.tpl.php';
                 $positionPath++;
             }
         }

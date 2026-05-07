@@ -122,7 +122,7 @@ class Control extends SaturneObject
         'next_control_date'  => ['type' => 'date',         'label' => 'NextControlDate',  'enabled' => 1, 'position' => 130, 'notnull' => 0, 'visible' => 2],
         'success_rate'       => ['type' => 'real',         'label' => 'SuccessScore',     'enabled' => 1, 'position' => 140, 'notnull' => 0, 'visible' => 2, 'help' => 'PercentageValue'],
         'status'             => ['type' => 'smallint',     'label' => 'Status',           'enabled' => 1, 'position' => 220, 'notnull' => 1, 'visible' => 5, 'index' => 1, 'searchmulti' => 1, 'default' => 0, 'arrayofkeyval' => [0 => 'StatusDraft', 1 => 'Validated', 2 => 'Locked', 3 => 'Archived'], 'csslist' => 'minwidth200'],
-        'label'              => ['type' => 'varchar(255)', 'label' => 'Label',            'enabled' => 1, 'position' => 30,  'notnull' => 0, 'visible' => 1, 'showinpwa' => 1, 'searchall' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx'],
+        'label'              => ['type' => 'varchar(255)', 'label' => 'Label',            'enabled' => 1, 'position' => 30,  'notnull' => 0, 'visible' => 4, 'showinpwa' => 1, 'searchall' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx'],
         'note_public'        => ['type' => 'html',         'label' => 'NotePublic',       'enabled' => 1, 'position' => 150, 'notnull' => 0, 'visible' => -2],
         'note_private'       => ['type' => 'html',         'label' => 'NotePrivate',      'enabled' => 1, 'position' => 160, 'notnull' => 0, 'visible' => -2],
         'verdict'            => ['type' => 'smallint',     'label' => 'Verdict',          'enabled' => 1, 'position' => 170, 'notnull' => 0, 'visible' => 2, 'showinpwa' => 1, 'index' => 1, 'positioncard' => 20, 'arrayofkeyval' => [0 => 'N/A', 1 => 'OK', 2 => 'KO'], 'csslist' => 'center'],
@@ -131,8 +131,9 @@ class Control extends SaturneObject
         'fk_user_creat'      => ['type' => 'integer:User:user/class/user.class.php',           'label' => 'UserAuthor',  'picto' => 'user',                            'enabled' => 1, 'position' => 200, 'notnull' => 1, 'visible' => -2, 'csslist' => 'maxwidth200', 'foreignkey' => 'user.rowid'],
         'fk_user_modif'      => ['type' => 'integer:User:user/class/user.class.php',           'label' => 'UserModif',   'picto' => 'user',                            'enabled' => 1, 'position' => 210, 'notnull' => 0, 'visible' => -2, 'foreignkey' => 'user.rowid'],
         'fk_sheet'           => ['type' => 'integer:Sheet:digiquali/class/sheet.class.php',    'label' => 'Sheet',       'picto' => 'fontawesome_fa-list_fas_#d35968', 'enabled' => 1, 'position' => 40,  'notnull' => 1, 'visible' => 5, 'index' => 1, 'css' => 'minwidth150 maxwidth500 widthcentpercentminusxx', 'csslist' => 'minwidth150', 'foreignkey' => 'digiquali_sheet.rowid'],
-        'fk_user_controller' => ['type' => 'integer:User:user/class/user.class.php:1',         'label' => 'Controller',  'picto' => 'user',                            'enabled' => 1, 'position' => 50,  'notnull' => 1, 'visible' => 0, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx', 'foreignkey' => 'user.rowid',   'positioncard' => 1],
-        'projectid'          => ['type' => 'integer:Project:projet/class/project.class.php:1', 'label' => 'Project',     'picto' => 'project',                         'enabled' => 1, 'position' => 60,  'notnull' => 0, 'visible' => 1, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx', 'foreignkey' => 'projet.rowid', 'positioncard' => 2]
+        'fk_user_controller' => ['type' => 'integer:User:user/class/user.class.php:1',         'label' => 'Controller',  'picto' => 'user',                            'enabled' => 1, 'position' => 50,  'notnull' => 1, 'visible' => 4, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx', 'foreignkey' => 'user.rowid',   'positioncard' => 1],
+        'projectid'          => ['type' => 'integer:Project:projet/class/project.class.php:1', 'label' => 'Project',     'picto' => 'project',                         'enabled' => 1, 'position' => 60,  'notnull' => 0, 'visible' => 4, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx', 'foreignkey' => 'projet.rowid', 'positioncard' => 2],
+        'fk_master_task'     => ['type' => 'integer:Task:projet/class/task.class.php',          'label' => 'MasterTask',  'picto' => 'projecttask',                     'enabled' => '$conf->projet->enabled', 'position' => 61,  'notnull' => -1, 'visible' => 0, 'foreignkey' => 'projet_task.rowid']
     ];
 
     /**
@@ -245,6 +246,11 @@ class Control extends SaturneObject
     public $projectid;
 
     /**
+     * @var int|null Master task ID (auto-created on control creation).
+     */
+    public $fk_master_task;
+
+    /**
      * @var string Name of subtable line
      */
     public $table_element_line = 'digiquali_controldet';
@@ -257,7 +263,7 @@ class Control extends SaturneObject
     /**
      * Constructor
      *
-     * @param DoliDb $db Database handler
+     * @param DoliDB $db Database handler
      */
     public function __construct(DoliDB $db)
     {
@@ -271,16 +277,16 @@ class Control extends SaturneObject
     /**
      * Create object into database
      *
-     * @param  User      $user      User that creates
-     * @param  bool      $notrigger false = launch triggers after, true = disable triggers
-     * @return int                  0 < if KO, ID of created object if OK
+     * @param  User        $user      User that creates
+     * @param  int<0,1>    $noTrigger 0 = launch triggers after, 1 = disable triggers
+     * @return int<-1,max>            Return integer 0 < if KO, ID of created object if OK
      * @throws Exception
      */
-    public function create(User $user, bool $notrigger = false): int
+    public function create(User $user, int $noTrigger = 0): int
     {
         global $conf;
 
-        $result = parent::create($user, $notrigger);
+        $result = parent::create($user, $noTrigger);
         if ($result > 0) {
             // Load Digiquali libraries
             require_once __DIR__ . '/sheet.class.php';
@@ -313,7 +319,6 @@ class Control extends SaturneObject
                     $fk_element              = 'fk_'. $object->element;
                     $controlLine->fk_control = $this->id;
                     $controlLine->fk_question = $question->id;
-                    $controlLine->fk_question_group = $question->fk_question_group;
                     $controlLine->answer      = '';
                     $controlLine->comment     = '';
                     $controlLine->entity      = $conf->entity;
@@ -341,85 +346,6 @@ class Control extends SaturneObject
 
         return $result;
     }
-
-    /**
-	 * Load list of objects in memory from the database.
-	 *
-	 * @param  string      $sortorder    Sort Order
-	 * @param  string      $sortfield    Sort field
-	 * @param  int         $limit        limit
-	 * @param  int         $offset       Offset
-	 * @param  array       $filter       Filter array. Example array('field'=>'valueforlike', 'customurl'=>...)
-	 * @param  string      $filtermode   Filter mode (AND or OR)
-	 * @return array|int                 int <0 if KO, array of pages if OK
-	 */
-	public function fetchAll($sortorder = '', $sortfield = '', $limit = 0, $offset = 0, array $filter = array(), $filtermode = 'AND', $fetchCategories = false)
-	{
-		dol_syslog(__METHOD__, LOG_DEBUG);
-
-		$records = array();
-
-		$sql                                                                              = 'SELECT ';
-		$sql                                                                             .= $this->getFieldList('t');
-		$sql                                                                             .= ' FROM ' . MAIN_DB_PREFIX . $this->table_element . ' as t';
-        if (isModEnabled('categorie') && $fetchCategories) {
-            $sql .= Categorie::getFilterJoinQuery('control', 't.rowid');
-        }
-		if (isset($this->ismultientitymanaged) && $this->ismultientitymanaged == 1) $sql .= ' WHERE t.entity IN (' . getEntity($this->table_element) . ')';
-		else $sql                                                                        .= ' WHERE 1 = 1';
-		// Manage filter
-		$sqlwhere = array();
-		if (count($filter) > 0) {
-			foreach ($filter as $key => $value) {
-				if ($key == 't.rowid') {
-					$sqlwhere[] = $key . '=' . $value;
-				} elseif (isset($this->fields[$key]['type']) && in_array($this->fields[$key]['type'], array('date', 'datetime', 'timestamp'))) {
-					$sqlwhere[] = $key . ' = \'' . $this->db->idate($value) . '\'';
-				} elseif ($key == 'customsql') {
-					$sqlwhere[] = $value;
-				} elseif (strpos($value, '%') === false) {
-					$sqlwhere[] = $key . ' IN (' . $this->db->sanitize($this->db->escape($value)) . ')';
-				} else {
-					$sqlwhere[] = $key . ' LIKE \'%' . $this->db->escape($value) . '%\'';
-				}
-			}
-		}
-		if (count($sqlwhere) > 0) {
-			$sql .= ' AND (' . implode(' ' . $filtermode . ' ', $sqlwhere) . ')';
-		}
-
-		if ( ! empty($sortfield)) {
-			$sql .= $this->db->order($sortfield, $sortorder);
-		}
-		if ( ! empty($limit)) {
-			$sql .= ' ' . $this->db->plimit($limit, $offset);
-		}
-
-		$resql = $this->db->query($sql);
-		if ($resql) {
-			$num = $this->db->num_rows($resql);
-			$i   = 0;
-			while ($i < ($limit ? min($limit, $num) : $num)) {
-				$obj = $this->db->fetch_object($resql);
-
-				$record = new self($this->db);
-				$record->setVarsFromFetchObj($obj);
-
-				$records[$record->id] = $record;
-
-				$i++;
-			}
-			$this->db->free($resql);
-
-			return $records;
-		} else {
-			$this->errors[] = 'Error ' . $this->db->lasterror();
-			dol_syslog(__METHOD__ . ' ' . join(',', $this->errors), LOG_ERR);
-
-			return -1;
-		}
-	}
-
 
     /**
      * Load list of objects in memory from the database.
@@ -505,14 +431,13 @@ class Control extends SaturneObject
     }
 
     /**
-     * Set draft status.
+     * Set draft status
      *
-     * @param  User $user      Object user that modify.
-     * @param  int  $notrigger 1 = Does not execute triggers, 0 = Execute triggers.
-     * @return int             0 < if KO, > 0 if OK.
-     * @throws Exception
+     * @param  User      $user      Object user that modify
+     * @param  int<0,1>  $noTrigger 0 = launch triggers after, 1 = disable triggers
+     * @return int<-1,1>            Return integer 0 < if KO, > 0 if OK
      */
-    public function setDraft(User $user, int $notrigger = 0): int
+    public function setDraft(User $user, int $noTrigger = 0): int
     {
         // Protection
         if ($this->status <= self::STATUS_DRAFT) {
@@ -522,18 +447,17 @@ class Control extends SaturneObject
         $signatory = new SaturneSignature($this->db);
         $signatory->deleteSignatoriesSignatures($this->id, 'control');
 
-        return $this->setStatusCommon($user, self::STATUS_DRAFT, $notrigger, 'CONTROL_UNVALIDATE');
+        return $this->setStatusCommon($user, self::STATUS_DRAFT, $noTrigger, 'CONTROL_UNVALIDATE');
     }
 
     /**
      * Set locked status
      *
-     * @param  User     $user      Object user that modify
-     * @param  int      $notrigger 1 = Does not execute triggers, 0 = Execute triggers
-     * @return int                 0 < if KO, > 0 if OK
-     * @throws Exception
+     * @param  User      $user      Object user that modify
+     * @param  int<0,1>  $noTrigger 0 = launch triggers after, 1 = disable triggers
+     * @return int<-1,1>            Return integer 0 < if KO, > 0 if OK
      */
-    public function setLocked(User $user, int $notrigger = 0): int
+    public function setLocked(User $user, int $noTrigger = 0): int
     {
         global $langs;
 
@@ -604,7 +528,7 @@ class Control extends SaturneObject
             }
         }
 
-        return parent::setLocked($user, $notrigger);
+        return parent::setLocked($user, $noTrigger);
     }
 
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.ScopeNotCamelCaps
@@ -882,17 +806,6 @@ class Control extends SaturneObject
     }
 
     /**
-     * Initialise object with example values.
-     * ID must be 0 if object instance is a specimen.
-     *
-     * @return void
-     */
-    public function initAsSpecimen()
-    {
-        $this->initAsSpecimenCommon();
-    }
-
-    /**
      * Return HTML string to put an input field into a page
      * Code very similar with showInputField of extra fields
      *
@@ -908,7 +821,15 @@ class Control extends SaturneObject
      */
     public function showInputField($val, $key, $value, $moreparam = '', $keysuffix = '', $keyprefix = '', $morecss = 0, $nonewbutton = 0): string
     {
-        $objectsMetadata = saturne_get_objects_metadata();
+        global $conf;
+
+        if (!isset($conf->cache['objectsMetadata']) || empty($conf->cache['objectsMetadata'])) {
+            $objectsMetadata                = saturne_get_objects_metadata();
+            $conf->cache['objectsMetadata'] = $objectsMetadata;
+        } else {
+            $objectsMetadata = $conf->cache['objectsMetadata'];
+        }
+
         foreach($objectsMetadata as $objectMetadata) {
             if ($objectMetadata['conf'] > 0 && $key == $objectMetadata['post_name']) {
                 $out          = '';
@@ -1249,10 +1170,9 @@ class Control extends SaturneObject
     /**
      * Write information of trigger description
      *
-     * @param  SaturneObject $object Object calling the trigger
-     * @return string                Description to display in actioncomm->note_private
+     * @return string Description to display in actioncomm->note_private
      */
-    public function getTriggerDescription(SaturneObject $object): string
+    public function getTriggerDescription(): string
     {
         global $db, $langs;
 
@@ -1260,20 +1180,20 @@ class Control extends SaturneObject
         require_once __DIR__ . '/../class/sheet.class.php';
 
         $sheet = new Sheet($db);
-        $sheet->fetch($object->fk_sheet);
+        $sheet->fetch($this->fk_sheet);
 
-        $ret  = parent::getTriggerDescription($object);
+        $ret  = parent::getTriggerDescription();
         $ret .= $langs->transnoentities('Sheet') . ' : ' . $sheet->ref . ' - ' . $sheet->label . '<br>';
-        if ($object->fk_user_controller > 0) {
+        if ($this->fk_user_controller > 0) {
             $user = new User($db);
-            $user->fetch($object->fk_user_controller);
+            $user->fetch($this->fk_user_controller);
             $ret .= $langs->transnoentities('Controller') . ' : ' . ucfirst($user->firstname) . ' ' . dol_strtoupper($user->lastname) . '<br>';
         }
-        if (!empty($object->project)) {
-            $ret .= $langs->transnoentities('Project') . ' : ' . $object->project->ref . ' ' . $object->project->title . '<br>';
+        if (!empty($this->project)) {
+            $ret .= $langs->transnoentities('Project') . ' : ' . $this->project->ref . ' ' . $this->project->title . '<br>';
         }
-        $ret .= (!empty($object->verdict) ? $langs->transnoentities('Verdict') . ' : ' . $langs->transnoentities($object->fields['verdict']['arrayofkeyval'][$object->verdict]) . '<br>' : '');
-        $ret .= (!empty($object->photo) ? $langs->transnoentities('Photo') . ' : ' . $object->photo . '<br>' : '');
+        $ret .= (!empty($this->verdict) ? $langs->transnoentities('Verdict') . ' : ' . $langs->transnoentities($this->fields['verdict']['arrayofkeyval'][$this->verdict]) . '<br>' : '');
+        $ret .= (!empty($this->photo) ? $langs->transnoentities('Photo') . ' : ' . $this->photo . '<br>' : '');
 
         return $ret;
     }
@@ -1287,7 +1207,7 @@ class Control extends SaturneObject
 
         $object = $this;
 
-        include DOL_DOCUMENT_ROOT . '/custom/digiquali/core/tpl/digiquali_answers.tpl.php';
+        require __DIR__ . '/../core/tpl/digiquali_answers.tpl.php';
     }
 }
 
@@ -1384,7 +1304,6 @@ class ControlLine extends SaturneObject
         'fk_user_modif'     => ['type' => 'integer:User:user/class/user.class.php',              'label' => 'UserModif',  'picto' => 'user',                                'enabled' => 1, 'position' => 75, 'notnull' => 0, 'visible' => -2, 'foreignkey' => 'user.rowid'],
         'fk_control'        => ['type' => 'integer:control:digiquali/class/control.class.php',    'label' => 'Control',    'picto' => 'fontawesome_fa-tasks_fas_#d35968',    'enabled' => 1, 'position' => 2,  'notnull' => 1, 'visible' => -1, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx', 'foreignkey' => 'digiquali_survey.rowid'],
         'fk_question'       => ['type' => 'integer:question:digiquali/class/question.class.php', 'label' => 'Question',   'picto' => 'fontawesome_fa-question_fas_#d35968', 'enabled' => 1, 'position' => 4,  'notnull' => 1, 'visible' => -1, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx', 'foreignkey' => 'digiquali_question.rowid'],
-        'fk_question_group' => ['type' => 'integer:questiongroup:digiquali/class/questiongroup.class.php', 'label' => 'QuestionGroup', 'picto' => 'fontawesome_fa-folder_fas_#d35968', 'enabled' => 1, 'position' => 6, 'notnull' => 1, 'default' => 0, 'visible' => -1, 'index' => 1, 'css' => 'maxwidth500 widthcentpercentminusxx'],
     ];
 
     /**
@@ -1468,14 +1387,9 @@ class ControlLine extends SaturneObject
     public ?int $fk_question;
 
     /**
-     * @var int|null Question group ID
-     */
-    public ?int $fk_question_group = 0;
-
-    /**
      * Constructor
      *
-     * @param DoliDb $db Database handler
+     * @param DoliDB $db Database handler
      */
     public function __construct(DoliDB $db)
     {
@@ -1490,9 +1404,9 @@ class ControlLine extends SaturneObject
      * @return array|int              Int <0 if KO, array of pages if OK
      * @throws Exception
      */
-    public function fetchFromParentWithQuestion(int $controlID, int $questionID, int $questionGroupId = 0)
+    public function fetchFromParentWithQuestion(int $controlID, int $questionID)
     {
-        return $this->fetchAll('', '', 1, 0, ['customsql' => 't.fk_control = ' . $controlID . ' AND t.fk_question = ' . $questionID . ' AND t.status > 0 AND t.fk_question_group = ' . $questionGroupId]);
+        return $this->fetchAll('', '', 1, 0, ['customsql' => 't.fk_control = ' . $controlID . ' AND t.fk_question = ' . $questionID . ' AND t.status > 0']);
     }
 }
 
@@ -1525,13 +1439,13 @@ class ControlEquipment extends SaturneObject
 	 * @var array  Array with all fields and their property. Do not use it as a static var. It may be modified by constructor.
 	 */
 	public $fields = [
-		'rowid'         => ['type' => 'integer', 'label' => 'TechnicalID', 'enabled' => '1', 'position' => 1, 'notnull' => 1, 'visible' => 0, 'noteditable' => '1', 'index' => 1, 'comment' => 'Id'],
+
 		'ref'           => ['type' => 'varchar(128)', 'label' => 'Ref', 'enabled' => '1', 'position' => 10, 'notnull' => 1, 'visible' => 1, 'noteditable' => '1', 'index' => 1, 'searchall' => 1, 'showoncombobox' => '1', 'comment' => 'Reference of object'],
 		'ref_ext'       => ['type' => 'varchar(128)', 'label' => 'RefExt', 'enabled' => '1', 'position' => 20, 'notnull' => 0, 'visible' => 0],
 		'entity'        => ['type' => 'integer', 'label' => 'Entity', 'enabled' => '1', 'position' => 20, 'notnull' => 1, 'visible' => 0],
 		'date_creation' => ['type' => 'datetime', 'label' => 'DateCreation', 'enabled' => '1', 'position' => 30, 'notnull' => 1, 'visible' => 0],
 		'tms'           => ['type' => 'timestamp', 'label' => 'DateModification', 'enabled' => '1', 'position' => 40, 'notnull' => 0, 'visible' => 0],
-		'status'        => ['type' => 'status', 'label' => 'Status', 'enabled' => '1', 'position' => 50, 'notnull' => 1, 'visible' => 0],
+		'status'        => ['type' => 'status', 'label' => 'Status', 'enabled' => '1', 'position' => 50, 'notnull' => 1, 'visible' => 0, 'default' => self::STATUS_ENABLED],
 		'json'          => ['type' => 'text', 'label' => 'JSON', 'enabled' => '1', 'position' => 60, 'notnull' => 1, 'visible' => 0],
         'fk_product'    => ['type' => 'integer', 'label' => 'FkProduct', 'enabled' => '1', 'position' => 70, 'notnull' => 1, 'visible' => 0],
         'fk_lot'        => ['type' => 'integer', 'label' => 'FkLot', 'enabled' => '1', 'position' => 75, 'notnull' => 1, 'visible' => 0],
@@ -1539,44 +1453,9 @@ class ControlEquipment extends SaturneObject
 	];
 
     /**
-     * @var int ID.
+     * @var int Status
      */
-    public int $rowid;
-
-    /**
-     * @var string Ref.
-     */
-    public $ref;
-
-    /**
-     * @var string Ref ext.
-     */
-    public $ref_ext;
-
-    /**
-     * @var int Entity.
-     */
-    public $entity;
-
-    /**
-     * @var int|string Creation date.
-     */
-    public $date_creation;
-
-    /**
-     * @var int|string Timestamp.
-     */
-    public $tms;
-
-    /**
-     * @var string Import key.
-     */
-    public $import_key;
-
-    /**
-     * @var int Status.
-     */
-    public $status;
+    public $status = self::STATUS_ENABLED;
 
     /**
      * @var string Json.
@@ -1602,25 +1481,11 @@ class ControlEquipment extends SaturneObject
 	/**
 	 * Constructor
 	 *
-	 * @param DoliDb $db Database handler
+	 * @param DoliDB $db Database handler
 	 */
 	public function __construct(DoliDB $db)
 	{
 		parent::__construct($db, $this->module, $this->element);
-	}
-
-	/**
-	 * Create object into database.
-	 *
-	 * @param  User $user      User that creates.
-	 * @param  bool $notrigger false = launch triggers after, true = disable triggers.
-	 * @return int             0 < if KO, ID of created object if OK.
-	 */
-	public function create(User $user, bool $notrigger = false): int
-	{
-		$this->status = 1;
-
-		return parent::create($user, $notrigger);
 	}
 
     /**

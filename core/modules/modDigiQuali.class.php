@@ -77,7 +77,7 @@ class modDigiQuali extends DolibarrModules
 		$this->editor_url = 'https://evarisk.com/';
 
 		// Possible values for version are: 'development', 'experimental', 'dolibarr', 'dolibarr_deprecated' or a version string like 'x.y.z'
-		$this->version = '22.0.0';
+		$this->version = '23.0.0';
 		// Url to the file with your last numberversion of this module
 		//$this->url_last_version = 'http://www.example.com/versionmodule.txt';
 
@@ -186,7 +186,7 @@ class modDigiQuali extends DolibarrModules
 			$i++ => ['DIGIQUALI_SHEET_LINK_USER', 'integer', 0, '', 0, 'current'],
 			$i++ => ['DIGIQUALI_SHEET_LINK_THIRDPARTY', 'integer', 0, '', 0, 'current'],
 			$i++ => ['DIGIQUALI_SHEET_LINK_CONTACT', 'integer', 0, '', 0, 'current'],
-			$i++ => ['DIGIQUALI_SHEET_LINK_PROJECT', 'integer', 0, '', 0, 'current'],
+			$i++ => ['DIGIQUALI_SHEET_LINK_PROJECT', 'integer', 1, '', 0, 'current'],
 			$i++ => ['DIGIQUALI_SHEET_LINK_TASK', 'integer', 0, '', 0, 'current'],
             $i++ => ['DIGIQUALI_SHEET_LINK_INVOICE', 'integer', 0, '', 0, 'current'],
             $i++ => ['DIGIQUALI_SHEET_LINK_ORDER', 'integer', 0, '', 0, 'current'],
@@ -205,6 +205,7 @@ class modDigiQuali extends DolibarrModules
 			$i++ => ['DIGIQUALI_QUESTION_ADDON', 'chaine', 'mod_question_standard', '', 0, 'current'],
 			$i++ => ['DIGIQUALI_QUESTIONGROUP_ADDON', 'chaine', 'mod_questiongroup_standard', '', 0, 'current'],
             $i++ => ['DIGIQUALI_QUESTION_BACKWARD_COMPATIBILITY', 'integer', 1, '', 0, 'current'],
+			$i++ => ['DIGIQUALI_QUESTION_NF_TAGS_SET', 'integer', 0, '', 0, 'current'],
 
 			// CONST ANSWER
 			$i++ => ['DIGIQUALI_ANSWER_ADDON', 'chaine', 'mod_answer_standard', '', 0, 'current'],
@@ -860,11 +861,12 @@ class modDigiQuali extends DolibarrModules
 
 		delDocumentModel('controldocument_odt', 'controldocument');
         delDocumentModel('surveydocument_odt', 'surveydocument');
-        delDocumentModel('control_document', 'controldocument');
+        delDocumentModel('control_document', 'controldocument'); // For backward compatibility
+        delDocumentModel('controldocument', 'controldocument');
 
 		addDocumentModel('controldocument_odt', 'controldocument', 'ODT templates', 'DIGIQUALI_CONTROLDOCUMENT_ADDON_ODT_PATH');
 		addDocumentModel('surveydocument_odt', 'surveydocument', 'ODT templates', 'DIGIQUALI_SURVEYDOCUMENT_ADDON_ODT_PATH');
-        addDocumentModel('control_document', 'controldocument', $langs->transnoentities('ControlDocumentPDF'));
+        addDocumentModel('controldocument', 'controldocument', $langs->transnoentities('ControlDocumentPDF'));
 
 		if (!empty($conf->global->DIGIQUALI_SHEET_TAGS_SET) && empty($conf->global->DIGIQUALI_SHEET_DEFAULT_TAG)) {
 			global $user, $langs;
@@ -876,6 +878,17 @@ class modDigiQuali extends DolibarrModules
 			$tags->create($user);
 
 			dolibarr_set_const($this->db, 'DIGIQUALI_SHEET_DEFAULT_TAG', $tags->id, 'integer', 0, '', $conf->entity);
+		}
+
+		if (empty($conf->global->DIGIQUALI_QUESTION_NF_TAGS_SET)) {
+			require_once DOL_DOCUMENT_ROOT . '/categories/class/categorie.class.php';
+
+			$nfParentId = saturne_create_category($langs->transnoentities('NF'), 'question');
+			saturne_create_category($langs->transnoentities('NFSysteme'), 'question', $nfParentId);
+			saturne_create_category($langs->transnoentities('NFPoste'),   'question', $nfParentId);
+			saturne_create_category($langs->transnoentities('NFProduit'), 'question', $nfParentId);
+
+			dolibarr_set_const($this->db, 'DIGIQUALI_QUESTION_NF_TAGS_SET', 1, 'integer', 0, '', $conf->entity);
 		}
         // Create extrafields during init.
         include_once DOL_DOCUMENT_ROOT . '/core/class/extrafields.class.php';
@@ -968,6 +981,11 @@ class modDigiQuali extends DolibarrModules
             }
 
             dolibarr_set_const($this->db, 'DIGIQUALI_SHEET_BACKWARD_COMPATIBILITY', 1, 'integer', 0, '', $conf->entity);
+        }
+
+        if (getDolGlobalInt('DIGIQUALI_SHEET_LINK_PROJECT_DEFAULT') == 0) {
+            dolibarr_set_const($this->db, 'DIGIQUALI_SHEET_LINK_PROJECT', 1, 'integer', 0, '', $conf->entity);
+            dolibarr_set_const($this->db, 'DIGIQUALI_SHEET_LINK_PROJECT_DEFAULT', 1, 'integer', 0, '', $conf->entity);
         }
 
 		// Permissions

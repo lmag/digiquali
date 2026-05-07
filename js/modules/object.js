@@ -65,6 +65,7 @@ window.digiquali.object.event = function() {
   $(document).on( 'click', '.answer:not(.disable)', window.digiquali.object.selectAnswer);
   $(document).on( 'input', '.input-answer:not(.disable)', window.digiquali.object.selectAnswer);
   $(document).on( 'keyup', '.question-comment', window.digiquali.object.showCommentUnsaved);
+  $(document).on( 'blur', '.question-comment', window.digiquali.object.saveCommentAuto);
   $(document).on( 'change', '.question-answer', window.digiquali.object.changeStatusQuestion);
   $(document).on( 'click', '.answer:not(.disable)', window.digiquali.object.changeStatusQuestion);
   $(document).on('input', '.question-answer[type="range"]', function () {
@@ -135,7 +136,7 @@ window.digiquali.object.selectAnswer = function() {
     $(this).closest('.answer-cell').find('.question-answer').val(answer);
   }
 
-  if (!publicInterface && autoSave == 1 && !$(this).hasClass('multiple-answers')) {
+  if (!publicInterface && !$(this).hasClass('multiple-answers')) {
     window.digiquali.object.saveAnswer(questionId, answer, comment);
   } else {
     window.digiquali.object.updateButtonsStatus();
@@ -176,7 +177,11 @@ window.digiquali.object.updateButtonsStatus = function() {
   $('#saveButton').addClass('butAction');
   $('#saveButton').css('background', '#0d8aff');
   $('.fa-circle').css('display', 'inline');
-  $('#saveButton').attr('onclick','$("#saveObject").submit()');
+  $('#saveButton').removeAttr('onclick').off('click').on('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    $("#saveObject").submit();
+  });
 
   $('.validateButton').removeClass('butAction');
   $('#dialog-confirm-actionButtonValidate').removeAttr('id');
@@ -199,20 +204,29 @@ window.digiquali.object.saveAnswer = function(questionId, answer, comment) {
   let querySeparator = window.saturne.toolbox.getQuerySeparator(document.URL);
 
   $.ajax({
-    url: document.URL + querySeparator + 'action=save&token=' + token,
+    url: document.URL + querySeparator + 'action=save',
     type: 'POST',
-    contentType: 'application/json; charset=utf-8',
-    data: JSON.stringify({
-      autoSave: true,
+    data: {
+      token: token,
+      autoSave: 'true',
       questionId: questionId,
       answer: answer,
       comment: comment
-    }),
+    },
     success: function(resp) {
       $('.progress-info').replaceWith($(resp).find('.progress-info'));
       $('#dialog-confirm-actionButtonValidate>.confirmmessage').replaceWith($(resp).find('#dialog-confirm-actionButtonValidate>.confirmmessage'));
+      // Remove the red unsaved warning from the comment box that was saved
+      let $commentArea = $('.question-comment[name="comment' + questionId + '"]');
+      if ($commentArea.length) {
+          $commentArea.removeClass('show-comment-unsaved-message');
+          $commentArea.next('p').remove();
+      }
+      $.jnotify('Sauvegarde réussie', 'success', true, {autoHide: true, clickOverlay: false, minWidth: 250, TimeShown: 3000, ShowTimeEffect: 200, HideTimeEffect: 200, LongTrip: 20, HorizontalPosition: 'right', VerticalPosition: 'top', ShowOverlay: false, ColorOverlay: '#000', OpacityOverlay: 0.3});
     },
-    error: function() {}
+    error: function() {
+      $.jnotify('Erreur de sauvegarde', 'error', true, {autoHide: true, clickOverlay: false, minWidth: 250, TimeShown: 3000, ShowTimeEffect: 200, HideTimeEffect: 200, LongTrip: 20, HorizontalPosition: 'right', VerticalPosition: 'top', ShowOverlay: false, ColorOverlay: '#000', OpacityOverlay: 0.3});
+    }
   });
 };
 
@@ -262,7 +276,7 @@ window.digiquali.object.rangePercent = function(fromInit) {
   slider.parent().append(rangePercent);
 
   if (!fromInit) {
-    if (!publicInterface && autoSave == 1 && !$(this).hasClass('multiple-answers')) {
+    if (!publicInterface && !$(this).hasClass('multiple-answers')) {
       window.digiquali.object.saveAnswer(questionId, rangePercent, comment);
     } else {
       window.digiquali.object.updateButtonsStatus();
@@ -283,3 +297,32 @@ window.digiquali.object.placePercents = function() {
     window.digiquali.object.rangePercent.call(this, true);
   });
 }
+
+/**
+ * Auto-save comment on blur
+ *
+ * @since   1.12.0
+ * @version 1.12.0
+ *
+ * @returns {void}
+ */
+window.digiquali.object.saveCommentAuto = function() {
+  let inputName = $(this).attr('name');
+  if (inputName && inputName.indexOf('comment') === 0) {
+    let questionId = inputName.replace('comment', '');
+    let comment    = $(this).val();
+    
+    // Find answer element. Fallback to common class if closest fails.
+    let answerElement = $(this).closest('.table-id-' + questionId).find('.question-answer');
+    if(answerElement.length === 0) {
+        answerElement = $(this).closest('.answer-cell').find('.question-answer');
+    }
+    let answer = answerElement.val() || '';
+    
+    let publicInterface = $(this).closest('.table-id-' + questionId).attr('data-publicInterface');
+
+    if (!publicInterface) {
+      window.digiquali.object.saveAnswer(questionId, answer, comment);
+    }
+  }
+};

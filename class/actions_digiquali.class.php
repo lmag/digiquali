@@ -1,5 +1,5 @@
 <?php
-/* Copyright (C) 2022-2025 EVARISK <technique@evarisk.com>
+/* Copyright (C) 2022-2026 EVARISK <technique@evarisk.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,6 +40,11 @@ class ActionsDigiquali
      * @var array Errors
      */
     public array $errors = [];
+
+    /**
+     * @var string[] Warning codes (or messages)
+     */
+    public array $warnings = [];
 
     /**
      * @var array Hook results. Propagated to $hookmanager->resArray for later reuse
@@ -264,9 +269,14 @@ class ActionsDigiquali
     {
         global $conf, $extrafields, $langs, $user;
 
-        require_once __DIR__ . '/../../saturne/lib/object.lib.php';
+        if (!isset($conf->cache['objectsMetadata']) || empty($conf->cache['objectsMetadata'])) {
+            require_once __DIR__ . '/../../saturne/lib/object.lib.php';
+            $objectsMetadata                = saturne_get_objects_metadata();
+            $conf->cache['objectsMetadata'] = $objectsMetadata;
+        } else {
+            $objectsMetadata = $conf->cache['objectsMetadata'];
+        }
 
-        $objectsMetadata = saturne_get_objects_metadata();
         foreach($objectsMetadata as $objectMetadata) {
             if ($objectMetadata['tab_type'] == $object->element) {
                 if (strpos($parameters['context'], $objectMetadata['hook_name_card']) !== false) {
@@ -287,9 +297,9 @@ class ActionsDigiquali
             $setEasyUrlLinkButton      =  '';
             $assignEasyUrlButton       = '';
             if (isModEnabled('easyurl')) {
-                require_once DOL_DOCUMENT_ROOT . '/custom/easyurl/class/shortener.class.php';
+                require_once __DIR__ . '/../../easyurl/class/shortener.class.php';
                 $shortener = new Shortener($this->db);
-                $result    = $shortener->fetch('', '', ' AND t.original_url = \'' . $publicControlInterfaceUrl . '\'');
+                $result    = $shortener->fetch(0, '', ' AND t.original_url = \'' . $publicControlInterfaceUrl . '\'');
                 if ($result > 0) {
                     $publicControlInterfaceUrl = $shortener->short_url;
                 } else {
@@ -327,6 +337,11 @@ class ActionsDigiquali
     {
         if (preg_match('/\bsheetlist\b/', $parameters['context'])) {
             $sql = ',COUNT(ee.fk_target) AS nb_question';
+            $this->resprints = $sql;
+        }
+
+        if (preg_match('/\bcontrollist\b/', $parameters['context'])) {
+            $sql = ', DATEDIFF(t.next_control_date, CURDATE()) AS days_remaining_before_next_control';
             $this->resprints = $sql;
         }
 
@@ -374,10 +389,12 @@ class ActionsDigiquali
         }
 
         if (preg_match('/surveylist|controllist/', $parameters['context'])) {
-            require_once __DIR__ . '/../../saturne/lib/object.lib.php';
-
-            $objectsMetadata = saturne_get_objects_metadata();
-            foreach($objectsMetadata as $objectMetadata) {
+            if (!isset($conf->cache['objectsMetadata']) || empty($conf->cache['objectsMetadata'])) {
+                require_once __DIR__ . '/../../saturne/lib/object.lib.php';
+                $conf->cache['objectsMetadata'] = saturne_get_objects_metadata();
+            }
+            $objectsMetadata = $conf->cache['objectsMetadata'];
+            foreach ($objectsMetadata as $objectMetadata) {
                 if ($objectMetadata['conf'] == 0) {
                     continue;
                 }
@@ -460,11 +477,16 @@ class ActionsDigiquali
      */
     public function printFieldListOption(array $parameters): int
     {
-        global $extrafields, $langs, $object;
+        global $conf, $extrafields, $langs, $object;
 
-        require_once __DIR__ . '/../../saturne/lib/object.lib.php';
+        if (!isset($conf->cache['objectsMetadata']) || empty($conf->cache['objectsMetadata'])) {
+            require_once __DIR__ . '/../../saturne/lib/object.lib.php';
+            $objectsMetadata = saturne_get_objects_metadata();
+            $conf->cache['objectsMetadata'] = $objectsMetadata;
+        } else {
+            $objectsMetadata = $conf->cache['objectsMetadata'];
+        }
 
-        $objectsMetadata = saturne_get_objects_metadata();
         foreach($objectsMetadata as $objectMetadata) {
             if ($objectMetadata['tab_type'] != $object->element) {
                 continue;
@@ -500,9 +522,9 @@ class ActionsDigiquali
             $setEasyUrlLinkButton      =  '';
             $assignEasyUrlButton       = '';
             if (isModEnabled('easyurl')) {
-                require_once DOL_DOCUMENT_ROOT . '/custom/easyurl/class/shortener.class.php';
+                require_once __DIR__ . '/../../easyurl/class/shortener.class.php';
                 $shortener = new Shortener($this->db);
-                $result    = $shortener->fetch('', '', ' AND t.original_url = \'' . $publicControlInterfaceUrl . '\'');
+                $result    = $shortener->fetch(0, '', ' AND t.original_url = \'' . $publicControlInterfaceUrl . '\'');
                 if ($result > 0) {
                     $publicControlInterfaceUrl = $shortener->short_url;
                 } else {
@@ -558,7 +580,7 @@ class ActionsDigiquali
      */
     function completeTabsHead(array $parameters, $object) : int
     {
-        global $langs;
+        global $conf, $langs;
 
         if (strpos($parameters['context'], 'main') !== false) {
             if (!empty($parameters['head'])) {
@@ -570,6 +592,24 @@ class ActionsDigiquali
                                 $NbControls = count($object->linkedObjectsIds['digiquali_control']);
                                 $parameters['head'][$headKey][1] .= '<span class="badge marginleftonlyshort">' . $NbControls . '</span>';
                             }
+                        }
+                        if (isset($headTab[2]) && $headTab[2] === 'medias' && is_string($headTab[1]) && strpos($headTab[1], $langs->trans('Medias')) !== false && strpos($headTab[1], 'badge') === false) {
+                            $object = $parameters['object'];
+
+                            $object->fetchObjectLinked($object->fk_sheet, 'digiquali_sheet');
+                            $questionsLinked = $object->linkedObjects;
+                            $linkedMedias    = 0;
+
+                            if (is_array($questionsLinked['digiquali_question']) && !empty($questionsLinked['digiquali_question'])) {
+                                foreach ($questionsLinked['digiquali_question'] as $questionLinked) {
+                                    if ($questionLinked->authorize_answer_photo > 0) {
+                                        saturne_show_medias_linked('digiquali', $conf->digiquali->multidir_output[$conf->entity] . '/' . $object->element . '/' . $object->ref . '/answer_photo/' . $questionLinked->ref, ($conf->global->$confName ? 'large' : 'medium'), '', 0, 0, 0, 200, 200, 0, 0, 0, $object->element . '/' . $object->ref . '/answer_photo/' . $questionLinked->ref, $object, '', 0, 0);
+                                        $linkedMedias += $object->nbphoto;
+                                    }
+                                }
+                            }
+
+                            $parameters['head'][$headKey][1] .= '<span class="badge marginleftonlyshort">' . $linkedMedias . '</span>';
                         }
                     }
                 }
@@ -820,8 +860,6 @@ class ActionsDigiquali
             $signatory = new SaturneSignature($this->db, 'digiquali', $object->element);
             $sheet     = new Sheet($this->db);
 
-            $conf->cache['objectsMetadata'] = saturne_get_objects_metadata();
-
             $object->fetchLines();
             $object->fetchObjectLinked('', '', $object->id, 'digiquali_control');
 
@@ -891,11 +929,8 @@ class ActionsDigiquali
             $out = [];
 
             if ($parameters['key'] == 'nb_questions') {
-                $out[$parameters['key']]  = 0;
-                $object->fetchObjectLinked($object->id, 'digiquali_' . $object->element, null, '', 'OR', 1, 'position', 0);
-                if (isset($object->linkedObjectsIds['digiquali_question']) && is_array($object->linkedObjectsIds['digiquali_question'])) {
-                    $out[$parameters['key']] = count($object->linkedObjectsIds['digiquali_question']);
-                }
+                $allQuestions               = $object->fetchAllQuestions();
+                $out[$parameters['key']]    = is_array($allQuestions) ? count($allQuestions) : 0;
             }
 
             if ($parameters['key'] == 'photo') {
@@ -1083,7 +1118,7 @@ class ActionsDigiquali
 
                 if ($object->fk_question) {
                     $question->fetch($object->fk_question);
-                    $out[$parameters['key']] = $question->type;
+                    $out[$parameters['key']] = $langs->trans($question->type);
                 }
             } elseif ($parameters['key'] == 'answer') {
                 if ($object->answer) {

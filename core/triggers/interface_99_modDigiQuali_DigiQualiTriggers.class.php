@@ -1,5 +1,6 @@
 <?php
-/* Copyright (C) 2022-2025 EVARISK <technique@evarisk.com>
+
+/* Copyright (C) 2022-2026 EVARISK <technique@evarisk.com>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,11 +33,6 @@ require_once DOL_DOCUMENT_ROOT . '/core/triggers/dolibarrtriggers.class.php';
 class InterfaceDigiQualiTriggers extends DolibarrTriggers
 {
     /**
-     * @var DoliDB Database handler
-     */
-    protected $db;
-
-    /**
      * Constructor
      *
      * @param DoliDB $db Database handler
@@ -48,7 +44,7 @@ class InterfaceDigiQualiTriggers extends DolibarrTriggers
         $this->name        = preg_replace('/^Interface/i', '', get_class($this));
         $this->family      = 'demo';
         $this->description = 'DigiQuali triggers.';
-        $this->version     = '22.0.0';
+        $this->version     = '23.0.0';
         $this->picto       = 'digiquali@digiquali';
     }
 
@@ -82,20 +78,46 @@ class InterfaceDigiQualiTriggers extends DolibarrTriggers
 
         $actionComm->code         = 'AC_' . $action;
         $actionComm->type_code    = 'AC_OTH_AUTO';
-        $actionComm->fk_element   = $object->id;
+        $actionComm->elementid    = $object->id;
         $actionComm->elementtype  = $object->element . '@' . $object->module;
         $actionComm->label        = $langs->transnoentities('Object' . $triggerType . 'Trigger', $langs->transnoentities(ucfirst($object->element)), $object->ref);
         $actionComm->datep        = dol_now();
         $actionComm->userownerid  = $user->id;
         $actionComm->percentage   = -1;
 
-        if (getDolGlobalInt('DIGIQUALI_ADVANCED_TRIGGER') && !empty($object->fields)) {
-            $actionComm->note_private = method_exists($object, 'getTriggerDescription') ? $object->getTriggerDescription($object) : '';
+        if (getDolGlobalInt('DIGIQUALI_ADVANCED_TRIGGER') === 1 &&
+            method_exists($object, 'getTriggerDescription') &&
+            !empty($object->fields)) {
+            $actionComm->note_private = $object->getTriggerDescription();
         }
 
-        $objects      = ['QUESTION', 'SHEET', 'CONTROL', 'SURVEY', 'QUESTIONGROUP'];
-        $triggerTypes = ['CREATE', 'MODIFY', 'DELETE', 'VALIDATE', 'LOCK', 'ARCHIVE'];
-        $extraActions = ['CONTROL_UNVALIDATE', 'SURVEY_UNVALIDATE', 'CONTROL_SENTBYMAIL', 'SURVEY_SENTBYMAIL', 'CONTROL_SAVEANSWER', 'SURVEY_SAVEANSWER', 'SHEET_ADDQUESTION', 'SHEET_ADDQUESTIONGROUP', 'QUESTIONGROUP_ADDQUESTION'];
+        $objects = [
+            'QUESTION',
+            'SHEET',
+            'CONTROL',
+            'SURVEY',
+            'QUESTIONGROUP',
+            'ACTIVITY'
+        ];
+
+        $triggerTypes = [
+            'CREATE',
+            'MODIFY',
+            'DELETE',
+            'VALIDATE',
+            'UNVALIDATE',
+            'LOCK',
+            'ARCHIVE',
+            'SENTBYMAIL'
+        ];
+
+        $extraActions = [
+            'CONTROL_SAVEANSWER',
+            'SURVEY_SAVEANSWER',
+            'SHEET_ADDQUESTION',
+            'SHEET_ADDQUESTIONGROUP',
+            'QUESTIONGROUP_ADDQUESTION'
+        ];
 
         $actions = array_merge(
             array_merge(...array_map(fn($s) => array_map(fn($p) => "{$p}_{$s}", $objects), $triggerTypes)),
@@ -110,16 +132,41 @@ class InterfaceDigiQualiTriggers extends DolibarrTriggers
             case 'ANSWER_CREATE' :
             case 'ANSWER_MODIFY' :
             case 'ANSWER_DELETE' :
-                $actionComm->fk_element  = $object->fk_question;
+                $actionComm->elementid   = $object->fk_question;
                 $actionComm->elementtype = 'question@' . $object->module;
                 $actionComm->create($user);
                 break;
 
             case 'CONTROLDOCUMENT_GENERATE' :
             case 'SURVEYDOCUMENT_GENERATE' :
-                $actionComm->fk_element  = $object->parent_id;
+                $actionComm->elementid   = $object->parent_id;
                 $actionComm->elementtype = $object->parent_type . '@' . $object->module;
                 $actionComm->create($user);
+                break;
+
+            case 'CONTROL_CREATE' :
+                if (isModEnabled('projet') && !empty($object->projectid)) {
+                    require_once DOL_DOCUMENT_ROOT . '/projet/class/task.class.php';
+
+                    $taskAddon = !empty($conf->global->PROJECT_TASK_ADDON) ? $conf->global->PROJECT_TASK_ADDON : 'mod_task_simple';
+                    require_once DOL_DOCUMENT_ROOT . '/core/modules/project/task/' . $taskAddon . '.php';
+                    $refMod = new $taskAddon();
+
+                    $now             = dol_now();
+                    $task            = new Task($this->db);
+                    $controlLabel    = !empty($object->label) ? $object->label : $object->ref;
+                    $date            = dol_print_date($now, 'day');
+                    $task->ref       = $refMod->getNextValue(null, $task);
+                    $task->fk_project = $object->projectid;
+                    $task->label     = $controlLabel . ' - ' . $date;
+                    $task->date_start = $now;
+                    $task->progress  = 0;
+
+                    $taskId = $task->create($user);
+                    if ($taskId > 0) {
+                        $object->setValueFrom('fk_master_task', $taskId, '', null, 'text', '', $user, 'CONTROL_MODIFY');
+                    }
+                }
                 break;
         }
 

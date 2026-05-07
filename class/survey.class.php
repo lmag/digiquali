@@ -228,7 +228,7 @@ class Survey extends SaturneObject
     /**
      * Constructor
      *
-     * @param DoliDb $db Database handler
+     * @param DoliDB $db Database handler
      */
     public function __construct(DoliDB $db)
     {
@@ -241,15 +241,13 @@ class Survey extends SaturneObject
     /**
      * Create object into database
      *
-     * @param  User      $user      User that creates
-     * @param  bool      $notrigger false = launch triggers after, true = disable triggers
-     * @return int                  0 < if KO, ID of created object if OK
-     * @throws Exception
+     * @param  User        $user      User that creates
+     * @param  int<0,1>    $noTrigger 0 = launch triggers after, 1 = disable triggers
+     * @return int<-1,max>            Return integer 0 < if KO, ID of created object if OK
      */
-    public function create(User $user, bool $notrigger = false): int
+    public function create(User $user, int $noTrigger = 0): int
     {
-        global $conf;
-        $result = parent::create($user, $notrigger);
+        $result = parent::create($user, $noTrigger);
         if ($result > 0) {
             // Load Digiquali libraries
             require_once __DIR__ . '/sheet.class.php';
@@ -294,16 +292,15 @@ class Survey extends SaturneObject
     /**
      * Set draft status
      *
-     * @param  User $user      Object user that modify
-     * @param  int  $notrigger 1 = Does not execute triggers, 0 = Execute triggers
-     * @return int             0 < if KO, > 0 if OK
-     * @throws Exception
+     * @param  User      $user      Object user that modify
+     * @param  int<0,1>  $noTrigger 0 = launch triggers after, 1 = disable triggers
+     * @return int<-1,1>            Return integer 0 < if KO, > 0 if OK
      */
-    public function setDraft(User $user, int $notrigger = 0): int
+    public function setDraft(User $user, int $noTrigger = 0): int
     {
         $signatory = new SaturneSignature($this->db, $this->module, $this->element);
         $signatory->deleteSignatoriesSignatures($this->id, $this->element);
-        return parent::setDraft($user, $notrigger);
+        return parent::setDraft($user, $noTrigger);
     }
 
     /**
@@ -507,17 +504,6 @@ class Survey extends SaturneObject
     }
 
     /**
-     * Initialise object with example values
-     * ID must be 0 if object instance is a specimen
-     *
-     * @return void
-     */
-    public function initAsSpecimen()
-    {
-        $this->initAsSpecimenCommon();
-    }
-
-    /**
      * Return HTML string to put an input field into a page
      * Code very similar with showInputField of extra fields
      *
@@ -646,30 +632,31 @@ class Survey extends SaturneObject
     }
 
     /**
-     * Write information of trigger description
+     * Write generic information of trigger description
      *
-     * @param  SaturneObject $object Object calling the trigger
-     * @return string                Description to display in actioncomm->note_private
+     * @return string Description to display in actioncomm->note_private
      */
-    public function getTriggerDescription(SaturneObject $object): string
+    public function getTriggerDescription(): string
     {
         global $langs;
 
         // Load DigiQuali libraries
         require_once __DIR__ . '/../class/sheet.class.php';
 
-        $sheet = new Sheet($this->db);
-        $sheet->fetch($object->fk_sheet);
-
-        $ret  = parent::getTriggerDescription($object);
-        $ret .= $langs->transnoentities('Sheet') . ' : ' . $sheet->ref . ' - ' . $sheet->label . '</br>';
-        if ($object->projectid > 0) {
+        $ret = parent::getTriggerDescription();
+        if ($this->fk_sheet > 0) {
+            $sheet = new Sheet($this->db);
+            if ($sheet->fetch($this->fk_sheet) > 0) {
+                $ret .= $langs->transnoentities('Sheet') . ' : ' . $sheet->ref . ' - ' . $sheet->label . '</br>';
+            }
+        }
+        if ($this->projectid > 0) {
             require_once DOL_DOCUMENT_ROOT . '/projet/class/project.class.php';
             $project = new Project($this->db);
-            $project->fetch($object->projectid);
+            $project->fetch($this->projectid);
             $ret .= $langs->transnoentities('Project') . ' : ' . $project->ref . ' ' . $project->title . '</br>';
         }
-        $ret .= (!empty($object->photo) ? $langs->transnoentities('Photo') . ' : ' . $object->photo . '</br>' : '');
+        $ret .= (!empty($this->photo) ? $langs->transnoentities('Photo') . ' : ' . $this->photo . '</br>' : '');
 
         return $ret;
     }
@@ -702,7 +689,8 @@ class Survey extends SaturneObject
                         if ($question->checkAnswerIsCorrect($questionAnswer->answer) >= 0) {
                             $surveyCorrectAnswersTotalPoints += $question->points;
                         } elseif ($question->type == $question::TYPE_PERCENTAGE) {
-                            $surveyCorrectAnswersTotalPoints += round($questionAnswer->answer / 100, 2);
+                            $answer = $questionAnswer->answer !== '' ? $questionAnswer->answer : 0;
+                            $surveyCorrectAnswersTotalPoints += round($answer / 100, 2);
                         }
                         if ($questionAnswer->answer !== '') {
                             $numberOfAnsweredQuestions++;
@@ -804,7 +792,7 @@ class Survey extends SaturneObject
 
         $object = $this;
 
-        include DOL_DOCUMENT_ROOT . '/custom/digiquali/core/tpl/digiquali_answers.tpl.php';
+        require __DIR__ . '/../core/tpl/digiquali_answers.tpl.php';
     }
 
     /**
@@ -1008,7 +996,7 @@ class SurveyLine extends SaturneObject
     /**
      * Constructor
      *
-     * @param DoliDb $db Database handler
+     * @param DoliDB $db Database handler
      */
     public function __construct(DoliDB $db)
     {

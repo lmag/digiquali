@@ -191,7 +191,7 @@ class QuestionGroup extends SaturneObject
     /**
      * Constructor
      *
-     * @param DoliDb $db Database handler
+     * @param DoliDB $db Database handler
      */
     public function __construct(DoliDB $db)
     {
@@ -201,23 +201,23 @@ class QuestionGroup extends SaturneObject
     /**
      * Create object into database
      *
-     * @param  User $user      User that creates
-     * @param  bool $notrigger false = launch triggers after, true = disable triggers
-     * @return int             0 < if KO, ID of created object if OK
+     * @param  User        $user      User that creates
+     * @param  int<0,1>    $noTrigger 0 = launch triggers after, 1 = disable triggers
+     * @return int<-1,max>            Return integer 0 < if KO, ID of created object if OK
      */
-    public function create(User $user, bool $notrigger = false): int
+    public function create(User $user, int $noTrigger = 0): int
     {
         $this->ref      = $this->getNextNumRef();
 		$this->status   = $this->status ?: 1;
 
-        $result = parent::create($user, $notrigger);
+        $result = parent::create($user, $noTrigger);
 
         if ($result > 0) {
             if (GETPOST('parent_group_id') > 0) {
                 $this->add_object_linked('digiquali_questiongroup', GETPOST('parent_group_id'));
             } else if (GETPOST('sheet_id') > 0) {
                 $sheet = new Sheet($this->db);
-                $sheet->fetch(GETPOST('sheet_id'));
+                $sheet->fetch(GETPOSTINT('sheet_id'));
 
                 $this->add_object_linked('digiquali_sheet', GETPOST('sheet_id'));
 
@@ -420,7 +420,7 @@ class QuestionGroup extends SaturneObject
 	 *
 	 * @return void
 	 */
-	public function initAsSpecimen()
+	public function initAsSpecimen(): void
 	{
 		$this->initAsSpecimenCommon();
 	}
@@ -712,7 +712,7 @@ class QuestionGroup extends SaturneObject
         $groupId = $this->id;
         $object = $sheetObject;
         $tdOffsetStyle = 'style="padding-left: calc(2rem + 2rem * ' . $subLevel . ' + 12px);"';
-        include DOL_DOCUMENT_ROOT . '/custom/digiquali/view/sheet/sheet_addforms.tpl.php';
+        require __DIR__ . '/../view/sheet/sheet_addforms.tpl.php';
 
         $subLevel++;
 

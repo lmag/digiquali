@@ -131,7 +131,7 @@ if (!empty($questions) && !empty($controls)) {
     $questionAnswerStats = [];
 
     foreach ($questions as $question) {
-        if (in_array($question->type, ['UniqueChoice', 'OkKo', 'OkKoToFixNonApplicable', 'MultipleChoices'])) {
+        if (in_array($question->type, ['UniqueChoice', 'OkKo', 'OkKoToFixNonApplicable', 'MarqueNF', 'MultipleChoices'])) {
             $possibleAnswers = $answer->fetchAll('ASC', 'position', 0, 0,  ['customsql' => 't.status > ' . Answer::STATUS_DELETED . ' AND t.fk_question = ' . $question->id]);
             if (!empty($possibleAnswers)) {
                 foreach ($possibleAnswers as $possibleAnswer) {

@@ -1,5 +1,6 @@
 <?php
-/* Copyright (C) 2025 EVARISK <technique@evarisk.com>
+
+/* Copyright (C) 2025-2026 EVARISK <technique@evarisk.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,10 +21,6 @@
  * \ingroup digiquali
  * \brief   Page to view digiquali element
  */
-
-if (!defined('NOSCANPOSTFORINJECTION')) {
-    define('NOSCANPOSTFORINJECTION', '1'); // Do not check anti CSRF attack test
-}
 
 // Load DigiQuali environment
 if (file_exists('../digiquali.main.inc.php')) {
@@ -130,32 +127,16 @@ if (empty($reshook)) {
  * View
  */
 
-if ( $object->element_type == 'groupment' ) {
-    $title         = $langs->trans("Groupment");
-    $titleCreate   = $langs->trans("NewGroupment");
-    $titleEdit     = $langs->trans("ModifyGroupment");
-} elseif ( $object->element_type == 'workunit' ) {
-    $title         = $langs->trans("WorkUnit");
-    $titleCreate   = $langs->trans("NewWorkUnit");
-    $titleEdit     = $langs->trans("ModifyWorkUnit");
-} else {
-    $element_type = GETPOST('element_type', 'alpha');
-    if ( $element_type == 'groupment' ) {
-        $title = $langs->trans("NewGroupment");
-    } else {
-        $title = $langs->trans("NewWorkUnit");
-    }
-}
-
+$title   = $langs->trans(dol_ucfirst($object->element));
 $helpUrl = 'FR:Module_DigiQuali';
 
 saturne_header(1,'', $title, $helpUrl, '', 0, 0, [], [], '', 'mod-' . $object->module . '-' . $object->element . ' page-list bodyforlist sidebar-secondary-opened');
 
-if ( ! $object->id) {
-	$object->ref    = $conf->global->MAIN_INFO_SOCIETE_NOM;
-	$object->label  = $langs->trans('Society');
-	$object->entity = $conf->entity;
-	unset($object->fields['element_type']);
+if (!$object->id) {
+    $object->ref    = $conf->global->MAIN_INFO_SOCIETE_NOM;
+    $object->label  = $langs->trans('Society');
+    $object->entity = $conf->entity;
+    unset($object->fields['element_type']);
 }
 
 // Part to show record

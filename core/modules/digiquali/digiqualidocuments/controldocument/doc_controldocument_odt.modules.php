@@ -159,7 +159,7 @@ class doc_controldocument_odt extends SaturneDocumentModel
                             }
 
                             $question->fetch($questionId);
-                            $controldets = $controldet->fetchFromParentWithQuestion($object->id, $questionId, $questionGroupId);
+                            $controldets = $controldet->fetchFromParentWithQuestion($object->id, $questionId);
 
                             $tmpArray['ref']         = $question->ref;
                             $tmpArray['label']       = $question->label;
@@ -193,6 +193,7 @@ class doc_controldocument_odt extends SaturneDocumentModel
                                 switch ($question->type) {
                                     case 'OkKo' :
                                     case 'OkKoToFixNonApplicable' :
+                                    case 'MarqueNF' :
                                     case 'UniqueChoice' :
                                         $tmpArray['answer'] = $answersArray[$answerResult];
                                         break;
