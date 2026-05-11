@@ -115,7 +115,7 @@ window.digiquali.activity.updateContentEditable = function() {
       value:     contentText
     }),
     success: function ( resp ) {
-      $.jnotify($(resp).find('#success_message').val());
+      $.jnotify($(resp).find('#success_message').val(), 'success', true, {autoHide: true, TimeShown: 2000, ShowTimeEffect: 200, HideTimeEffect: 200, HorizontalPosition: 'right', VerticalPosition: 'top', ShowOverlay: false});
     },
   });
 };
