@@ -43,6 +43,7 @@ require_once DOL_DOCUMENT_ROOT . '/core/lib/files.lib.php';
 require_once DOL_DOCUMENT_ROOT . '/core/lib/functions2.lib.php';
 
 // Load Saturne libraries.
+require_once __DIR__ . '/../../../saturne/lib/medias.lib.php';
 require_once __DIR__ . '/../../../saturne/class/saturnesignature.class.php';
 require_once __DIR__ . '/../../../saturne/class/task/saturnetask.class.php';
 
@@ -293,6 +294,50 @@ if (empty($resHook)) {
                 // Set reopened KO
                 if (!empty($object->errors)) setEventMessages(null, $object->errors, 'errors');
                 else setEventMessages($object->error, null, 'errors');
+            }
+        }
+    }
+
+    // Action to upload a photo via the media block AJAX upload
+    if ($action == 'uploadPhoto' && !empty($conf->global->MAIN_UPLOAD_DOC)) {
+        $uploadModuleName = GETPOST('module_name', 'alpha');
+        $uploadSubDir     = GETPOST('sub_dir', 'alpha');
+
+        if (!empty($uploadModuleName)) {
+            $uploadModuleNameLowerCase = dol_strtolower($uploadModuleName);
+            $uploadDir                = !empty($conf->$uploadModuleNameLowerCase->dir_output)
+                ? $conf->$uploadModuleNameLowerCase->dir_output
+                : $conf->ecm->dir_output . '/' . $uploadModuleNameLowerCase;
+            if (!empty($uploadSubDir)) {
+                $uploadDir .= '/' . $uploadSubDir;
+            }
+
+            if (!dol_is_dir($uploadDir)) {
+                dol_mkdir($uploadDir);
+            }
+
+            $uploadedFiles = isset($_FILES['userfile']) ? $_FILES['userfile'] : [];
+            $invalidFile   = false;
+            if (!empty($uploadedFiles['tmp_name'])) {
+                $tmpNames = is_array($uploadedFiles['tmp_name']) ? $uploadedFiles['tmp_name'] : [$uploadedFiles['tmp_name']];
+                foreach ($tmpNames as $tmpName) {
+                    if (empty($tmpName)) {
+                        continue;
+                    }
+                    $finfo    = new finfo(FILEINFO_MIME_TYPE);
+                    $mimeType = $finfo->file($tmpName);
+                    if (strpos($mimeType, 'image/') !== 0) {
+                        $invalidFile = true;
+                        break;
+                    }
+                }
+            }
+
+            if ($invalidFile) {
+                setEventMessages($langs->trans('ErrorFileNotAnImage'), null, 'errors');
+            } else {
+                $allowOverwrite = GETPOSTINT('overwrite') ? 1 : 0;
+                dol_add_file_process($uploadDir, $allowOverwrite, 1, 'userfile', '', null, '', 1);
             }
         }
     }
@@ -759,25 +804,12 @@ if ($object->id > 0 && (empty($action) || ($action != 'create'))) {
     }
 
     print '<tr class="linked-medias photo question-table"><td class=""><label for="photos">' . $langs->trans("Photo") . '</label></td><td class="linked-medias-list">';
-    $pathPhotos = $conf->digiquali->multidir_output[$conf->entity] . '/control/' . $object->ref . '/photos/';
-    $fileArray  = dol_dir_list($pathPhotos, 'files');
-?>
-    <span class="add-medias" <?php echo ($object->status < Control::STATUS_LOCKED) ? '' : 'style="display:none"' ?>>
-        <input hidden multiple class="fast-upload<?php echo getDolGlobalInt('SATURNE_USE_FAST_UPLOAD_IMPROVEMENT') ? '-improvement' : ''; ?>" id="fast-upload-photo-default" type="file" name="userfile[]" capture="environment" accept="image/*">
-        <input type="hidden" class="fast-upload-options" data-from-subtype="photo" data-from-subdir="photos" />
-        <label for="fast-upload-photo-default">
-            <div class="wpeo-button <?php echo ($onPhone ? 'button-square-40' : 'button-square-50'); ?>">
-                <i class="fas fa-camera"></i><i class="fas fa-plus-circle button-add"></i>
-            </div>
-        </label>
-        <input type="hidden" class="favorite-photo" id="photo" name="photo" value="<?php echo $object->photo ?>" />
-        <div class="wpeo-button <?php echo ($onPhone ? 'button-square-40' : 'button-square-50'); ?> 'open-media-gallery add-media modal-open" value="0">
-            <input type="hidden" class="modal-options" data-modal-to-open="media_gallery" data-from-id="<?php echo $object->id ?>" data-from-type="control" data-from-subtype="photo" data-from-subdir="photos" />
-            <i class="fas fa-folder-open"></i><i class="fas fa-plus-circle button-add"></i>
-        </div>
-    </span>
-    <?php
-    print saturne_show_medias_linked('digiquali', $pathPhotos, 'small', 0, 0, 0, 0, $onPhone ? 40 : 50, $onPhone ? 40 : 50, 0, 0, 0, 'control/' . $object->ref . '/photos/', $object, 'photo', $object->status < Control::STATUS_LOCKED, $permissiontodelete && $object->status < Control::STATUS_LOCKED);
+    print '<input type="hidden" class="favorite-photo" id="photo" name="photo" value="' . dol_escape_htmltag($object->photo) . '"/>';
+    print saturne_render_media_block('digiquali', 'control/' . $object->id . '/photos', '', '', [
+        'show_photo'  => true,
+        'show_audio'  => false,
+        'show_upload' => $object->status < Control::STATUS_LOCKED,
+    ]);
     print '</td></tr>';
 
     $averagePercentageQuestions = 0;
@@ -1228,6 +1260,9 @@ if ($object->id > 0 && (empty($action) || ($action != 'create'))) {
         print dol_get_fiche_end();
     }
 }
+
+// Photo editor modal (required by saturne_render_media_block)
+require_once __DIR__ . '/../../../saturne/core/tpl/medias/photo_editor_modal.tpl.php';
 
 // End of page
 llxFooter();

@@ -222,10 +222,10 @@ window.digiquali.object.saveAnswer = function(questionId, answer, comment) {
           $commentArea.removeClass('show-comment-unsaved-message');
           $commentArea.next('p').remove();
       }
-      $.jnotify('Sauvegarde réussie', 'success', true, {autoHide: true, clickOverlay: false, minWidth: 250, TimeShown: 3000, ShowTimeEffect: 200, HideTimeEffect: 200, LongTrip: 20, HorizontalPosition: 'right', VerticalPosition: 'top', ShowOverlay: false, ColorOverlay: '#000', OpacityOverlay: 0.3});
+      $.jnotify('Sauvegarde réussie', 'success', false, {autoHide: true, clickOverlay: false, minWidth: 250, TimeShown: 1500, ShowTimeEffect: 150, HideTimeEffect: 150, LongTrip: 20, HorizontalPosition: 'right', VerticalPosition: 'top', ShowOverlay: false, ColorOverlay: '#000', OpacityOverlay: 0.3});
     },
     error: function() {
-      $.jnotify('Erreur de sauvegarde', 'error', true, {autoHide: true, clickOverlay: false, minWidth: 250, TimeShown: 3000, ShowTimeEffect: 200, HideTimeEffect: 200, LongTrip: 20, HorizontalPosition: 'right', VerticalPosition: 'top', ShowOverlay: false, ColorOverlay: '#000', OpacityOverlay: 0.3});
+      $.jnotify('Erreur de sauvegarde', 'error', false, {autoHide: true, clickOverlay: false, minWidth: 250, TimeShown: 1500, ShowTimeEffect: 150, HideTimeEffect: 150, LongTrip: 20, HorizontalPosition: 'right', VerticalPosition: 'top', ShowOverlay: false, ColorOverlay: '#000', OpacityOverlay: 0.3});
     }
   });
 };
