@@ -795,7 +795,7 @@ class QuestionGroup extends SaturneObject
 	 *
 	 * @return bool
 	 */
-	public function isCorrect(SaturneObject $survey): bool
+	public function isCorrect(Survey $survey): bool
 	{
 
         [$numberOfAnsweredQuestions, $numberOfQuestions, $correctPoints, $totalPoints, $atLeastOneIncorrectSubGroup] = $this->calculatePoints($survey);
@@ -830,11 +830,11 @@ class QuestionGroup extends SaturneObject
      * Return a array of formatted string to print group score (in points)
      * and success rate
      *
-     * @param SaturneObject $survey the object on which check answers are correct or not
+     * @param Survey $survey the survey on which check answers are correct or not
      *
      * @return array
 	 */
-    public function getFormattedSuccessPointsAndRates(SaturneObject $survey): array
+    public function getFormattedSuccessPointsAndRates(Survey $survey): array
 	{
         global $langs;
 
