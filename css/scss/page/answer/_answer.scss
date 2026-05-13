@@ -331,18 +331,16 @@
         }
       }
 
-      .linked-medias {
-        gap: 1px;
-        width: 101px;
-        margin-bottom: 0;
+      .question__footer-linked-medias {
+        flex-shrink: 0;
 
-        label .wpeo-button {
-          border-top-right-radius: 0;
-          border-bottom-right-radius: 0;
+        .linked-medias {
+          gap: 0;
+          margin-bottom: 0;
         }
-        .open-media-gallery {
-          border-top-left-radius: 0;
-          border-bottom-left-radius: 0;
+
+        .saturne-media-upload-block {
+          gap: 4px;
         }
       }
       .add-action {

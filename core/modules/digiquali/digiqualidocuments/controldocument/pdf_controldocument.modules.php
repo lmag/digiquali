@@ -411,7 +411,7 @@ class pdf_controldocument extends SaturneDocumentModel
         // Photo block
         if (!empty($control->photo)) {
             $multdir = getMultidirOutput($control, $control->module);
-            $path    = $multdir . '/control/' . $control->ref . '/photos';
+            $path    = $multdir . '/control/' . $control->id . '/photos';
             $thumb   = saturne_get_thumb_name($control->photo, 'medium', $path);
             $image   = $path . '/thumbs/' . $thumb;
             if (file_exists($image)) {
