@@ -50,44 +50,49 @@ if (!isset($user->conf->DIGIQUALI_SHOW_ONLY_QUESTIONS_WITH_NO_ANSWER) || empty($
         <div class="question__container">
             <div class="question__header">
                 <div class="question__header-content">
-                    <div class="question-title"><?php echo $question->getNomUrl(1, '', 0, '', -1, 1); ?></div>
+                    <div class="question-title">
+                        <span class="question-ref"><?php echo $question->getNomUrl(1, '', 0, '', -1, 1); ?></span>
+                        <span class="question-type"><?php echo $langs->trans($question->type); ?></span>
+                    </div>
                     <div class="question-description"><?php echo $question->description; ?></div>
                     <div class="question-points"><?php echo ($showCorrection ? $question->formatSingleQuestionScore($questionWithCorrectAnswer, $objectLine->answer) : '') ?></div>
                 </div>
                 <div class="question__header-answer">
                     <?php print show_answer_from_question($question, $object, $questionAnswer, $questionGroupId, $showCorrection); ?>
+                    <?php if ($question->authorize_answer_photo > 0 || !empty($permissionToAddTask)) : ?>
+                        <div class="question__answer-sep"></div>
+                        <div class="question__answer-actions">
+                            <?php if ($question->authorize_answer_photo > 0) : ?>
+                                <?php echo saturne_render_media_block('digiquali', $object->element . '/' . $object->ref . '/answer_photo/' . $question->ref, 'answer_photo_' . $question->id, '', [
+                                    'show_photo'  => true,
+                                    'show_audio'  => false,
+                                    'show_upload' => $object->status == 0,
+                                ]); ?>
+                            <?php endif; ?>
+                            <?php if (!empty($object->project) && !empty($permissionToAddTask)) : ?>
+                                <div class="wpeo-button button-square-50 add-action modal-open">
+                                    <input type="hidden" class="modal-options" data-modal-to-open="answer_task_add" data-from-id="<?php echo $objectLine->id ?>" data-from-type="<?php echo $objectLine->element ?>"/>
+                                    <i class="fas fa-list"></i><i class="fas fa-plus-circle button-add"></i>
+                                </div>
+                            <?php endif; ?>
+                            <?php if (empty($object->project) && !empty($permissionToAddTask)) :
+                                print '<div class="wpeo-button button-square-50 wpeo-tooltip-event" aria-label="' . $langs->transnoentities('AddProject') . '" id="task-disable" style="background-color: #ececec; border-color: #ececec; color: rgba(0, 0, 0, 0.4) !important;">';
+                                print '    <input type="hidden" class="modal-options" data-modal-to-open="answer_task_add" data-from-id="' . $objectLine->id . '" data-from-type="' . $objectLine->element . '"/>';
+                                print '    <i class="fas fa-list"></i><i class="fas fa-plus-circle button-add"></i>';
+                                print '</div>';
+                            endif; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
             </div>
-            <div class="question__footer">
-                <?php if ($question->enter_comment > 0) : ?>
+            <?php if ($question->enter_comment > 0) : ?>
+                <div class="question__footer">
                     <label class="question__footer-comment">
                         <i class="far fa-comment-dots question-comment-icon"></i>
                         <textarea name="comment<?php echo $question->id ?>" class="question-textarea question-comment" placeholder="<?php echo $langs->transnoentities('WriteComment'); ?>" <?php echo ($object->status == $object::STATUS_VALIDATED ? 'disabled' : ''); ?>><?php echo $comment; ?></textarea>
                     </label>
-                <?php endif; ?>
-                <?php if ($question->authorize_answer_photo > 0) : ?>
-                    <div class="question__footer-linked-medias">
-                        <?php echo saturne_render_media_block('digiquali', $object->element . '/' . $object->ref . '/answer_photo/' . $question->ref, 'answer_photo_' . $question->id, '', [
-                            'show_photo'  => true,
-                            'show_audio'  => false,
-                            'show_upload' => $object->status == 0,
-                        ]); ?>
-                    </div>
-                <?php endif; ?>
-                <?php if (!empty($object->project) && !empty($permissionToAddTask)) : ?>
-                    <div class="wpeo-button button-square-50 add-action modal-open">
-                        <input type="hidden" class="modal-options" data-modal-to-open="answer_task_add" data-from-id="<?php echo $objectLine->id ?>" data-from-type="<?php echo $objectLine->element ?>"/>
-                        <i class="fas fa-list"></i><i class="fas fa-plus-circle button-add"></i>
-                    </div>
-                <?php endif;
-                if (empty($object->project) && !empty($permissionToAddTask)) {
-                    print '<div class="wpeo-button button-square-50 wpeo-tooltip-event" aria-label="' . $langs->transnoentities('AddProject') . '" id="task-disable" style="background-color: #ececec; border-color: #ececec; color: rgba(0, 0, 0, 0.4) !important;">';
-                    print '    <input type="hidden" class="modal-options" data-modal-to-open="answer_task_add" data-from-id="' . $objectLine->id . '" data-from-type="' . $objectLine->element . '"/>';
-                    print '    <i class="fas fa-list"></i><i class="fas fa-plus-circle button-add"></i>';
-                    print '</div>';
-                }
-                ?>
-            </div>
+                </div>
+            <?php endif; ?>
             <?php
             if (!empty($permissionToReadTask)) :
                 require __DIR__ . '/answers/answers_task_view.tpl.php';
