@@ -221,7 +221,8 @@ if ((empty($action) || ($action != 'edit' && $action != 'create'))) {
             ]);
         }
 
-        $riskAssessment->displayRiskAssessmentList($activityInfos, 1);
+        // Display the current evaluation line(s) of the activity; each line keeps its own re-evaluation history.
+        $riskAssessment->displayRiskAssessmentList($activityInfos);
 
         print '</div>';
         print '</div>';
