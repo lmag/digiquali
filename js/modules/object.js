@@ -66,6 +66,8 @@ window.digiquali.object.event = function() {
   $(document).on( 'input', '.input-answer:not(.disable)', window.digiquali.object.selectAnswer);
   $(document).on( 'keyup', '.question-comment', window.digiquali.object.showCommentUnsaved);
   $(document).on( 'blur', '.question-comment', window.digiquali.object.saveCommentAuto);
+  $(document).on( 'blur', 'textarea.question-answer', window.digiquali.object.saveTextOrNumericAnswer);
+  $(document).on( 'change', 'input[type="number"].question-answer', window.digiquali.object.saveTextOrNumericAnswer);
   $(document).on( 'change', '.question-answer', window.digiquali.object.changeStatusQuestion);
   $(document).on( 'click', '.answer:not(.disable)', window.digiquali.object.changeStatusQuestion);
   $(document).on('input', '.question-answer[type="range"]', function () {
@@ -136,7 +138,7 @@ window.digiquali.object.selectAnswer = function() {
     $(this).closest('.answer-cell').find('.question-answer').val(answer);
   }
 
-  if (!publicInterface && !$(this).hasClass('multiple-answers')) {
+  if (!publicInterface) {
     window.digiquali.object.saveAnswer(questionId, answer, comment);
   } else {
     window.digiquali.object.updateButtonsStatus();
@@ -231,6 +233,28 @@ window.digiquali.object.saveAnswer = function(questionId, answer, comment) {
 };
 
 /**
+ * Auto-save text or numeric answer on blur/change
+ *
+ * @since   1.12.0
+ * @version 1.12.0
+ *
+ * @return {void}
+ */
+window.digiquali.object.saveTextOrNumericAnswer = function() {
+  let inputName = $(this).attr('name');
+  if (inputName && inputName.indexOf('answer') === 0) {
+    let questionId      = inputName.replace('answer', '');
+    let answer          = $(this).val();
+    let comment         = $(this).closest('.table-id-' + questionId).find('textarea[name="comment' + questionId + '"]').val() || '';
+    let publicInterface = $(this).closest('.table-id-' + questionId).attr('data-publicInterface');
+
+    if (!publicInterface) {
+      window.digiquali.object.saveAnswer(questionId, answer, comment);
+    }
+  }
+};
+
+/**
  * Range purcent
  *
  * @since   1.11.0
@@ -248,7 +272,7 @@ window.digiquali.object.rangePercent = function(fromInit) {
   const sliderPos   = slider.position().left;
   const sliderTop   = slider.position().top;
   var thumbWidth    = mobile ? 36 : 70;
-  let questionId   = slider.closest('.table-id').attr('data-questionId');
+  let questionId      = (slider.attr('name') || '').replace('answer', '');
   let publicInterface = $(this).closest('.table-id-' + questionId).attr('data-publicInterface');
   let autoSave        = $(this).closest('.table-id-' + questionId).attr('data-autoSave');
 
@@ -276,8 +300,9 @@ window.digiquali.object.rangePercent = function(fromInit) {
   slider.parent().append(rangePercent);
 
   if (!fromInit) {
-    if (!publicInterface && !$(this).hasClass('multiple-answers')) {
-      window.digiquali.object.saveAnswer(questionId, rangePercent, comment);
+    if (!publicInterface) {
+      let comment = $(this).closest('.table-id-' + questionId).find('textarea[name="comment' + questionId + '"]').val() || '';
+      window.digiquali.object.saveAnswer(questionId, rangePercentValue, comment);
     } else {
       window.digiquali.object.updateButtonsStatus();
     }

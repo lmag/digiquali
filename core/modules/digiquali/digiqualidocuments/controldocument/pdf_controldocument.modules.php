@@ -188,12 +188,13 @@ class pdf_controldocument extends SaturneDocumentModel
         $prevSize   = $pdf->getFontSizePt();
 
         if ($useFa) {
-            $fontSize = max(7, min(11, (int)($r * 1.7)));
+            // Material Design recommends min 16sp for small icons → ≥8pt in PDF, scale ≈ 75% of circle diameter
+            $fontSize = max(8, min(12, (int)($r * 2.0)));
             $pdf->SetFont($this->faFontName, '', $fontSize);
         } else {
-            $baseSize = max(5, min(8, (int)($r * 1.3)));
+            $baseSize = max(6, min(9, (int)($r * 1.5)));
             $len      = mb_strlen($abbrev);
-            $fontSize = $len >= 4 ? max(4, $baseSize - 2) : ($len === 3 ? max(4, $baseSize - 1) : $baseSize);
+            $fontSize = $len >= 4 ? max(5, $baseSize - 2) : ($len === 3 ? max(5, $baseSize - 1) : $baseSize);
             $pdf->SetFont('', 'B', $fontSize);
         }
         $char  = $useFa ? $faChar : $abbrev;
@@ -403,33 +404,64 @@ class pdf_controldocument extends SaturneDocumentModel
         $infoX   = $x + $photoW + 3;
         $infoW   = $usableW - $photoW - $noteW - 6;
 
-        $auditorsText = $this->buildAuditorsText($signatures, $outputLangs);
+        $notePublicText = !empty($control->note_public) ? strip_tags($control->note_public) : '';
+        $auditorsText   = $this->buildAuditorsText($signatures, $outputLangs);
         $pdf->SetFont('', '', 8);
-        $auditorsH    = max($rowH, ceil($pdf->getStringHeight($infoW - $labelW - 2, $auditorsText)) + 4);
-        $tableH       = $rowH * 4 + $auditorsH;
+        $auditorsH    = max($rowH, (int)ceil($pdf->getStringHeight($infoW - $labelW - 2, $auditorsText)) + 4);
+        $notePublicH  = !empty($notePublicText) ? max($rowH, (int)ceil($pdf->getStringHeight($infoW - $labelW - 2, $notePublicText)) + 4) : 0;
+        $tableH       = $rowH * 4 + $auditorsH + $notePublicH;
 
-        // Photo block
-        if (!empty($control->photo)) {
-            $multdir = getMultidirOutput($control, $control->module);
-            $path    = $multdir . '/control/' . $control->id . '/photos';
-            $thumb   = saturne_get_thumb_name($control->photo, 'medium', $path);
-            $image   = $path . '/thumbs/' . $thumb;
-            if (file_exists($image)) {
-                $this->fillRect($pdf, $x, $y, $photoW, $tableH, [210, 215, 220]);
-                $info = @getimagesize($image);
-                if ($info && $info[0] > 0 && $info[1] > 0) {
-                    $scale = min($photoW / $info[0], $tableH / $info[1]);
-                    $dW    = $info[0] * $scale;
-                    $dH    = $info[1] * $scale;
-                    $imgX  = $x + ($photoW - $dW) / 2;
-                    $imgY  = $y + ($tableH - $dH) / 2;
-                } else {
-                    $dW = $photoW; $dH = $tableH; $imgX = $x; $imgY = $y;
+        // Photo block — try $control->photo first, then scan directory (ref and id variants)
+        $controlPhoto = null;
+        $multdir      = getMultidirOutput($control, $control->module);
+        $photoDirs    = [
+            $multdir . '/control/' . $control->ref . '/photos',
+            $multdir . '/control/' . $control->id  . '/photos',
+        ];
+
+        foreach ($photoDirs as $photoDir) {
+            if (!empty($control->photo)) {
+                $thumb     = saturne_get_thumb_name($control->photo, 'medium', $photoDir);
+                $candidate = $photoDir . '/thumbs/' . $thumb;
+                if (file_exists($candidate)) {
+                    $controlPhoto = $candidate;
+                    break;
                 }
-                $pdf->Image($image, $imgX, $imgY, $dW, $dH);
-            } else {
-                $this->fillRect($pdf, $x, $y, $photoW, $tableH, [210, 215, 220]);
             }
+            // Fallback: pick the first readable image in the directory
+            if (is_dir($photoDir)) {
+                $files = array_values(array_diff(scandir($photoDir), ['.', '..', 'thumbs']));
+                foreach ($files as $photoFile) {
+                    if (!in_array(strtolower(pathinfo($photoFile, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'gif', 'webp'])) {
+                        continue;
+                    }
+                    $fullPath = realpath($photoDir . '/' . $photoFile);
+                    if ($fullPath && is_readable($fullPath)) {
+                        $thumb     = saturne_get_thumb_name($photoFile, 'medium', $photoDir);
+                        $candidate = $photoDir . '/thumbs/' . $thumb;
+                        $controlPhoto = file_exists($candidate) ? $candidate : $fullPath;
+                        break;
+                    }
+                }
+            }
+            if (!empty($controlPhoto)) {
+                break;
+            }
+        }
+
+        if (!empty($controlPhoto)) {
+            $this->fillRect($pdf, $x, $y, $photoW, $tableH, [210, 215, 220]);
+            $info = @getimagesize($controlPhoto);
+            if ($info && $info[0] > 0 && $info[1] > 0) {
+                $scale = min($photoW / $info[0], $tableH / $info[1]);
+                $dW    = $info[0] * $scale;
+                $dH    = $info[1] * $scale;
+                $imgX  = $x + ($photoW - $dW) / 2;
+                $imgY  = $y + ($tableH - $dH) / 2;
+            } else {
+                $dW = $photoW; $dH = $tableH; $imgX = $x; $imgY = $y;
+            }
+            $pdf->Image($controlPhoto, $imgX, $imgY, $dW, $dH);
         } else {
             $this->fillRect($pdf, $x, $y, $photoW, $tableH, [210, 215, 220]);
         }
@@ -452,13 +484,6 @@ class pdf_controldocument extends SaturneDocumentModel
         $pdf->SetXY($noteX, $y + 8);
         $pdf->Cell($noteW, 9, $score, 0, 0, 'C');
 
-        if (!empty($control->note_public)) {
-            $pdf->SetTextColor(...$this->colorGray);
-            $pdf->SetFont('', '', 6);
-            $pdf->SetXY($noteX, $y + 19);
-            $pdf->MultiCell($noteW, 3.5, 'Note publique : ' . strip_tags($control->note_public), 0, 'C');
-        }
-
         $cellData = [
             [
                 'label' => 'Date du contrôle',
@@ -477,12 +502,20 @@ class pdf_controldocument extends SaturneDocumentModel
                 'label' => 'Avancement',
                 'value' => $answeredQ . ' / ' . $totalQ . ' questions',
             ],
-            [
-                'label'     => 'Auditeurs',
-                'value'     => $auditorsText,
-                'height'    => $auditorsH,
+        ];
+        if (!empty($notePublicText)) {
+            $cellData[] = [
+                'label'     => 'Note publique',
+                'value'     => $notePublicText,
+                'height'    => $notePublicH,
                 'multiline' => true,
-            ],
+            ];
+        }
+        $cellData[] = [
+            'label'     => 'Auditeurs',
+            'value'     => $auditorsText,
+            'height'    => $auditorsH,
+            'multiline' => true,
         ];
 
         $cellY = $y;
@@ -571,41 +604,23 @@ class pdf_controldocument extends SaturneDocumentModel
         $usableW = $pageW - $this->marge_gauche - $this->marge_droite;
         $x       = $this->marge_gauche;
         $y       = $pdf->GetY();
-        $h       = 8;
+        $h       = 7;
 
         $this->fillRect($pdf, $x, $y, $usableW, $h, [232, 238, 245]);
 
         $pdf->SetTextColor(...$this->colorNavy);
-        $pdf->SetFont('', 'B', 9);
-        $pdf->SetXY($x + 3, $y + 2);
-        $pdf->Cell(80, 4.5, $groupLabel, 0, 0, 'L');
+        $pdf->SetFont('', 'B', 8.5);
+        $pdf->SetXY($x + 3, $y + 1.5);
+        $pdf->Cell(80, 4, $groupLabel, 0, 0, 'L');
 
         $pdf->SetTextColor(...$this->colorGray);
-        $pdf->SetFont('', '', 8);
-        $pdf->SetXY($x + 84, $y + 2);
-        $pdf->Cell(30, 4.5, $qCount . ' questions', 0, 0, 'L');
-
-        // Draw answer count badges right-aligned
-        $badgeX = $x + $usableW - 3;
-        foreach (array_reverse($stats, true) as $abbrev => $data) {
-            $count = is_array($data) ? $data['count'] : (int)$data;
-            $rgb   = is_array($data) ? $data['rgb'] : $this->getAbbrevConfig($abbrev);
-            if ($count <= 0) {
-                continue;
-            }
-            $text   = $abbrev . ':' . $count;
-            $bW     = strlen($text) * 3.5 + 6;
-            $badgeX -= $bW + 2;
-            $this->fillRect($pdf, $badgeX, $y + 1.5, $bW, $h - 3, $rgb);
-            $pdf->SetTextColor(255, 255, 255);
-            $pdf->SetFont('', 'B', 7);
-            $pdf->SetXY($badgeX, $y + 1.5);
-            $pdf->Cell($bW, $h - 3, $text, 0, 0, 'C');
-        }
+        $pdf->SetFont('', '', 7.5);
+        $pdf->SetXY($x + 84, $y + 1.5);
+        $pdf->Cell(30, 4, $qCount . ' questions', 0, 0, 'L');
 
         $pdf->SetTextColor(0, 0, 0);
         $pdf->SetDrawColor(128, 128, 128);
-        $pdf->SetY($y + $h + 1);
+        $pdf->SetY($y + $h);
     }
 
     private function drawQuestionCard($pdf, $question, $controlLine, ?string $pictogram, ?string $answerColor, array $photos, $outputLangs, array $questionAnswers = []): void
@@ -650,7 +665,7 @@ class pdf_controldocument extends SaturneDocumentModel
         }
 
         // ── Right column dimensions ───────────────────────────────────────────
-        $circleD    = 11;
+        $circleD    = 9;
         $numericColW = 26;  // Percentage / Range value display
         $textColW    = 44;  // Text answer column
 
@@ -676,25 +691,25 @@ class pdf_controldocument extends SaturneDocumentModel
         $desc    = !empty($question->description) ? strip_tags($question->description) : '';
 
         // ── Height calculations ───────────────────────────────────────────────
-        $pdf->SetFont('', '', 8.5);
-        $titleH = $pdf->getNumLines($question->label, $textAreaW) * 4.5;
-        $pdf->SetFont('', '', 7.5);
-        $descH  = !empty($desc) ? $pdf->getNumLines($desc, $textAreaW) * 4 : 0;
+        $pdf->SetFont('', '', 8);
+        $titleH = $pdf->getNumLines($question->label, $textAreaW) * 4;
+        $pdf->SetFont('', '', 7);
+        $descH  = !empty($desc) ? $pdf->getNumLines($desc, $textAreaW) * 3.5 : 0;
         $obsLabelW = 23;
-        $obsH      = !empty($obsText) ? $pdf->getNumLines($obsText, $textAreaW - $obsLabelW) * 4 : 0;
+        $obsH      = !empty($obsText) ? $pdf->getNumLines($obsText, $textAreaW - $obsLabelW) * 3.5 : 0;
 
         $rightTextH = 0;
         if ($isText && $answerText !== '') {
-            $rightTextH = $pdf->getNumLines($answerText, $textColW - 6) * 4;
+            $rightTextH = $pdf->getNumLines($answerText, $textColW - 6) * 3.5;
         }
 
-        $innerPad = 4;
-        $leftH    = $innerPad + 6 + $titleH
+        $innerPad = 2.5;
+        $leftH    = $innerPad + 5 + $titleH
             + ($descH > 0 ? $descH + 1 : 0)
             + ($obsH > 0 ? $obsH + 2 : 0)
             + $innerPad;
 
-        $minH = $isChoice ? ($circleD + $innerPad * 2) : 18;
+        $minH = $isChoice ? ($circleD + $innerPad * 2) : 15;
         if ($isText && $answerText !== '') {
             $minH = max($minH, $rightTextH + $innerPad * 2 + 5);
         }
@@ -702,7 +717,7 @@ class pdf_controldocument extends SaturneDocumentModel
         $cardH = max($leftH, $minH);
 
         $hasPhotos   = !empty($photos);
-        $photoRowH   = $hasPhotos ? 24 : 0;
+        $photoRowH   = $hasPhotos ? 20 : 0;
         $totalNeeded = $cardH + $photoRowH + 3;
 
         $this->checkPageBreak($pdf, $totalNeeded);
@@ -760,45 +775,45 @@ class pdf_controldocument extends SaturneDocumentModel
             $pdf->SetTextColor(...$this->colorTeal);
             $pdf->SetFont('', 'B', 7);
             $pdf->SetXY($rightAreaX + 3, $y + $innerPad);
-            $pdf->Cell($textColW - 6, 4, 'Réponse', 0, 0, 'L');
+            $pdf->Cell($textColW - 6, 3.5, 'Réponse', 0, 0, 'L');
             $pdf->SetTextColor(...$this->colorBlack);
-            $pdf->SetFont('', '', 7.5);
-            $ansRowY = $y + $innerPad + 4.5;
+            $pdf->SetFont('', '', 7);
+            $ansRowY = $y + $innerPad + 4;
             $pdf->SetXY($rightAreaX + 3, $ansRowY);
             $pdf->MultiCell($textColW - 6, 4, $answerText, 0, 'L', 0, 0, $rightAreaX + 3, $ansRowY, true, 0, false, true, $cardH - $innerPad - 4.5, 'T', false);
         }
 
         // ── Left content (ref · label · desc · obs) ───────────────────────────
         $pdf->SetTextColor(...$this->colorNavy);
-        $pdf->SetFont('', 'B', 8.5);
+        $pdf->SetFont('', 'B', 8);
         $pdf->SetXY($x + 6, $y + $innerPad);
-        $pdf->Cell(40, 5, $question->ref, 0, 0, 'L');
+        $pdf->Cell(40, 4, $question->ref, 0, 0, 'L');
 
-        $rowY = $y + $innerPad + 5.5;
+        $rowY = $y + $innerPad + 4.5;
         $pdf->SetTextColor(...$this->colorBlack);
-        $pdf->SetFont('', '', 8.5);
+        $pdf->SetFont('', '', 8);
         $pdf->SetXY($x + 6, $rowY);
-        $pdf->MultiCell($textAreaW, 4.5, $question->label, 0, 'L', 0, 0, $x + 6, $rowY, true, 0, false, true, $cardH, 'T', false);
+        $pdf->MultiCell($textAreaW, 4, $question->label, 0, 'L', 0, 0, $x + 6, $rowY, true, 0, false, true, $cardH, 'T', false);
         $rowY += $titleH;
 
         if (!empty($desc)) {
             $pdf->SetTextColor(...$this->colorGray);
-            $pdf->SetFont('', '', 7.5);
+            $pdf->SetFont('', '', 7);
             $pdf->SetXY($x + 6, $rowY);
-            $pdf->MultiCell($textAreaW, 4, $desc, 0, 'L', 0, 0, $x + 6, $rowY, true, 0, false, true, $cardH, 'T', false);
+            $pdf->MultiCell($textAreaW, 3.5, $desc, 0, 'L', 0, 0, $x + 6, $rowY, true, 0, false, true, $cardH, 'T', false);
             $rowY += $descH + 1;
         }
 
         if (!empty($obsText)) {
             $rowY += 1;
             $pdf->SetTextColor(...$this->colorTeal);
-            $pdf->SetFont('', 'B', 7.5);
+            $pdf->SetFont('', 'B', 7);
             $pdf->SetXY($x + 6, $rowY);
-            $pdf->Cell($obsLabelW, 4, 'Commentaire :', 0, 0, 'L');
+            $pdf->Cell($obsLabelW, 3.5, 'Commentaire :', 0, 0, 'L');
             $pdf->SetTextColor(...$this->colorGray);
-            $pdf->SetFont('', '', 7.5);
+            $pdf->SetFont('', '', 7);
             $pdf->SetXY($x + 6 + $obsLabelW, $rowY);
-            $pdf->MultiCell($textAreaW - $obsLabelW, 4, $obsText, 0, 'L', 0, 0, $x + 6 + $obsLabelW, $rowY, true, 0, false, true, $cardH, 'T', false);
+            $pdf->MultiCell($textAreaW - $obsLabelW, 3.5, $obsText, 0, 'L', 0, 0, $x + 6 + $obsLabelW, $rowY, true, 0, false, true, $cardH, 'T', false);
         }
 
         $pdf->SetY($y + $cardH);
@@ -840,7 +855,7 @@ class pdf_controldocument extends SaturneDocumentModel
             $pdf->SetY($photoY + $photoRowH);
         }
 
-        $pdf->SetY($pdf->GetY() + 2);
+        $pdf->SetY($pdf->GetY() + 1);
         $pdf->SetTextColor(0, 0, 0);
         $pdf->SetDrawColor(128, 128, 128);
     }
@@ -1411,7 +1426,7 @@ class pdf_controldocument extends SaturneDocumentModel
                 $this->drawQuestionTasks($pdf, $questionTasksMap[$question->id] ?? [], $outputLangs);
             }
 
-            $pdf->Ln(2);
+            $pdf->Ln(1);
         }
 
         // ── Equipment section ────────────────────────────────────────────────
