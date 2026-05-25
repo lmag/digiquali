@@ -139,10 +139,10 @@ window.saturne.modal.addMoreOpenModalData = function(modalToOpen, elementFrom) {
   if (modalToOpen.match(/timespent_edit/)) {
     action = 'fetch_task_timespent';
   }
-  if (modalToOpen === 'activity_edit' || modalToOpen === 'riskassessment_list') {
+  if (modalToOpen === 'activity_edit') {
     action = 'fetch_activity';
   }
-  if (modalToOpen === 'riskassessment_update') {
+  if (modalToOpen === 'riskassessment_update' || modalToOpen === 'riskassessment_list') {
     action = 'fetch_riskassessment';
   }
 
