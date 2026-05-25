@@ -204,6 +204,7 @@ window.digiquali.object.updateButtonsStatus = function() {
 window.digiquali.object.saveAnswer = function(questionId, answer, comment) {
   let token          = window.saturne.toolbox.getToken();
   let querySeparator = window.saturne.toolbox.getQuerySeparator(document.URL);
+  let answerVal      = Array.isArray(answer) ? answer.join(',') : answer;
 
   $.ajax({
     url: document.URL + querySeparator + 'action=save',
@@ -212,7 +213,7 @@ window.digiquali.object.saveAnswer = function(questionId, answer, comment) {
       token: token,
       autoSave: 'true',
       questionId: questionId,
-      answer: answer,
+      answer: answerVal,
       comment: comment
     },
     success: function(resp) {
