@@ -154,6 +154,11 @@ class pdf_controldocument extends SaturneDocumentModel
         return $map[$abbrev] ?? [128, 128, 128];
     }
 
+    private function cleanText(?string $text): string
+    {
+        return html_entity_decode(strip_tags((string)$text), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    }
+
     private function fillRect($pdf, float $x, float $y, float $w, float $h, array $rgb): void
     {
         $pdf->SetFillColor($rgb[0], $rgb[1], $rgb[2]);
@@ -336,7 +341,7 @@ class pdf_controldocument extends SaturneDocumentModel
         // Subtitle
         $subtitleParts = [];
         if (!empty($sheet->description)) {
-            $subtitleParts[] = strip_tags($sheet->description);
+            $subtitleParts[] = $this->cleanText($sheet->description);
         }
         $subtitleParts[] = $outputLangs->convToOutputCharset('Modèle ') . $sheet->ref;
         if (!empty($project->ref)) {
@@ -393,7 +398,7 @@ class pdf_controldocument extends SaturneDocumentModel
         $infoX   = $x + $photoW + 3;
         $infoW   = $usableW - $photoW - $noteW - 6;
 
-        $notePublicText = !empty($control->note_public) ? strip_tags($control->note_public) : '';
+        $notePublicText = !empty($control->note_public) ? $this->cleanText($control->note_public) : '';
         $auditorsText   = $this->buildAuditorsText($signatures, $outputLangs);
         $projectText    = (!empty($project->ref) ? $project->ref . ' — ' : '') . ($project->title ?? '');
         $pdf->SetFont('', '', 8);
@@ -686,7 +691,7 @@ class pdf_controldocument extends SaturneDocumentModel
 
         $answerText = '';
         if ($isText && !empty($controlLine) && $controlLine->answer !== null && $controlLine->answer !== '') {
-            $answerText = strip_tags($controlLine->answer);
+            $answerText = $this->cleanText($controlLine->answer);
         }
 
         // MultipleChoices: build ordered list of selected answer display configs
@@ -734,8 +739,8 @@ class pdf_controldocument extends SaturneDocumentModel
         $textAreaW  = $rightW > 0 ? ($usableW - $rightW - 8) : ($usableW - 6);
         $rightAreaX = $x + $usableW - $rightW;
 
-        $obsText = !empty($controlLine) ? strip_tags($controlLine->comment ?? '') : '';
-        $desc    = !empty($question->description) ? strip_tags($question->description) : '';
+        $obsText = !empty($controlLine) ? $this->cleanText($controlLine->comment ?? '') : '';
+        $desc    = !empty($question->description) ? $this->cleanText($question->description) : '';
 
         // ── Height calculations ───────────────────────────────────────────────
         $pdf->SetFont('', '', 8);
@@ -1044,7 +1049,7 @@ class pdf_controldocument extends SaturneDocumentModel
                     $dateStr = dol_print_date($task->date_c, 'day');
                 }
 
-                $noteText  = strip_tags($task->description ?? '');
+                $noteText  = $this->cleanText($task->description ?? '');
                 $labelText = $task->label ?? '';
                 $qRef      = $question->ref;
 
