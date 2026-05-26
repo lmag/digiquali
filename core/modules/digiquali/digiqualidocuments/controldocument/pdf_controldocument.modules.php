@@ -93,6 +93,8 @@ class pdf_controldocument extends SaturneDocumentModel
 
     private string $faFontName = '';
 
+    private string $generatedFilename = '';
+
     /**
      * Constructor
      *
@@ -219,13 +221,13 @@ class pdf_controldocument extends SaturneDocumentModel
         $pdf->SetTextColor(160, 160, 160);
         $pdf->SetFont('', '', 7);
         $pdf->SetXY($this->marge_gauche, 3);
-        $pdf->Cell($pageW - $this->marge_gauche - $this->marge_droite, 5, 'DigiQuali · evarisk.com', 0, 0, 'R');
+        $pdf->Cell($pageW - $this->marge_gauche - $this->marge_droite, 5, 'DigiQuali · digiquali.com', 0, 0, 'R');
         $pdf->SetTextColor(0, 0, 0);
     }
 
     private function drawPageFooter($pdf): void
     {
-        global $mysoc;
+        global $mysoc, $outputLangs;
 
         $pageW   = $pdf->getPageWidth();
         $usableW = $pageW - $this->marge_gauche - $this->marge_droite;
@@ -251,6 +253,16 @@ class pdf_controldocument extends SaturneDocumentModel
         $pdf->SetAutoPageBreak(false, 0);
         $pdf->SetTextColor(160, 160, 160);
         $pdf->SetFont('', '', 7);
+
+        // Row 1: generated filename (left) · model name (right)
+        if (!empty($this->generatedFilename)) {
+            $modelLabel = !empty($outputLangs) ? $outputLangs->convToOutputCharset('Modèle : ') . $this->name : 'Modele : ' . $this->name;
+            $pdf->SetXY($this->marge_gauche, $footerY - 5);
+            $pdf->Cell($usableW * 0.65, 4, $this->generatedFilename, 0, 0, 'L');
+            $pdf->Cell($usableW * 0.35, 4, $modelLabel, 0, 0, 'R');
+        }
+
+        // Row 2: company info (left) · page number (right)
         $pdf->SetXY($this->marge_gauche, $footerY);
         $pdf->Cell($usableW * 0.75, 4, $footerLeft, 0, 0, 'L');
         $pdf->Cell($usableW * 0.25, 4, $pageLabel, 0, 0, 'R');
@@ -342,7 +354,7 @@ class pdf_controldocument extends SaturneDocumentModel
             $pdf->SetTextColor(255, 255, 255);
             $pdf->SetFont('', 'B', 8);
             $pdf->SetXY($bX, $bY);
-            $pdf->Cell($bW, $bH, $statusLabel, 0, 0, 'C');
+            $pdf->Cell($bW, $bH, $outputLangs->convToOutputCharset($statusLabel), 0, 0, 'C');
         }
 
         // Subtitle
@@ -350,7 +362,7 @@ class pdf_controldocument extends SaturneDocumentModel
         if (!empty($sheet->description)) {
             $subtitleParts[] = strip_tags($sheet->description);
         }
-        $subtitleParts[] = 'Modèle ' . $sheet->ref;
+        $subtitleParts[] = $outputLangs->convToOutputCharset('Modèle ') . $sheet->ref;
         if (!empty($project->ref)) {
             $subtitleParts[] = 'Projet ' . $project->ref;
         }
@@ -362,8 +374,15 @@ class pdf_controldocument extends SaturneDocumentModel
         $pdf->SetXY($titleX, $y + 9);
         $pdf->Cell($titleW, 5, $subtitle, 0, 0, 'L');
 
+        // Note publique du contrôle
+        $notePublicText = !empty($control->note_public) ? strip_tags($control->note_public) : 'N/A';
+        $pdf->SetTextColor(...$this->colorNavy);
+        $pdf->SetFont('', 'I', 7.5);
+        $pdf->SetXY($titleX, $y + 15);
+        $pdf->MultiCell($titleW, 4, $notePublicText, 0, 'L');
+        $lineY = max($y + $badgeSz + 3, $pdf->GetY() + 1);
+
         // Teal separator line
-        $lineY = $y + $badgeSz + 3;
         $pdf->SetDrawColor(...$this->colorTeal);
         $pdf->SetLineWidth(0.6);
         $pdf->Line($x, $lineY, $x + $usableW, $lineY);
@@ -406,10 +425,12 @@ class pdf_controldocument extends SaturneDocumentModel
 
         $notePublicText = !empty($control->note_public) ? strip_tags($control->note_public) : '';
         $auditorsText   = $this->buildAuditorsText($signatures, $outputLangs);
+        $projectText    = (!empty($project->ref) ? $project->ref . ' — ' : '') . ($project->title ?? '');
         $pdf->SetFont('', '', 8);
+        $projectH     = !empty($projectText) ? max($rowH, (int)ceil($pdf->getStringHeight($infoW - $labelW - 2, $projectText)) + 4) : $rowH;
         $auditorsH    = max($rowH, (int)ceil($pdf->getStringHeight($infoW - $labelW - 2, $auditorsText)) + 4);
         $notePublicH  = !empty($notePublicText) ? max($rowH, (int)ceil($pdf->getStringHeight($infoW - $labelW - 2, $notePublicText)) + 4) : 0;
-        $tableH       = $rowH * 4 + $auditorsH + $notePublicH;
+        $tableH       = $rowH * 3 + $projectH + $auditorsH + $notePublicH;
 
         // Photo block — try $control->photo first, then scan directory (ref and id variants)
         $controlPhoto = null;
@@ -464,6 +485,21 @@ class pdf_controldocument extends SaturneDocumentModel
             $pdf->Image($controlPhoto, $imgX, $imgY, $dW, $dH);
         } else {
             $this->fillRect($pdf, $x, $y, $photoW, $tableH, [210, 215, 220]);
+            if (!empty($this->faFontName)) {
+                $iconSize   = max(10, min(16, (int)($photoW * 0.45)));
+                $prevFamily = $pdf->getFontFamily();
+                $prevStyle  = $pdf->getFontStyle();
+                $prevSize   = $pdf->getFontSizePt();
+                $pdf->SetFont($this->faFontName, '', $iconSize);
+                $pdf->SetTextColor(160, 165, 170);
+                $iconH = $iconSize * 0.35;
+                $pdf->SetXY($x, $y + ($tableH / 2) - $iconH - 0.5);
+                $pdf->Cell($photoW, $iconH * 2 + 1, "\xef\x80\xb0", 0, 0, 'C');
+                if (!empty($prevFamily)) {
+                    $pdf->SetFont($prevFamily, $prevStyle, $prevSize);
+                }
+                $pdf->SetTextColor(0, 0, 0);
+            }
         }
         $pdf->SetDrawColor(200, 200, 200);
         $pdf->Rect($x, $y, $photoW, $tableH);
@@ -473,30 +509,56 @@ class pdf_controldocument extends SaturneDocumentModel
         $pdf->SetDrawColor(...$this->colorTeal);
         $pdf->Rect($noteX, $y, $noteW, $tableH);
 
-        $pdf->SetTextColor(...$this->colorNavy);
-        $pdf->SetFont('', 'B', 8);
-        $pdf->SetXY($noteX, $y + 2);
-        $pdf->Cell($noteW, 5, 'NOTE', 0, 0, 'C');
+        // Status badge
+        $noteStatusLabel = '';
+        $noteStatusColor = $this->colorGray;
+        if ($control->status >= 2) {
+            $noteStatusLabel = $outputLangs->convToOutputCharset($outputLangs->transnoentities('Locked'));
+            $noteStatusColor = [26, 45, 64];
+        } elseif ($control->status == 1) {
+            $noteStatusLabel = $outputLangs->convToOutputCharset($outputLangs->transnoentities('Validated'));
+            $noteStatusColor = [40, 167, 69];
+        } elseif ($control->status == 0) {
+            $noteStatusLabel = $outputLangs->convToOutputCharset($outputLangs->transnoentities('Draft'));
+        }
+        if (!empty($noteStatusLabel)) {
+            $this->fillRect($pdf, $noteX + 2, $y + 2, $noteW - 4, 5, $noteStatusColor);
+            $pdf->SetTextColor(255, 255, 255);
+            $pdf->SetFont('', 'B', 7);
+            $pdf->SetXY($noteX + 2, $y + 2);
+            $pdf->Cell($noteW - 4, 5, $noteStatusLabel, 0, 0, 'C');
+        }
 
+        // "Résultat du contrôle" label (2 lines)
+        $pdf->SetTextColor(...$this->colorNavy);
+        $pdf->SetFont('', 'B', 7);
+        $pdf->SetXY($noteX, $y + 9);
+        $pdf->Cell($noteW, 4, $outputLangs->convToOutputCharset('Résultat du'), 0, 0, 'C');
+        $pdf->SetXY($noteX, $y + 13);
+        $pdf->Cell($noteW, 4, $outputLangs->convToOutputCharset('contrôle'), 0, 0, 'C');
+
+        // Score
         $score = !empty($control->success_rate) ? round((float)$control->success_rate) . ' %' : '—';
         $pdf->SetTextColor(...$this->colorTeal);
-        $pdf->SetFont('', 'B', 16);
-        $pdf->SetXY($noteX, $y + 8);
+        $pdf->SetFont('', 'B', 14);
+        $pdf->SetXY($noteX, $y + 18);
         $pdf->Cell($noteW, 9, $score, 0, 0, 'C');
 
         $cellData = [
             [
-                'label' => 'Date du contrôle',
+                'label' => $outputLangs->convToOutputCharset('Date du contrôle'),
                 'value' => dol_print_date($control->control_date, 'dayhour'),
                 'teal'  => true,
             ],
             [
-                'label' => 'Objet lié',
+                'label' => $outputLangs->convToOutputCharset('Objet lié'),
                 'value' => isset($linkedObject, $linkedElement) ? ($outputLangs->transnoentities(ucfirst($linkedElement)) . ' — ' . ($linkedObject->$linkedElement ?? $linkedObject->ref ?? '')) : '',
             ],
             [
-                'label' => 'Projet',
-                'value' => (!empty($project->ref) ? $project->ref . ' — ' : '') . ($project->title ?? ''),
+                'label'     => 'Projet',
+                'value'     => $projectText,
+                'height'    => $projectH,
+                'multiline' => true,
             ],
             [
                 'label' => 'Avancement',
@@ -595,7 +657,7 @@ class pdf_controldocument extends SaturneDocumentModel
         if (empty($parts)) {
             return '';
         }
-        return implode(' · ', $parts) . ' — signés électroniquement';
+        return implode(' · ', $parts) . $outputLangs->convToOutputCharset(' — signés électroniquement');
     }
 
     private function drawGroupBanner($pdf, string $groupLabel, int $qCount, array $stats): void
@@ -775,7 +837,7 @@ class pdf_controldocument extends SaturneDocumentModel
             $pdf->SetTextColor(...$this->colorTeal);
             $pdf->SetFont('', 'B', 7);
             $pdf->SetXY($rightAreaX + 3, $y + $innerPad);
-            $pdf->Cell($textColW - 6, 3.5, 'Réponse', 0, 0, 'L');
+            $pdf->Cell($textColW - 6, 3.5, $outputLangs->convToOutputCharset('Réponse'), 0, 0, 'L');
             $pdf->SetTextColor(...$this->colorBlack);
             $pdf->SetFont('', '', 7);
             $ansRowY = $y + $innerPad + 4;
@@ -943,7 +1005,7 @@ class pdf_controldocument extends SaturneDocumentModel
         $this->drawTopRight($pdf);
         $pdf->SetY($this->marge_haute);
 
-        $this->drawSectionBanner($pdf, $outputLangs->transnoentities('ActionPlan'));
+        $this->drawSectionBanner($pdf, $outputLangs->convToOutputCharset($outputLangs->transnoentities('ActionPlan')));
         $pdf->Ln(3);
 
         // Column widths
@@ -961,10 +1023,10 @@ class pdf_controldocument extends SaturneDocumentModel
         $pdf->SetDrawColor(255, 255, 255);
         $pdf->SetFont('', 'B', 7);
         $cols = [
-            ['w' => $wTask,  'text' => 'Tâche'],
+            ['w' => $wTask,  'text' => $outputLangs->convToOutputCharset('Tâche')],
             ['w' => $wLabel, 'text' => 'Action corrective'],
             ['w' => $wQRef,  'text' => 'Question'],
-            ['w' => $wDate,  'text' => 'Échéance'],
+            ['w' => $wDate,  'text' => $outputLangs->convToOutputCharset('Échéance')],
             ['w' => $wNote,  'text' => 'Commentaire'],
             ['w' => $wProg,  'text' => '%'],
         ];
@@ -1064,7 +1126,7 @@ class pdf_controldocument extends SaturneDocumentModel
         $pageW   = $pdf->getPageWidth();
         $usableW = $pageW - $this->marge_gauche - $this->marge_droite;
 
-        $this->drawSectionTitle($pdf, $outputLangs->transnoentities($title));
+        $this->drawSectionTitle($pdf, $outputLangs->convToOutputCharset($outputLangs->transnoentities($title)));
 
         $wName = 55;
         $wPre  = 55;
@@ -1073,10 +1135,10 @@ class pdf_controldocument extends SaturneDocumentModel
 
         // Header
         $headerData = [
-            ['w' => $wName, 'text' => $outputLangs->transnoentities('LastName')],
-            ['w' => $wPre,  'text' => $outputLangs->transnoentities('FirstName')],
-            ['w' => $wDate, 'text' => $outputLangs->transnoentities('SignatureDate')],
-            ['w' => $wSign, 'text' => $outputLangs->transnoentities('Signature')],
+            ['w' => $wName, 'text' => $outputLangs->convToOutputCharset($outputLangs->transnoentities('LastName'))],
+            ['w' => $wPre,  'text' => $outputLangs->convToOutputCharset($outputLangs->transnoentities('FirstName'))],
+            ['w' => $wDate, 'text' => $outputLangs->convToOutputCharset($outputLangs->transnoentities('SignatureDate'))],
+            ['w' => $wSign, 'text' => $outputLangs->convToOutputCharset($outputLangs->transnoentities('Signature'))],
         ];
 
         $this->checkPageBreak($pdf, 10);
@@ -1132,7 +1194,7 @@ class pdf_controldocument extends SaturneDocumentModel
 
         if (!$found) {
             $pdf->SetTextColor(...$this->colorGray);
-            $pdf->Cell($wName + $wPre + $wDate + $wSign, 8, $outputLangs->transnoentities('NoData'), 1, 1, 'C');
+            $pdf->Cell($wName + $wPre + $wDate + $wSign, 8, $outputLangs->convToOutputCharset($outputLangs->transnoentities('NoData')), 1, 1, 'C');
         }
         $pdf->SetDrawColor(0, 0, 0);
         $pdf->SetTextColor(0, 0, 0);
@@ -1175,6 +1237,7 @@ class pdf_controldocument extends SaturneDocumentModel
             return -1;
         }
 
+        $this->generatedFilename = basename($file);
         $hookmanager->initHooks(['pdfgeneration']);
         $parameters = ['file' => $file, 'object' => $control, 'outputlangs' => $outputLangs];
         $hookmanager->executeHooks('beforePDFCreation', $parameters, $control, $action);
@@ -1354,7 +1417,7 @@ class pdf_controldocument extends SaturneDocumentModel
         $pdf->AddPage();
         $this->drawTopRight($pdf);
         $this->drawTitleArea($pdf, $control, $sheet, $project, $totalQuestions, $outputLangs);
-        $this->drawSectionBanner($pdf, 'Synthèse du contrôle & détail des questions');
+        $this->drawSectionBanner($pdf, $outputLangs->convToOutputCharset('Synthèse du contrôle & détails des questions'));
         $this->drawSynthesisSection($pdf, $control, $sheet, $project, $linkedObject, $linkedElement, $signatures, $totalQuestions, $answeredQuestions, $outputLangs);
 
         // ── Questions section ────────────────────────────────────────────────
@@ -1363,7 +1426,7 @@ class pdf_controldocument extends SaturneDocumentModel
         $pdf->SetTextColor(...$this->colorTeal);
         $pdf->SetFont('', 'B', 11);
         $pdf->SetX($this->marge_gauche);
-        $pdf->Cell(0, 7, 'Détail des questions et réponses', 0, 1, 'L');
+        $pdf->Cell(0, 7, $outputLangs->convToOutputCharset('Détails des questions et réponses'), 0, 1, 'L');
         $pdf->Ln(2);
         $pdf->SetTextColor(0, 0, 0);
 
@@ -1438,7 +1501,7 @@ class pdf_controldocument extends SaturneDocumentModel
             $pageW   = $pdf->getPageWidth();
             $usableW = $pageW - $this->marge_gauche - $this->marge_droite;
 
-            $this->drawSectionTitle($pdf, $outputLangs->transnoentities('ControlEquipementList'));
+            $this->drawSectionTitle($pdf, $outputLangs->convToOutputCharset($outputLangs->transnoentities('ControlEquipementList')));
 
             $wRef    = 25;
             $wLib    = 35;

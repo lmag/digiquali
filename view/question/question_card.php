@@ -366,7 +366,7 @@ if (empty($reshook)) {
                     $answer->fk_question = $result;
                     $answer->value       = $langs->transnoentities('Conforme');
                     $answer->pictogram   = 'check';
-                    $answer->color       = '#9C4DCC';
+                    $answer->color       = '#47e58e';
                     $answer->correct     = true;
 
                     $answer->create($user);
@@ -1433,7 +1433,7 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print '</div>';
 	}
 
-	if ($object->type == 'MultipleChoices' || $object->type == 'UniqueChoice' || $object->type == 'OkKo' || $object->type == 'OkKoToFixNonApplicable' || $object->type == 'Iso9001') {
+	if ($object->type == 'MultipleChoices' || $object->type == 'UniqueChoice' || $object->type == 'OkKo' || $object->type == 'OkKoToFixNonApplicable' || $object->type == 'MarqueNF' || $object->type == 'Iso9001') {
 
 		$pictosArray = get_answer_pictos_array();
 
