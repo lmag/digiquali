@@ -765,7 +765,7 @@ class pdf_controldocument extends SaturneDocumentModel
             $rightTextH = $pdf->getNumLines($answerText, $textColW - 6) * 3.5;
         }
 
-        $innerPad = 2.5;
+        $innerPad = 1.5;
         $leftH    = $innerPad + 5 + $titleH
             + ($descH > 0 ? $descH + 1 : 0)
             + ($obsH > 0 ? $obsH + 2 : 0)
