@@ -112,8 +112,28 @@ function get_linked_object_infos(CommonObject $linkedObject, array $linkableElem
 
     $out['linkedObject']['links'] = [];
     $out['linkedObject']['files'] = $filteredEcmFilesLine;
-    $out['linkedObject']['title']        = $langs->transnoentities($linkableElement['langs']);
-    $out['linkedObject']['name_field']   = $linkedObject->getNomUrl(1, !$permissionToRead ? 'nolink' : '', 1);
+    $out['linkedObject']['title']      = $langs->transnoentities($linkableElement['langs']);
+    $out['linkedObject']['name_field'] = $linkedObject->getNomUrl(1, !$permissionToRead ? 'nolink' : '');
+
+    // Per-element label and description field mapping
+    $elementFieldsMap = [
+        'product'    => ['label' => 'label',  'description' => 'description'],
+        'productlot' => ['label' => '',       'description' => 'note_public'],
+        'user'       => ['label' => '',       'description' => 'job'],
+        'thirdparty' => ['label' => '',       'description' => 'note_public'],
+        'contact'    => ['label' => '',       'description' => 'poste'],
+        'project'    => ['label' => 'title',  'description' => 'description'],
+        'task'       => ['label' => 'label',  'description' => 'description'],
+    ];
+
+    $fields = $elementFieldsMap[$linkedObject->element] ?? ['label' => '', 'description' => ''];
+
+    $out['linkedObject']['label']       = ($fields['label'] && !empty($linkedObject->{$fields['label']}))
+        ? dol_escape_htmltag($linkedObject->{$fields['label']})
+        : '';
+    $out['linkedObject']['description'] = ($fields['description'] && !empty($linkedObject->{$fields['description']}))
+        ? dol_escape_htmltag($linkedObject->{$fields['description']})
+        : '';
 
     $link->fetchAll($out['linkedObject']['links'], $linkedObject->element, $linkedObject->id);
 
@@ -178,7 +198,7 @@ function get_linked_object_infos(CommonObject $linkedObject, array $linkableElem
     }
 
     $out['images'] = $out['linkedObject']['images'];
-    if (strpos($out['parentLinkedObject']['images'], 'nophoto') === false) {
+    if (!empty($out['parentLinkedObject']['images']) && strpos($out['parentLinkedObject']['images'], 'nophoto') === false) {
         $out['images'] = $out['parentLinkedObject']['images'];
     }
 
