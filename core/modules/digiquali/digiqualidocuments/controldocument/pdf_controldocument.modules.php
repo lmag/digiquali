@@ -350,16 +350,7 @@ class pdf_controldocument extends SaturneDocumentModel
         $pdf->SetXY($titleX, $y + 9);
         $pdf->Cell($titleW, 5, $subtitle, 0, 0, 'L');
 
-        // Note publique du contrôle
         $lineY = $y + $badgeSz + 3;
-        if (!empty($control->note_public)) {
-            $notePublicText = strip_tags($control->note_public);
-            $pdf->SetTextColor(...$this->colorNavy);
-            $pdf->SetFont('', 'I', 7.5);
-            $pdf->SetXY($titleX, $y + 15);
-            $pdf->MultiCell($titleW, 4, $notePublicText, 0, 'L');
-            $lineY = max($lineY, $pdf->GetY() + 1);
-        }
 
         // Teal separator line
         $pdf->SetDrawColor(...$this->colorTeal);
