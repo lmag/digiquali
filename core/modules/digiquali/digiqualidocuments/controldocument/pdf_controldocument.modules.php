@@ -217,12 +217,6 @@ class pdf_controldocument extends SaturneDocumentModel
 
     private function drawTopRight($pdf): void
     {
-        $pageW = $pdf->getPageWidth();
-        $pdf->SetTextColor(160, 160, 160);
-        $pdf->SetFont('', '', 7);
-        $pdf->SetXY($this->marge_gauche, 3);
-        $pdf->Cell($pageW - $this->marge_gauche - $this->marge_droite, 5, 'DigiQuali · digiquali.com', 0, 0, 'R');
-        $pdf->SetTextColor(0, 0, 0);
     }
 
     private function drawPageFooter($pdf): void
@@ -333,29 +327,11 @@ class pdf_controldocument extends SaturneDocumentModel
         $pdf->SetXY($titleX, $y + 1);
         $pdf->Cell($titleW, 7, $control->ref . ' — ' . $sheet->label, 0, 0, 'L');
 
-        // Status badge
-        $statusLabel = '';
-        $statusColor = $this->colorGray;
-        if ($control->status >= 2) {
-            $statusLabel = $outputLangs->transnoentities('Locked');
-            $statusColor = [26, 45, 64];
-        } elseif ($control->status == 1) {
-            $statusLabel = $outputLangs->transnoentities('Validated');
-            $statusColor = [40, 167, 69];
-        } elseif ($control->status == 0) {
-            $statusLabel = $outputLangs->transnoentities('Draft');
-        }
-        if (!empty($statusLabel)) {
-            $bW = 26;
-            $bH = 6;
-            $bX = $x + $usableW - $bW;
-            $bY = $y + 1;
-            $this->fillRect($pdf, $bX, $bY, $bW, $bH, $statusColor);
-            $pdf->SetTextColor(255, 255, 255);
-            $pdf->SetFont('', 'B', 8);
-            $pdf->SetXY($bX, $bY);
-            $pdf->Cell($bW, $bH, $outputLangs->convToOutputCharset($statusLabel), 0, 0, 'C');
-        }
+        // DigiQuali branding (top-right)
+        $pdf->SetTextColor(160, 160, 160);
+        $pdf->SetFont('', '', 7);
+        $pdf->SetXY($x, $y + 1);
+        $pdf->Cell($usableW, 5, 'DigiQuali · digiquali.com', 0, 0, 'R');
 
         // Subtitle
         $subtitleParts = [];
@@ -375,12 +351,15 @@ class pdf_controldocument extends SaturneDocumentModel
         $pdf->Cell($titleW, 5, $subtitle, 0, 0, 'L');
 
         // Note publique du contrôle
-        $notePublicText = !empty($control->note_public) ? strip_tags($control->note_public) : 'N/A';
-        $pdf->SetTextColor(...$this->colorNavy);
-        $pdf->SetFont('', 'I', 7.5);
-        $pdf->SetXY($titleX, $y + 15);
-        $pdf->MultiCell($titleW, 4, $notePublicText, 0, 'L');
-        $lineY = max($y + $badgeSz + 3, $pdf->GetY() + 1);
+        $lineY = $y + $badgeSz + 3;
+        if (!empty($control->note_public)) {
+            $notePublicText = strip_tags($control->note_public);
+            $pdf->SetTextColor(...$this->colorNavy);
+            $pdf->SetFont('', 'I', 7.5);
+            $pdf->SetXY($titleX, $y + 15);
+            $pdf->MultiCell($titleW, 4, $notePublicText, 0, 'L');
+            $lineY = max($lineY, $pdf->GetY() + 1);
+        }
 
         // Teal separator line
         $pdf->SetDrawColor(...$this->colorTeal);
@@ -429,8 +408,7 @@ class pdf_controldocument extends SaturneDocumentModel
         $pdf->SetFont('', '', 8);
         $projectH     = !empty($projectText) ? max($rowH, (int)ceil($pdf->getStringHeight($infoW - $labelW - 2, $projectText)) + 4) : $rowH;
         $auditorsH    = max($rowH, (int)ceil($pdf->getStringHeight($infoW - $labelW - 2, $auditorsText)) + 4);
-        $notePublicH  = !empty($notePublicText) ? max($rowH, (int)ceil($pdf->getStringHeight($infoW - $labelW - 2, $notePublicText)) + 4) : 0;
-        $tableH       = $rowH * 3 + $projectH + $auditorsH + $notePublicH;
+        $tableH       = $rowH * 3 + $projectH + $auditorsH;
 
         // Photo block — try $control->photo first, then scan directory (ref and id variants)
         $controlPhoto = null;
@@ -565,14 +543,6 @@ class pdf_controldocument extends SaturneDocumentModel
                 'value' => $answeredQ . ' / ' . $totalQ . ' questions',
             ],
         ];
-        if (!empty($notePublicText)) {
-            $cellData[] = [
-                'label'     => 'Note publique',
-                'value'     => $notePublicText,
-                'height'    => $notePublicH,
-                'multiline' => true,
-            ];
-        }
         $cellData[] = [
             'label'     => 'Auditeurs',
             'value'     => $auditorsText,
@@ -635,7 +605,31 @@ class pdf_controldocument extends SaturneDocumentModel
             $cellY += $curH;
         }
 
-        $pdf->SetY($y + $tableH + 5);
+        // Note publique box (full-width, below main table)
+        if (!empty($notePublicText)) {
+            $boxY    = $y + $tableH + 2;
+            $headerH = 5;
+            $pdf->SetFont('', '', 8);
+            $contentH = max(6, (int)ceil($pdf->getStringHeight($usableW - 4, $notePublicText)) + 2);
+            $boxH    = $headerH + $contentH;
+
+            $this->fillRect($pdf, $x, $boxY, $usableW, $headerH, $this->colorLight);
+            $pdf->SetTextColor(...$this->colorGray);
+            $pdf->SetFont('', 'B', 7);
+            $pdf->SetXY($x + 2, $boxY + 1);
+            $pdf->Cell($usableW - 4, 3.5, $outputLangs->convToOutputCharset('Note publique'), 0, 0, 'L');
+
+            $pdf->SetTextColor(...$this->colorBlack);
+            $pdf->SetFont('', '', 8);
+            $pdf->SetXY($x + 2, $boxY + $headerH + 1);
+            $pdf->MultiCell($usableW - 4, 3.5, $notePublicText, 0, 'L');
+
+            $pdf->SetDrawColor(210, 215, 220);
+            $pdf->Rect($x, $boxY, $usableW, $boxH);
+            $pdf->SetY($boxY + $boxH + 5);
+        } else {
+            $pdf->SetY($y + $tableH + 5);
+        }
         $pdf->SetTextColor(0, 0, 0);
     }
 
