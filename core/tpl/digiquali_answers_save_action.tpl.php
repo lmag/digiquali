@@ -52,9 +52,7 @@ if ($action == 'save') {
 
     $sheet->fetch($object->fk_sheet);
     $questions = $sheet->fetchAllQuestions();
-    
-    file_put_contents('c:/wamp64/www/dolibarr22/dolibarr/documents/debug.log', "Total questions fetched: " . (is_array($questions) || is_object($questions) ? count($questions) : 0) . "\n", FILE_APPEND);
-    
+
     if (!empty($questions)) {
         $controlLineObj = new ControlLine($db);
         foreach ($questions as $question) {
