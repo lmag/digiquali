@@ -401,6 +401,25 @@ if (empty($reshook)) {
         }
     }
 
+    // Action to set status back to STATUS_VALIDATED from STATUS_ARCHIVED.
+    if ($action == 'confirm_unarchive' && $permissiontoadd) {
+        $object->fetch($id);
+        if (!$error) {
+            $result = $object->setUnarchived($user);
+            if ($result > 0) {
+                // Set Unarchived OK.
+                $urltogo = str_replace('__ID__', $result, $backtopage);
+                $urltogo = preg_replace('/--IDFORBACKTOPAGE--/', $id, $urltogo);
+                header('Location: ' . $urltogo);
+                exit;
+            } elseif (!empty($object->errors)) { // Set Unarchived KO.
+                setEventMessages('', $object->errors, 'errors');
+            } else {
+                setEventMessages($object->error, [], 'errors');
+            }
+        }
+    }
+
     if ($action == 'set_mandatory' && $permissiontoadd) {
         $questionId = GETPOST('questionId', 'int');
 		$questionRef = GETPOST('questionRef', 'alpha');
@@ -786,6 +805,11 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
                 print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=confirm_archive&token=' . newToken() . '"><i class="fas fa-archive"></i> ' . $langs->trans('Archive') . '</a>';
             } else {
                 print '<span class="butActionRefused classfortooltip" title="' . dol_escape_htmltag($langs->trans('ObjectMustBeLockedToArchive', ucfirst($langs->transnoentities('The' . ucfirst($object->element))))) . '"><i class="fas fa-archive"></i> ' . $langs->trans('Archive') . '</span>';
+            }
+
+            // Unarchive
+            if ($object->status == $object::STATUS_ARCHIVED) {
+                print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=confirm_unarchive&token=' . newToken() . '"><i class="fas fa-box-open"></i> ' . $langs->trans('Unarchive') . '</a>';
             }
 
 			// Delete (need delete permission, or if draft, just need create/modify permission)
