@@ -167,6 +167,13 @@ if ($resHook < 0) {
 if (empty($resHook)) {
     $error = 0;
 
+    // Block content-modifying actions on read-only (locked/archived) objects
+    $modifyingActions = ['set_categories', 'confirm_setVerdict', 'confirm_set_reopen', 'uploadPhoto', 'save', 'update'];
+    if ((in_array($action, $modifyingActions) || preg_match('/^set[a-z]/', $action)) && isset($object->status) && !$object->isModifiable()) {
+        setEventMessages($langs->trans('ObjectIsReadOnly', ucfirst($langs->transnoentities('The' . ucfirst($object->element)))), [], 'warnings');
+        $action = '';
+    }
+
     $backurlforlist = dol_buildpath('/digiquali/view/control/control_list.php?source=' . $source, 1);
 
     if (empty($backtopage) || ($cancel && empty($id))) {
@@ -278,7 +285,7 @@ if (empty($resHook)) {
     }
 
     // Action to set status STATUS_REOPENED
-    if ($action == 'confirm_set_reopen') {
+    if ($action == 'confirm_set_reopen' && $permissiontoadd) {
         $object->fetch($id);
         if (!$error) {
             $result = $object->setDraft($user, false);
