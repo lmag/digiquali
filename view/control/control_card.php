@@ -979,6 +979,12 @@ if ($object->id > 0 && (empty($action) || ($action != 'create'))) {
                 print '<span class="butActionRefused classfortooltip" title="' . dol_escape_htmltag($langs->trans('ObjectMustBeLockedToArchive', ucfirst($langs->transnoentities('The' . ucfirst($object->element))))) . '">' . $displayButton . '</span>';
             }
 
+            // Unarchive
+            $displayButton = $onPhone ? '<i class="fas fa-box-open fa-2x"></i>' : '<i class="fas fa-box-open"></i>' . ' ' . $langs->trans('Unarchive');
+            if ($object->status == Control::STATUS_ARCHIVED) {
+                print '<a class="butAction" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=confirm_unarchive&token=' . newToken() . '">' . $displayButton . '</a>';
+            }
+
             // Clone
             $displayButton = $onPhone ? '<i class="fas fa-clone fa-2x"></i>' : '<i class="fas fa-clone"></i>' . ' ' . $langs->trans('ToClone');
             print '<span class="butAction" id="actionButtonClone">' . $displayButton . '</span>';
