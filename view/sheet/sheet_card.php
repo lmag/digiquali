@@ -115,7 +115,14 @@ if (empty($reshook)) {
 		}
 	}
 
-    if ($action == 'addQuestionGroup') {
+    // Block content-modifying actions on read-only (locked/archived) objects
+    $modifyingActions = ['addQuestionGroup', 'addQuestion', 'unlinkQuestion', 'unlinkQuestionGroup', 'update', 'moveLine', 'set_mandatory'];
+    if ((in_array($action, $modifyingActions) || preg_match('/^set[a-z]/', $action)) && isset($object->status) && !$object->isModifiable()) {
+        setEventMessages($langs->trans('ObjectIsReadOnly', ucfirst($langs->transnoentities('The' . ucfirst($object->element)))), [], 'warnings');
+        $action = '';
+    }
+
+    if ($action == 'addQuestionGroup' && $permissiontoadd) {
         $questionGroupId = GETPOST('questionGroupId');
         $targetQuestionGroupId = GETPOST('targetGroupId');
         if ($questionGroupId > 0) {
