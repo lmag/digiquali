@@ -100,7 +100,7 @@ $excludeFields                  = ['nb_questions'];
 // Initialize array of search criterias
 $searchAll        = trim(GETPOST('search_all'));
 $search           = [];
-$search['status'] = [1,2];
+$search['status'] = saturne_get_status_search_filter([Sheet::STATUS_VALIDATED, Sheet::STATUS_LOCKED]);
 foreach ($object->fields as $key => $val) {
     if (GETPOST('search_' . $key, 'alpha') !== '') {
         $search[$key] = GETPOST('search_' . $key, 'alpha');

@@ -146,7 +146,7 @@ $excludeFields = array_merge($excludeFields, ['days_remaining_before_next_contro
 // Initialize array of search criterias
 $searchAll = trim(GETPOST('search_all'));
 $search    = [];
-$search['status'] = [0, 1,2];
+$search['status'] = saturne_get_status_search_filter([Control::STATUS_DRAFT, Control::STATUS_VALIDATED, Control::STATUS_LOCKED]);
 foreach ($object->fields as $key => $val) {
     if (GETPOST('search_' . $key, 'alpha') !== '') {
         $search[$key] = GETPOST('search_' . $key, 'alpha');
