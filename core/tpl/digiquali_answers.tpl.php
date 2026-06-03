@@ -57,7 +57,7 @@ foreach ($questionsAndGroups as $questionOrGroup) {
         [$numberOfAnsweredQuestions, $numberOfQuestions] = $questionGroup->calculatePoints($object);
 
         print '<div class="digiquali-question-group' . $isGroupCorrectCssClass . '" id="'. $questionGroup->id .'" ' .$groupCssStyles. '>';
-        print '<h3>' . img_picto('', $questionGroup->picto) . '&nbsp; ' . htmlspecialchars($questionGroup->label) . ' <span class="badge badge-info" style="margin-left: 10px;" title="Nombre de questions répondues">' . $numberOfAnsweredQuestions . '/' . $numberOfQuestions . ' réponses aux questions</span></h3>';
+        print '<h3>' . img_picto('', $questionGroup->picto) . '&nbsp; ' . htmlspecialchars($questionGroup->label) . ' <span class="badge badge-info group-answer-counter" data-group-id="' . $questionGroup->id . '" style="margin-left: 10px;" title="Nombre de questions répondues">' . $numberOfAnsweredQuestions . '/' . $numberOfQuestions . ' réponses aux questions</span></h3>';
         if (!empty($questionGroup->description)) {
             print '<p class="group-description">' . nl2br(htmlspecialchars($questionGroup->description)) . '</p>';
         }

@@ -217,8 +217,18 @@ window.digiquali.object.saveAnswer = function(questionId, answer, comment) {
       comment: comment
     },
     success: function(resp) {
-      $('.progress-info').replaceWith($(resp).find('.progress-info'));
-      $('#dialog-confirm-actionButtonValidate>.confirmmessage').replaceWith($(resp).find('#dialog-confirm-actionButtonValidate>.confirmmessage'));
+      let $resp = $(resp);
+      $('.progress-info').replaceWith($resp.find('.progress-info'));
+      $('#dialog-confirm-actionButtonValidate>.confirmmessage').replaceWith($resp.find('#dialog-confirm-actionButtonValidate>.confirmmessage'));
+      // Refresh the per-group answered-question counters in real time so that questions inside
+      // groups (and nested sub-groups) are reflected immediately, on both backend and public interfaces.
+      $('.group-answer-counter').each(function() {
+        let groupId       = $(this).attr('data-group-id');
+        let $freshCounter = $resp.find('.group-answer-counter[data-group-id="' + groupId + '"]');
+        if ($freshCounter.length) {
+          $(this).text($freshCounter.first().text());
+        }
+      });
       // Remove the red unsaved warning from the comment box that was saved
       let $commentArea = $('.question-comment[name="comment' + questionId + '"]');
       if ($commentArea.length) {
