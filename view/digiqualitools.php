@@ -258,9 +258,10 @@ if (GETPOST('dataMigrationImportZip', 'alpha') && $permissionToWrite) {
                 foreach($digiqualiExportArray['questiongroups'] as $questionGroupSingle) {
                     $previousQuestionGroup = new QuestionGroup($db);
 
-                    $questionGroup->status = $questionGroupSingle['status'];
-                    $questionGroup->label = $questionGroupSingle['label'];
-                    $questionGroup->description = $questionGroupSingle['description'];
+                    $questionGroup->status       = $questionGroupSingle['status'];
+                    $questionGroup->label        = $questionGroupSingle['label'];
+                    $questionGroup->description  = $questionGroupSingle['description'];
+                    $questionGroup->success_rate = $questionGroupSingle['success_rate'] ?? 0;
 
                     $questionGroupId = $questionGroup->create($user);
 
@@ -282,6 +283,7 @@ if (GETPOST('dataMigrationImportZip', 'alpha') && $permissionToWrite) {
 
                                 $newQuestionId = $question->create($user);
                                 if ($newQuestionId > 0) {
+                                    $idCorrespondanceArray['question'][$questionSingle['rowid']] = $newQuestionId;
                                     $questionGroup->addQuestion($newQuestionId);
 
                                     if (array_key_exists('answers', $questionSingle) && !empty($questionSingle['answers'])) {
@@ -308,6 +310,22 @@ if (GETPOST('dataMigrationImportZip', 'alpha') && $permissionToWrite) {
                             }
                         }
 
+                    }
+                }
+            }
+
+            // Re-link sub-groups to their parent group (nested question groups).
+            if (!empty($digiqualiExportArray['questiongroups']) && is_array($digiqualiExportArray['questiongroups'])) {
+                foreach ($digiqualiExportArray['questiongroups'] as $questionGroupSingle) {
+                    if (empty($questionGroupSingle['parent_group_id'])) {
+                        continue;
+                    }
+                    $oldParentId = $questionGroupSingle['parent_group_id'];
+                    $oldChildId  = $questionGroupSingle['rowid'];
+                    if (isset($idCorrespondanceArray['questiongroup'][$oldParentId], $idCorrespondanceArray['questiongroup'][$oldChildId])) {
+                        $childGroup = new QuestionGroup($db);
+                        $childGroup->fetch($idCorrespondanceArray['questiongroup'][$oldChildId]);
+                        $childGroup->add_object_linked('digiquali_questiongroup', $idCorrespondanceArray['questiongroup'][$oldParentId]);
                     }
                 }
             }
