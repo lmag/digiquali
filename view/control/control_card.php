@@ -595,21 +595,14 @@ if ($object->id > 0 && (empty($action) || ($action != 'create'))) {
     $object->fetchObjectLinked('', '', $object->id, 'digiquali_control');
 
     $linkedObjectType = key($object->linkedObjects);
-    $questionIds      = $sheet->linkedObjectsIds['digiquali_question'];
 
-
-    foreach($questionsAndGroups as $questionOrGroup) {
-        if ($questionOrGroup->element == 'questiongroup') {
-            $questionGroup->fetch($questionOrGroup->id);
-            $groupQuestions = $questionGroup->fetchQuestionsOrderedByPosition();
-            if (is_array($groupQuestions) && !empty($groupQuestions)) {
-                foreach($groupQuestions as $groupQuestion) {
-                    $questionIds[] = $groupQuestion->id;
-                }
-            }
-
-        } else {
-            $questionIds[] = $questionOrGroup->id;
+    // Build the full list of question IDs of the sheet, including questions nested inside (sub-)groups.
+    // fetchAllQuestions() walks the question groups recursively, so deeply nested questions are counted too.
+    $questionIds    = [];
+    $sheetQuestions = $sheet->fetchAllQuestions();
+    if (is_array($sheetQuestions) && !empty($sheetQuestions)) {
+        foreach ($sheetQuestions as $sheetQuestion) {
+            $questionIds[] = $sheetQuestion->id;
         }
     }
 
