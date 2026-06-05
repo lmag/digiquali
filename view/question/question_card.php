@@ -161,6 +161,9 @@ if (empty($reshook)) {
 				$value = 60 * 60 * GETPOST($key.'hour', 'int') + 60 * GETPOST($key.'min', 'int');
 			} elseif (preg_match('/^(integer|price|real|double)/', $object->fields[$key]['type'])) {
 				$value = price2num(GETPOST($key, 'alphanohtml')); // To fix decimal separator according to lang setup
+				if ($value === '') {
+					$value = null; // Empty numeric input: store NULL (avoids TypeError on typed nullable properties such as Question::$points)
+				}
 			} elseif ($object->fields[$key]['type'] == 'boolean') {
 				$value = ((GETPOST($key) == '1' || GETPOST($key) == 'on') ? 1 : 0);
 			} elseif ($object->fields[$key]['type'] == 'reference') {
@@ -538,6 +541,9 @@ if (empty($reshook)) {
 				}
 			} elseif (preg_match('/^(integer|price|real|double)/', $object->fields[$key]['type'])) {
 				$value = price2num(GETPOST($key, 'alphanohtml')); // To fix decimal separator according to lang setup
+				if ($value === '') {
+					$value = null; // Empty numeric input: store NULL (avoids TypeError on typed nullable properties such as Question::$points)
+				}
 			} elseif ($object->fields[$key]['type'] == 'boolean') {
 				$value = ((GETPOST($key, 'aZ09') == 'on' || GETPOST($key, 'aZ09') == '1') ? 1 : 0);
 			} elseif ($object->fields[$key]['type'] == 'reference') {
