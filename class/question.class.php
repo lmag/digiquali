@@ -922,7 +922,7 @@ class Question extends SaturneObject
      */
     public function displayInSheetCard(Sheet $sheetObject, string $positionPath, string $tdOffsetStyle = '')
     {
-		global $langs;
+		global $conf, $langs;
 		$question = $this;
         require __DIR__ . '/../view/sheet/sheet_question.tpl.php';
     }
