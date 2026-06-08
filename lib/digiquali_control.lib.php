@@ -363,6 +363,15 @@ function get_task_infos(Task $task): array
     $userTmp->fetch($task->fk_user_creat);
     $out['task']['author'] = $userTmp->getNomUrl(1);
 
+    $out['task']['assigned'] = [];
+    $assignedContacts = $task->liste_contact(-1, 'internal', 0, 'TASKEXECUTIVE');
+    if (is_array($assignedContacts)) {
+        foreach ($assignedContacts as $assignedContact) {
+            $userTmp->fetch($assignedContact['id']);
+            $out['task']['assigned'][] = $userTmp->getNomUrl(1);
+        }
+    }
+
     if (empty($task->date_start) && empty($task->date_end)) {
         $out['task']['date'] = dol_print_date($task->date_c, 'dayhour');
     } else {

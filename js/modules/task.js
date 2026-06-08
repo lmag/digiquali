@@ -182,8 +182,9 @@ window.digiquali.task.createTask = function() {
   const label     = $modal.find('#answer-task-label').val();
   const startDate = $modal.find('#answer-task-start-date').val();
   const endDate   = $modal.find('#answer-task-end-date').val();
-  const budget    = $modal.find('#answer-task-budget').val();
-  const projectId = $modal.data('project-id');
+  const budget         = $modal.find('#answer-task-budget').val();
+  const projectId      = $modal.data('project-id');
+  const assignedUserId = $modal.find('[name="answer-task-assigned-user"]').val();
 
   $.ajax({
     url: `${document.URL}&action=add_task&token=${token}`,
@@ -196,7 +197,8 @@ window.digiquali.task.createTask = function() {
       date_start:         startDate,
       date_end:           endDate,
       budget_amount:      budget,
-      fk_project:         projectId
+      fk_project:         projectId,
+      fk_user_assign:     assignedUserId
     }),
     success: function(resp) {
       $modal.replaceWith($(resp).find('#answer_task_add'));

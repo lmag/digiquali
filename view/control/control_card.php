@@ -65,7 +65,7 @@ if (isModEnabled('dolicar')) {
 global $conf, $db, $hookmanager, $langs, $user;
 
 // Load translation files required by the page
-saturne_load_langs(['other', 'bills', 'orders']);
+saturne_load_langs(['other', 'bills', 'orders', 'projects']);
 
 // Get parameters
 $id                  = GETPOST('id', 'int');

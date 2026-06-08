@@ -41,6 +41,9 @@
                 <div class="question__action-metas">
                     <span class="question__action-metas-ref"><?php echo $taskInfos['task']['ref']; ?></span>
                     <span class="question__action-metas-author"><?php echo $taskInfos['task']['author']; ?></span>
+                    <?php if (!empty($taskInfos['task']['assigned'])) : ?>
+                        <span class="question__action-metas-assigned"><i class="fas fa-user-check pictofixedwidth"></i><?php echo implode(', ', $taskInfos['task']['assigned']); ?></span>
+                    <?php endif; ?>
                     <span class="question__action-metas-date"><i class="fas fa-calendar-alt pictofixedwidth"></i><?php echo $taskInfos['task']['date']; ?></span>
                     <div class="modal-open">
                         <?php if (!empty($permissionToManageTaskTimeSpent)) : ?>
