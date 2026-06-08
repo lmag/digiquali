@@ -48,7 +48,10 @@ if ($action == 'add_task' && !empty($permissionToAddTask)) {
     $task->budget_amount  = $data['budget_amount'] ?? null;
     $task->fk_task_parent = !empty($object->fk_master_task) ? $object->fk_master_task : 0;
 
-    $task->create($user);
+    $taskId = $task->create($user);
+    if ($taskId > 0 && !empty($data['fk_user_assign'])) {
+        $task->add_contact($data['fk_user_assign'], 'TASKEXECUTIVE', 'internal');
+    }
     $task->add_object_linked($data['objectLine_element'], $data['objectLine_id']);
     // @todo manage error
 }

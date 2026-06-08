@@ -24,7 +24,7 @@
 /**
  * The following vars must be defined:
  * Global   : $langs
- * Objects  : $object
+ * Objects  : $object, $form
  * Variable : $taskNextValue
  */ ?>
 
@@ -43,24 +43,28 @@
                         <span class="title"><?php echo $langs->trans('Label'); ?></span>
                         <input type="text" id="answer-task-label" name="label">
                     </label>
+                    <label>
+                        <span class="title"><?php echo $langs->trans('AffectedTo'); ?></span>
+                        <?php echo $form->select_dolusers('', 'answer-task-assigned-user', 1); ?>
+                    </label>
                     <div class="answer-task-date wpeo-gridlayout grid-3">
                         <div>
                             <label>
                                 <span class="title"><?php echo $langs->trans('DateStart'); ?></span>
                                 <input type="datetime-local" id="answer-task-start-date" name="date_start" value="<?php echo dol_print_date(dol_now('tzuser'), '%Y-%m-%dT%H:%M'); ?>">
-                            <label>
+                            </label>
                         </div>
                         <div>
                             <label>
                                 <span class="title"><?php echo $langs->trans('Deadline'); ?></span>
                                 <input type="datetime-local" id="answer-task-end-date" name="date_end">
-                            <label>
+                            </label>
                         </div>
                         <div>
                             <label>
                                 <span class="title"><?php echo $langs->trans('Budget'); ?></span>
                                 <input type="number" id="answer-task-budget" name="budget" min="0">
-                            <label>
+                            </label>
                         </div>
                     </div>
                 </div>
