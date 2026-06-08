@@ -75,9 +75,26 @@ if ($action == 'update_task' && !empty($permissionToAddTask)) {
         $task->date_end = dol_stringtotime($data['date_end']);
     }
     $task->budget_amount = $data['budget'];
+    if (isset($data['progress'])) {
+        $task->progress = max(0, min(100, (int) $data['progress']));
+    }
 
     $task->update($user);
     // @todo manage error
+}
+
+if ($action == 'update_task_progress' && !empty($permissionToAddTask)) {
+    $data = json_decode(file_get_contents('php://input'), true);
+    $task->fetch($data['task_id']);
+
+    $task->progress = max(0, min(100, (int) $data['progress']));
+
+    $result = $task->update($user);
+    if ($result < 0) {
+        // Update task progress KO
+        header('HTTP/1.1 500 Internal Server');
+        die(json_encode(['message' => $langs->transnoentities($task->error), 'code' => '1337']));
+    }
 }
 
 if ($action == 'delete_task' && !empty($permissionToDeleteTask)) {
