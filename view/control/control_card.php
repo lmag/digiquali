@@ -168,7 +168,7 @@ if (empty($resHook)) {
     $error = 0;
 
     // Block content-modifying actions on read-only (locked/archived) objects
-    $modifyingActions = ['set_categories', 'confirm_setVerdict', 'confirm_set_reopen', 'uploadPhoto', 'save', 'update'];
+    $modifyingActions = ['set_categories', 'confirm_setVerdict', 'confirm_set_reopen', 'uploadPhoto', 'uploadFile', 'deleteFile', 'save', 'update'];
     if ((in_array($action, $modifyingActions) || preg_match('/^set[a-z]/', $action)) && isset($object->status) && !$object->isModifiable()) {
         setEventMessages($langs->trans('ObjectIsReadOnly', ucfirst($langs->transnoentities('The' . ucfirst($object->element)))), [], 'warnings');
         $action = '';
@@ -345,6 +345,57 @@ if (empty($resHook)) {
             } else {
                 $allowOverwrite = GETPOSTINT('overwrite') ? 1 : 0;
                 dol_add_file_process($uploadDir, $allowOverwrite, 1, 'userfile', '', null, '', 1);
+            }
+        }
+    }
+
+    // Action to upload a document into the answer (controldet) linked files via the media block AJAX upload
+    if ($action == 'uploadFile' && !empty($conf->global->MAIN_UPLOAD_DOC)) {
+        $fkControl  = GETPOSTINT('fk_control');
+        $fkQuestion = GETPOSTINT('fk_question');
+
+        if ($fkControl > 0 && $fkQuestion > 0) {
+            // Resolve the answer line; create it on the fly so a document can be attached before answering
+            $answerLine = new ControlLine($db);
+            $resLines   = $answerLine->fetchFromParentWithQuestion($fkControl, $fkQuestion);
+            if (is_array($resLines) && !empty($resLines)) {
+                $answerLine = array_shift($resLines);
+            } else {
+                $answerLine->fk_control    = $fkControl;
+                $answerLine->fk_question   = $fkQuestion;
+                $answerLine->status        = ControlLine::STATUS_VALIDATED;
+                $answerLine->date_creation = dol_now();
+                $answerLine->create($user);
+            }
+
+            if ($answerLine->id > 0) {
+                $uploadDir = $conf->digiquali->dir_output . '/controldet/' . dol_sanitizeFileName($answerLine->ref);
+                if (!dol_is_dir($uploadDir)) {
+                    dol_mkdir($uploadDir);
+                }
+
+                $allowOverwrite = GETPOSTINT('overwrite') ? 1 : 0;
+                dol_add_file_process($uploadDir, $allowOverwrite, 1, 'userfile', '', null, '', 1);
+            }
+        }
+    }
+
+    // Action to delete a document from the answer (controldet) linked files via the media block AJAX upload
+    if ($action == 'deleteFile') {
+        $uploadModuleName = GETPOST('module_name', 'alpha');
+        $uploadSubDir     = GETPOST('sub_dir', 'alpha');
+        $fileName         = dol_sanitizeFileName(GETPOST('filename', 'alpha'));
+
+        if (!empty($uploadModuleName) && !empty($fileName) && !empty($uploadSubDir) && strpos($uploadSubDir, '..') === false) {
+            $uploadModuleNameLowerCase = dol_strtolower($uploadModuleName);
+            $uploadDir                 = !empty($conf->$uploadModuleNameLowerCase->dir_output)
+                ? $conf->$uploadModuleNameLowerCase->dir_output
+                : $conf->ecm->dir_output . '/' . $uploadModuleNameLowerCase;
+            $uploadDir                .= '/' . $uploadSubDir;
+
+            $filePath = $uploadDir . '/' . $fileName;
+            if (dol_is_file($filePath)) {
+                dol_delete_file($filePath);
             }
         }
     }
