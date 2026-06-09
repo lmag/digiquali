@@ -64,9 +64,12 @@ if (!isset($user->conf->DIGIQUALI_SHOW_ONLY_QUESTIONS_WITH_NO_ANSWER) || empty($
                         <div class="question__answer-actions">
                             <?php if ($question->authorize_answer_photo > 0) : ?>
                                 <?php echo saturne_render_media_block('digiquali', $object->element . '/' . $object->ref . '/answer_photo/' . $question->ref, 'answer_photo_' . $question->id, '', [
-                                    'show_photo'  => true,
-                                    'show_audio'  => false,
-                                    'show_upload' => $object->status == 0,
+                                    'show_photo'       => true,
+                                    'show_audio'       => false,
+                                    'show_file'        => $object->element === 'control',
+                                    'file_sub_dir'     => ($objectLine->id > 0 ? 'controldet/' . dol_sanitizeFileName($objectLine->ref) : ''),
+                                    'file_upload_data' => ['fk_control' => $object->id, 'fk_question' => $question->id],
+                                    'show_upload'      => $object->status == 0,
                                 ]); ?>
                             <?php endif; ?>
                             <?php if (!empty($object->project) && !empty($permissionToAddTask)) : ?>
