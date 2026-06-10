@@ -361,7 +361,7 @@ class RiskAssessment extends SaturneObject
     {
         global $db, $langs;
 
-        if ($riskAssessmentInfos['id'] > 0) {
+        if (($riskAssessmentInfos['id'] ?? 0) > 0) {
             require __DIR__ . '/../core/tpl/riskassessment/digiquali_riskassessment_single_view.tpl.php';
         } else {
             require __DIR__ . '/../core/tpl/riskassessment/digiquali_riskassessment_add_view.tpl.php';
@@ -372,7 +372,7 @@ class RiskAssessment extends SaturneObject
     {
         global $db, $langs;
 
-        if ($riskAssessmentInfos['id'] > 0) {
+        if (($riskAssessmentInfos['id'] ?? 0) > 0) {
             require __DIR__ . '/../core/tpl/riskassessment/task/digiquali_riskassessment_task_single_view.tpl.php';
         } else {
             require __DIR__ . '/../core/tpl/riskassessment/task/digiquali_riskassessment_task_add_view.tpl.php';
