@@ -191,12 +191,15 @@ if ((empty($action) || ($action != 'edit' && $action != 'create'))) {
         print '<input type="hidden" id="success_message" value="' . $langs->transnoentities('Updated') . '">';
         print '<div class="activity-container__body wpeo-gridlayout grid-2">';
         foreach ($activitySingle->fields as $key => $val) {
-            if (!isset($val['viewmode']) && $val['viewmode'] != 'badge') {
+            if (!isset($val['viewmode']) || $val['viewmode'] != 'badge') {
                 continue;
             }
+            // Score fields show a non-editable percentage sign, rendered via CSS ::after on .badge-percent
+            $badgeClassName = (in_array($key, ['score', 'target_score'], true) && isset($activitySingle->{$key})) ? 'badge-percent' : '';
             echo saturne_get_badge_component_html([
                 'id'        => 'badge_component_' . $key . '_' . $activitySingle->id,
                 'field'     => $key,
+                'className' => $badgeClassName,
                 'iconClass' => $val['picto'] ?? '',
                 'title'     => $val['label'],
                 'details'   => [$activitySingle->{$key} ?? $langs->transnoentities('NotKnown')],

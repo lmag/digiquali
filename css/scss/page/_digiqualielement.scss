@@ -1,0 +1,8 @@
+// Score badges (ActualScore / TargetScore) show a "%" sign after the value.
+// The value stays editable (contenteditable), but the sign is rendered as a
+// pseudo-element so it can never be edited or saved as part of the value.
+.badge-percent {
+  .badge__detail::after {
+    content: '\00a0%';
+  }
+}
