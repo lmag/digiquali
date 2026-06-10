@@ -144,16 +144,89 @@ if ((empty($action) || ($action != 'edit' && $action != 'create'))) {
     saturne_get_fiche_head($object, $activity->element, $title);
     saturne_banner_tab($object,'ref','none', 0, 'ref', 'ref', '', true);
 
+    $formConfirm = '';
+    // Confirmation to delete
+    if ($action == 'delete') {
+        $formConfirm = $form->formconfirm($_SERVER['PHP_SELF'] . '?id=' . $object->id, $langs->transnoentities('DeleteObject', $langs->transnoentities('The' . ucfirst($object->element))), $langs->transnoentities('ConfirmDeleteObject', $langs->transnoentities('The' . ucfirst($object->element))), 'confirm_delete', '', 'yes', 1);
+    }
+
+    // Call Hook formConfirm
+    $parameters = ['formConfirm' => $formConfirm];
+    $resHook    = $hookmanager->executeHooks('formConfirm', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
+    if (empty($resHook)) {
+        $formConfirm .= $hookmanager->resPrint;
+    } elseif ($resHook > 0) {
+        $formConfirm = $hookmanager->resPrint;
+    }
+
+    // Print form confirm
+    print $formConfirm;
+
     print '<div class="fichecenter">';
     print '<div class="fichehalfleft">';
     print '<table class="border centpercent tableforfield">';
 
+    if ($object->id > 0) {
+        print '<tr class="linked-medias digirisk-element-photo-'. $object->id .'"><td class=""><label for="photos">' . $langs->trans("Photo") . '</label></td><td class="linked-medias-list" style="display: flex; gap: 10px; height: auto;">';
+        print '<span class="add-medias" '. (($object->status != $object::STATUS_VALIDATED) ? "" : "style='display:none'") . '>';
+        print '<input hidden multiple class="fast-upload" id="fast-upload-photo-default" type="file" name="userfile[]" capture="environment" accept="image/*">';
+        print '<label for="fast-upload-photo-default">';
+        print '<div title="'. $langs->trans('AddPhotoFromComputer') .'" class="wpeo-button button-square-50">';
+        print '<i class="fas fa-camera"></i><i class="fas fa-plus-circle button-add"></i>';
+        print '</div>';
+        print '</label>';
+        print '&nbsp';
+        print '<input type="hidden" class="favorite-photo" id="photo" name="photo" value="' . $object->photo . '"/>';
+        print '<div title="'. $langs->trans('AddPhotoFromMediaGallery') .'" class="wpeo-button button-square-50 open-media-gallery add-media modal-open" value="0">';
+        print '<input type="hidden" class="modal-options" data-modal-to-open="media_gallery" data-from-id="'. $object->id .'" data-from-type="'. $object->element_type .'" data-from-subtype="photo" data-from-subdir="" data-photo-class="digirisk-element-photo-'. $object->id .'"/>';
+        print '<i class="fas fa-folder-open"></i><i class="fas fa-plus-circle button-add"></i>';
+        print '</div>';
+        print '</span>';
+        print '&nbsp';
+        print saturne_show_medias_linked('digiriskdolibarr', $conf->digiriskdolibarr->multidir_output[$conf->entity] . '/' . $object->element_type . '/' . $object->ref, 'small', 5, 0, 0, 0, 50, 50, 0, 0, 0, $object->element_type . '/'. $object->ref . '/', $object, 'photo', $object->status != $object::STATUS_VALIDATED, $permissiontodelete && $object->status != $object::STATUS_VALIDATED);
+        print '</td></tr>';
+    }
+
+    // Common attributes
+    require_once DOL_DOCUMENT_ROOT . '/core/tpl/commonfields_view.tpl.php';
+
+    // Other attributes. Fields from hook formObjectOptions and Extrafields
+    require_once DOL_DOCUMENT_ROOT . '/core/tpl/extrafields_view.tpl.php';
+
     print '</table>';
+    print '</div>';
     print '</div>';
 
     print '<div class="clearboth"></div>';
 
     print dol_get_fiche_end();
+
+    // Buttons for actions
+    if ($object->id > 0) {
+        print '<div class="tabsAction">';
+        $parameters = [];
+        $resHook    = $hookmanager->executeHooks('addMoreActionsButtons', $parameters, $object, $action); // Note that $action and $object may have been modified by hook
+        if ($resHook < 0) {
+            setEventMessages($hookmanager->error, $hookmanager->errors, 'errors');
+        }
+
+        if (empty($resHook)) {
+            // Modify
+            $displayButton = $conf->browser->layout != 'classic' ? '<i class="fas fa-edit fa-2x"></i>' : '<i class="fas fa-edit"></i>' . ' ' . $langs->transnoentities('Modify');
+            if ($permissiontoadd) {
+                print '<a class="butAction" href="' . dol_buildpath($object->module . '/view/' . $object->element . '/' . $object->element . '_card.php', 1) . '?id=' . $object->id . '&action=edit&backtopage=' . urlencode($_SERVER['PHP_SELF'] . '?id=' . $object->id) . '">' . $displayButton . '</a>';
+            } else {
+                print '<span class="butActionRefused classfortooltip" title="' . dol_escape_htmltag($langs->transnoentities('NotEnoughPermissions')) . '">' . $displayButton . '</span>';
+            }
+
+            // Delete
+            $displayButton = $conf->browser->layout != 'classic' ? '<i class="fas fa-trash fa-2x"></i>' : '<i class="fas fa-trash"></i>' . ' ' . $langs->transnoentities('Delete');
+            if ($object->status != SaturneElement::STATUS_TRASHED) {
+                print dolGetButtonAction($displayButton, '', 'delete', $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=delete&token=' . newToken(), '', $permissiontodelete);
+            }
+        }
+        print '</div>';
+    }
 
     require_once __DIR__ . '/../../../saturne/core/tpl/modal/modal_badge_component.tpl.php';
     require_once __DIR__ . '/../../core/tpl/modal/activity/modal_activity_add.tpl.php';
