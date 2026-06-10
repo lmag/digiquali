@@ -6,3 +6,10 @@
     content: '\00a0%';
   }
 }
+
+// The Dolibarr theme rule "div.fiche > table.table-fiche-title:first-of-type div"
+// overrides the wpeo-button text color with the title color, which is close to the
+// button primary background: the "+" icon of the activity create button was invisible.
+.mod-digiquali-digiqualielement .table-fiche-title .wpeo-button .button-icon {
+  color: $color__primary-text;
+}
