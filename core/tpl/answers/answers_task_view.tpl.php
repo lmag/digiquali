@@ -58,6 +58,13 @@
                         </div>
                     <?php endif; ?>
                     <span class="question__action-metas-budget"><i class="fas fa-coins pictofixedwidth"></i><?php echo $taskInfos['task']['budget']; ?></span>
+                    <span class="question__action-metas-progress">
+                        <i class="fas fa-tasks pictofixedwidth"></i>
+                        <?php if (!empty($permissionToAddTask)) : ?>
+                            <input type="range" class="range task-progress-slider" min="0" max="100" step="1" value="<?php echo (int) $taskInfos['task']['progress']; ?>" data-task-id="<?php echo $task->id; ?>">
+                        <?php endif; ?>
+                        <span class="task-progress-value"><?php echo (int) $taskInfos['task']['progress']; ?> %</span>
+                    </span>
                 </div>
                 <div class="question__action-content"><?php echo $taskInfos['task']['label']; ?></div>
             </div>

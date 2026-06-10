@@ -44,7 +44,6 @@ $taskInfos = get_task_infos($task); ?>
                 <span class="answer-task-date"><i class="fas fa-calendar-alt pictofixedwidth"></i><?php echo $taskInfos['task']['date']; ?></span>
                 <span class="answer-total-task-timespent"><i class="fas fa-clock pictofixedwidth"></i><?php echo $taskInfos['task']['time']; ?></span>
                 <span><i class="fas fa-coins pictofixedwidth"></i><?php echo $taskInfos['task']['budget']; ?></span>
-                <span class="answer-task-progress <?php //echo $task->getTaskProgressColorClass($task_progress); ?>"><?php echo $taskInfos['task']['progress'] ? $taskInfos['task']['progress'] . " %" : 0 . " %" ?></span>
             </div>
             <div class="answer-task-content">
                 <div class="answer-task-title">
@@ -72,6 +71,15 @@ $taskInfos = get_task_infos($task); ?>
                             <input type="number" id="answer-task-budget" name="budget" min="0" value="<?php echo $task->budget_amount; ?>">
                         </label>
                     </div>
+                </div>
+                <div class="answer-task-progress-field">
+                    <label>
+                        <span class="title"><?php echo $langs->trans('Progress'); ?></span>
+                        <div class="answer-task-progress-control">
+                            <input type="range" id="answer-task-progress" class="range" name="progress" min="0" max="100" step="1" value="<?php echo (int) $task->progress; ?>">
+                            <span class="task-progress-value"><?php echo (int) $task->progress; ?> %</span>
+                        </div>
+                    </label>
                 </div>
             </div>
         </div>
