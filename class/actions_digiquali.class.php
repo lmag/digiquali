@@ -599,11 +599,12 @@ class ActionsDigiquali
                             $object->fetchObjectLinked($object->fk_sheet, 'digiquali_sheet');
                             $questionsLinked = $object->linkedObjects;
                             $linkedMedias    = 0;
+                            $confName        = 'DIGIQUALI_' . dol_strtoupper($object->element) . '_USE_LARGE_MEDIA_IN_GALLERY';
 
                             if (is_array($questionsLinked['digiquali_question']) && !empty($questionsLinked['digiquali_question'])) {
                                 foreach ($questionsLinked['digiquali_question'] as $questionLinked) {
                                     if ($questionLinked->authorize_answer_photo > 0) {
-                                        saturne_show_medias_linked('digiquali', $conf->digiquali->multidir_output[$conf->entity] . '/' . $object->element . '/' . $object->ref . '/answer_photo/' . $questionLinked->ref, ($conf->global->$confName ? 'large' : 'medium'), '', 0, 0, 0, 200, 200, 0, 0, 0, $object->element . '/' . $object->ref . '/answer_photo/' . $questionLinked->ref, $object, '', 0, 0);
+                                        saturne_show_medias_linked('digiquali', $conf->digiquali->multidir_output[$conf->entity] . '/' . $object->element . '/' . $object->ref . '/answer_photo/' . $questionLinked->ref, (getDolGlobalInt($confName) ? 'large' : 'medium'), '', 0, 0, 0, 200, 200, 0, 0, 0, $object->element . '/' . $object->ref . '/answer_photo/' . $questionLinked->ref, $object, '', 0, 0);
                                         $linkedMedias += $object->nbphoto;
                                     }
                                 }
