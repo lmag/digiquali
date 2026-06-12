@@ -287,7 +287,7 @@ function get_control_infos(CommonObject $linkedObject): array
                 }
             }
 
-            $moreParams = '&fromtype=' . $linkedObject->element . '&fromid=' . $linkedObject->id . '&fk_sheet=' . $lastControl->fk_sheet . '&fk_user_controller=' . $lastControl->fk_user_controller . (!empty($lastControl->projectid) ? '&projectid=' . $lastControl->projectid : '') . $arraySelected;
+            $moreParams = '&fromtype=' . $linkedObject->element . '&fromid=' . $linkedObject->id . '&fk_sheet=' . $lastControl->fk_sheet . (!empty($lastControl->projectid) ? '&projectid=' . $lastControl->projectid : '') . $arraySelected;
             $out['nextControl']['create_button'] = '<a class="wpeo-button button-square-60 button-radius-1 button-primary button-flex" href="' . dol_buildpath('custom/digiquali/view/control/control_card.php?action=create' . $moreParams, 1) . '" target="_blank"><i class="button-icon fas fa-plus"></i></a>';
         }
         $verdictControlColor           = $lastControl->verdict == 1 ? 'green' : 'red';
