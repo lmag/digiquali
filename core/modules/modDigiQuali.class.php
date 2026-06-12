@@ -122,6 +122,7 @@ class modDigiQuali extends DolibarrModules
 				'categoryindex',
 				'mainloginpage',
                 'controlcard',
+                'controllist',
                 'publiccontrol',
                 'publicsurvey',
                 'digiqualiadmindocuments',
