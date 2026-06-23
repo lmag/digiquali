@@ -288,6 +288,16 @@ class Control extends SaturneObject
 
         $result = parent::create($user, $noTrigger);
         if ($result > 0) {
+            // #2442: assign the definitive ref right away instead of keeping the (PROV…) placeholder,
+            // so answer medias are never stored under a temporary ref path (which broke on validation).
+            if (preg_match('/^\(?PROV/i', $this->ref) || empty($this->ref)) {
+                $newRef = $this->getNextNumRef();
+                if (!empty($newRef) && $newRef !== $this->ref) {
+                    $this->setValueFrom('ref', $newRef, '', '', 'text', '', $user);
+                    $this->ref = $newRef;
+                }
+            }
+
             // Load Digiquali libraries
             require_once __DIR__ . '/sheet.class.php';
 

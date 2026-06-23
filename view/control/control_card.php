@@ -168,7 +168,7 @@ if (empty($resHook)) {
     $error = 0;
 
     // Block content-modifying actions on read-only (locked/archived) objects
-    $modifyingActions = ['set_categories', 'confirm_setVerdict', 'confirm_set_reopen', 'uploadPhoto', 'uploadFile', 'deleteFile', 'save', 'update'];
+    $modifyingActions = ['set_categories', 'confirm_setVerdict', 'confirm_set_reopen', 'uploadPhoto', 'uploadFile', 'deleteFile', 'deletePhoto', 'save', 'update'];
     if ((in_array($action, $modifyingActions) || preg_match('/^set[a-z]/', $action)) && isset($object->status) && !$object->isModifiable()) {
         setEventMessages($langs->trans('ObjectIsReadOnly', ucfirst($langs->transnoentities('The' . ucfirst($object->element)))), [], 'warnings');
         $action = '';
@@ -381,7 +381,8 @@ if (empty($resHook)) {
     }
 
     // Action to delete a document from the answer (controldet) linked files via the media block AJAX upload
-    if ($action == 'deleteFile') {
+    // deleteFile = remove an attached document ; deletePhoto = remove an answer photo (same file-removal logic)
+    if ($action == 'deleteFile' || $action == 'deletePhoto') {
         $uploadModuleName = GETPOST('module_name', 'alpha');
         $uploadSubDir     = GETPOST('sub_dir', 'alpha');
         $fileName         = dol_sanitizeFileName(GETPOST('filename', 'alpha'));

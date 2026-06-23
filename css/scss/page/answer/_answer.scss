@@ -187,6 +187,15 @@
         .saturne-media-upload-block {
           gap: 4px;
         }
+        // #2442: slightly larger action buttons (+2px) so they are easier to tap on a field device
+        .button-square-50,
+        .saturne-media-btn,
+        .saturne-upload-label {
+          width: 52px;
+          min-width: 52px;
+          height: 52px;
+          min-height: 52px;
+        }
         .button-linked-medias {
           overflow: visible;
 
@@ -204,6 +213,13 @@
             font-size: 11px;
           }
         }
+      }
+
+      // #2442: on the field device the answer box must take the full width, below the question
+      @media ( max-width: $media__small ) {
+        width: 100%;
+        flex-wrap: wrap;
+        justify-content: flex-start;
       }
 
       .percentage-cell {

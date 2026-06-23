@@ -66,7 +66,7 @@ if (!isset($user->conf->DIGIQUALI_SHOW_ONLY_QUESTIONS_WITH_NO_ANSWER) || empty($
                                 <?php echo saturne_render_media_block('digiquali', $object->element . '/' . $object->ref . '/answer_photo/' . $question->ref, 'answer_photo_' . $question->id, '', [
                                     'show_photo'       => true,
                                     'show_audio'       => false,
-                                    'show_file'        => $object->element === 'control',
+                                    'show_file'        => $object->element === 'control' && !getDolGlobalInt('DIGIQUALI_CONTROL_DISABLE_ATTACHED_FILES'),
                                     'file_sub_dir'     => ($objectLine->id > 0 ? 'controldet/' . dol_sanitizeFileName($objectLine->ref) : ''),
                                     'file_upload_data' => ['fk_control' => $object->id, 'fk_question' => $question->id],
                                     'show_upload'      => $object->status == 0,
