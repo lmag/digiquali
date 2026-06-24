@@ -482,7 +482,7 @@ NoObjectLineAnswersPhoto                = Pas de photos sur les réponses du %s
 # Data - Donnée
 ControlDocument                         = Fiche de Contrôle
 Controldocument                         = Fiche de Contrôle
-ControlDocumentPDF                      = FC-A4-MEDIA-PDF
+ControlDocumentPDF                      = Fiche de Contrôle PDF avec photo
 ControlDocumentsMin                     = fiches de contôle
 ControlDocumentDisplayMedias            = Afficher les médias dans la fiche de contrôle
 ControlDocumentDisplayMediasDescription = Afficher les médias des questions dans la fiche de contrôle ODT
