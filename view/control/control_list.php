@@ -130,7 +130,10 @@ $conf->cache['signatoriesInDictionary'] = $signatoriesInDictionary;
 if (is_array($signatoriesInDictionary) && !empty($signatoriesInDictionary)) {
     $customFieldsPosition = 111;
     foreach ($signatoriesInDictionary as $signatoryInDictionary) {
-        $object->fields[$signatoryInDictionary->ref] = ['label' => $signatoryInDictionary->ref, 'enabled' => 1, 'position' => $customFieldsPosition++, 'visible' => 2, 'css' => 'minwidth300 maxwidth500 widthcentpercentminusxx right'];
+        // Signatory role columns are computed from the signatures (no real t.<ref> column in
+        // the control table), so they cannot be ordered as a base-table column (disablesort).
+        // Search IS supported: printFieldListSearch() filters on the signatory's name.
+        $object->fields[$signatoryInDictionary->ref] = ['label' => $signatoryInDictionary->ref, 'enabled' => 1, 'position' => $customFieldsPosition++, 'visible' => 2, 'css' => 'minwidth300 maxwidth500 widthcentpercentminusxx right', 'disablesort' => 1];
         $excludeFields[]                             = $signatoryInDictionary->ref;
     }
 }

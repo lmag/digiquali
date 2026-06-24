@@ -378,7 +378,7 @@ class ActionsDigiquali
      * @return int                   0 < on error, 0 on success, 1 to replace standard code
      * @throws Exception
      */
-    public function printFieldListSearch(array $parameters): int
+    public function printFieldListSearch(array $parameters, $object = null): int
     {
         global $conf;
 
@@ -406,6 +406,26 @@ class ActionsDigiquali
                 }
                 if ($parameters['val'] === '-1') {
                     return 1; // or return 1 to replace standard code
+                }
+            }
+
+            // Signatory role columns (e.g. Controller) have no real t.<role> column: filter by
+            // the signatory's name (linked user or contact) through the signature table.
+            $signatoriesInDictionary = $conf->cache['signatoriesInDictionary'] ?? [];
+            if (is_object($object) && is_array($signatoriesInDictionary) && !empty($signatoriesInDictionary)) {
+                foreach ($signatoriesInDictionary as $signatoryInDictionary) {
+                    if ($parameters['key'] === $signatoryInDictionary->ref && trim((string) $parameters['val']) !== '') {
+                        $nameFilter = natural_search(['su.firstname', 'su.lastname', 'sc.firstname', 'sc.lastname'], $parameters['val'], 0, 1);
+                        $sql  = ' AND EXISTS (SELECT 1 FROM ' . $this->db->prefix() . 'saturne_object_signature AS sgn';
+                        $sql .= ' LEFT JOIN ' . $this->db->prefix() . 'user AS su ON (sgn.element_type = \'user\' AND sgn.element_id = su.rowid)';
+                        $sql .= ' LEFT JOIN ' . $this->db->prefix() . 'socpeople AS sc ON (sgn.element_type = \'socpeople\' AND sgn.element_id = sc.rowid)';
+                        $sql .= ' WHERE sgn.fk_object = t.rowid';
+                        $sql .= ' AND sgn.object_type = \'' . $this->db->escape($object->element) . '\'';
+                        $sql .= ' AND sgn.role = \'' . $this->db->escape($signatoryInDictionary->ref) . '\'';
+                        $sql .= ' AND ' . $nameFilter . ')';
+                        $this->resprints = $sql;
+                        return 1; // or return 1 to replace standard code
+                    }
                 }
             }
         }
