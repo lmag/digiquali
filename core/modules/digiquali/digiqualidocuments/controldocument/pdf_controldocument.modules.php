@@ -106,7 +106,7 @@ class pdf_controldocument extends SaturneDocumentModel
 
         parent::__construct($db, $this->module, $this->document_type);
 
-        $this->name        = 'controldocument';
+        $this->name        = $langs->trans('ControlDocumentPDF');
         $this->description = $langs->trans('ControlDocumentPDFDescription');
         $this->type        = 'pdf';
         $this->height      = 10;
