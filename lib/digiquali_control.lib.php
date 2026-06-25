@@ -84,7 +84,7 @@ function get_linked_object_infos(CommonObject $linkedObject, array $linkableElem
 
     $permissionToRead = $user->hasRight('produit', 'lire');
 
-    $linkableElement = $linkableElements[$linkedObject->element];
+    $linkableElement = $linkableElements[$linkedObject->element] ?? [];
 
     // TODO: see if we can remove this if
     $modulePart = $linkedObject->element;
@@ -112,8 +112,15 @@ function get_linked_object_infos(CommonObject $linkedObject, array $linkableElem
 
     $out['linkedObject']['links'] = [];
     $out['linkedObject']['files'] = $filteredEcmFilesLine;
-    $out['linkedObject']['title']      = $langs->transnoentities($linkableElement['langs']);
-    $out['linkedObject']['name_field'] = $linkedObject->getNomUrl(1, !$permissionToRead ? 'nolink' : '');
+    $out['linkedObject']['title']      = $langs->transnoentities(!empty($linkableElement['langs']) ? $linkableElement['langs'] : dol_ucfirst($linkedObject->element));
+    if (method_exists($linkedObject, 'getNomUrl')) {
+        $out['linkedObject']['name_field'] = $linkedObject->getNomUrl(1, !$permissionToRead ? 'nolink' : '');
+    } else {
+        // Some linked objects (e.g. productbatch) don't implement getNomUrl(): fall back to picto + name
+        $picto = !empty($linkableElement['picto']) ? img_picto('', $linkableElement['picto'], 'class="pictofixedwidth"') : '';
+        $name  = !empty($linkedObject->ref) ? $linkedObject->ref : (!empty($linkedObject->label) ? $linkedObject->label : ($linkedObject->batch ?? ''));
+        $out['linkedObject']['name_field'] = $picto . dol_escape_htmltag($name);
+    }
 
     // Per-element label and description field mapping
     $elementFieldsMap = [
