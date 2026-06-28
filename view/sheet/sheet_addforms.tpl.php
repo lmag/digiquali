@@ -1,6 +1,7 @@
 <?php 
 
 $isAddFormsVisible = $isAddFormsVisible ?? false;
+$tdOffsetStyle = $tdOffsetStyle ?? '';
 $question = new Question($db);
 $questionGroup = new QuestionGroup($db);
 
