@@ -674,14 +674,14 @@ if (($id || $ref) && $action == 'edit') {
 	$elementLinked = json_decode($object->element_linked ?? '{}') ?? new stdClass();
 
 	foreach ($objectsMetadata as $key => $element) {
-		if (empty($elementLinked->$key) || empty($element['conf'])) {
+		if (empty($element['conf'])) {
 			continue;
 		}
 		print '<tr><td class="">' . img_picto('', $element['picto'], 'class="paddingrightonly"') . $langs->trans($element['langs']) . '</td><td>';
 		if ($conf->global->DIGIQUALI_SHEET_UNIQUE_LINKED_ELEMENT) {
-			print '<input type="radio" id="show_' . $key . '" name="linked_object[]" value="'.$key.'"'.(!empty($elementLinked->$key) ? ' checked=checked' : '').' disabled>';
+			print '<input type="radio" id="show_' . $key . '" name="linked_object[]" value="'.$key.'"'.(!empty($elementLinked->$key) ? ' checked=checked' : '').'>';
 		} else {
-			print '<input type="checkbox" id="show_' . $key . '" name="linked_object[]" value="'.$key.'"'.(!empty($elementLinked->$key) ? ' checked=checked' : '').' disabled>';
+			print '<input type="checkbox" id="show_' . $key . '" name="linked_object[]" value="'.$key.'"'.(!empty($elementLinked->$key) ? ' checked=checked' : '').'>';
 		}
 		print '</td></tr>';
 	}
