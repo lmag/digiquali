@@ -246,9 +246,9 @@ print '<input type="hidden" name="action" value="generate_main_categories">';
 
 print '<tr class="oddeven"><td>' . $langs->transnoentities('GenerateMainSheetCategories') . '</td>';
 print '<td class="center">';
-print $conf->global->DIGIQUALI_SHEET_MAIN_CATEGORIES_SET ? $langs->transnoentities('AlreadyGenerated') : $langs->transnoentities('NotCreated');
+print getDolGlobalInt('DIGIQUALI_SHEET_MAIN_CATEGORIES_SET') ? $langs->transnoentities('AlreadyGenerated') : $langs->transnoentities('NotCreated');
 print '</td><td class="center">';
-print $conf->global->DIGIQUALI_SHEET_MAIN_CATEGORIES_SET ? '<a type="" class=" butActionRefused" value="">' . $langs->transnoentities('Create') . '</a>' : '<input type="submit" class="button" value="' . $langs->transnoentities('Create') . '">';
+print getDolGlobalInt('DIGIQUALI_SHEET_MAIN_CATEGORIES_SET') ? '<a type="" class=" butActionRefused" value="">' . $langs->transnoentities('Create') . '</a>' : '<input type="submit" class="button" value="' . $langs->transnoentities('Create') . '">';
 print '</td><td class="center">';
 print $form->textwithpicto('', $langs->trans('MainSheetCategoriesDescription'));
 print '</td></tr>';
@@ -261,7 +261,7 @@ print '<input type="hidden" name="action" value="set_main_category">';
 // Set default main category
 print '<tr class="oddeven"><td>' . $langs->transnoentities('SheetMainCategory') . '</td>';
 print '<td class="center">';
-print $formOther->select_categories('sheet', $conf->global->DIGIQUALI_SHEET_MAIN_CATEGORY, 'main_category');
+print $formOther->select_categories('sheet', getDolGlobalInt('DIGIQUALI_SHEET_MAIN_CATEGORY'), 'main_category');
 print '</td><td class="center">';
 print '<div><input type="submit" class="butAction" name="save" value="' . $langs->trans('Save') . '"></div>';
 print '</td><td class="center">';
