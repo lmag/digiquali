@@ -553,6 +553,7 @@ class Sheet extends SaturneObject
     public function updateQuestionsAndGroupsPosition(?array $questionIds, ?array $questionGroupIds, $reindexLast = false, ?int $fk_source = null, string $sourcetype = 'digiquali_sheet')
     {
         $this->db->begin();
+        $error = 0;
 
         if (is_null($fk_source)) {
             $fk_source = $this->id;
