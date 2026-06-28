@@ -337,7 +337,7 @@ class QuestionGroup extends SaturneObject
         $previousObject = clone $object;
         $object->fetchObjectLinked('', '', $this->id, $this->table_element);
 
-        $previousQuestions = $object->linkedObjects['digiquali_question'];
+        $previousQuestions = $object->linkedObjects['digiquali_question'] ?? [];
 
 		// Reset some properties
 		unset($object->id);
