@@ -459,11 +459,16 @@ if ($action == 'create') {
         $object->fields['fk_user_controller']['visible'] = 1;
         $object->fields['fk_user_controller']['default'] = $user->id;
         if (!empty($conf->projet->enabled)) {
-            $object->fields['projectid']['visible'] = 1;
+            if (!empty($sheet->show_project)) {
+                $object->fields['projectid']['visible'] = 1;
+            }
             if (!empty($sheet->fk_project)) {
                 $_POST['projectid'] = $sheet->fk_project;
             }
         }
+        // Store show_project to handle hidden input after commonfields
+        $sheetShowProject = $sheet->show_project;
+        $sheetDefaultProjectId = $sheet->fk_project;
     }
 
     if ($viewmode == 'images') {
@@ -537,16 +542,32 @@ if ($action == 'create') {
     // Common attributes
     require_once DOL_DOCUMENT_ROOT . '/core/tpl/commonfields_add.tpl.php';
 
+    // Hidden project input when project field is not visible but sheet has a default project
+    if ($fkSheet > 0 && empty($sheetShowProject) && !empty($sheetDefaultProjectId)) {
+        print '<input type="hidden" name="projectid" value="' . intval($sheetDefaultProjectId) . '">';
+    }
+
     if ($fkSheet > 0) {
+        // Default control tags from sheet
+        $defaultControlTags = json_decode($sheet->default_control_tags ?? '[]', true) ?: [];
+        $selectedCategories = GETPOSTISSET('categories') ? GETPOST('categories', 'array') : $defaultControlTags;
+
         // Categories
         if (!empty($conf->categorie->enabled)) {
-            print '<tr><td>' . ($source != 'pwa' ? $langs->trans('Categories') : img_picto('', 'fontawesome_fa-tags_fas_#000000_2em', 'class="pictofixedwidth"')) . '</td><td>';
-            $categoryArborescence = $form->select_all_categories('control', '', 'parent', 64, 0, 1);
-            print ($source != 'pwa' ? img_picto('', 'category', 'class="pictofixedwidth"') : '') . $form::multiselectarray('categories', $categoryArborescence, GETPOST('categories', 'array'), '', 0, 'minwidth100imp maxwidth500 widthcentpercentminusxx');
-            if ($source != 'pwa') {
-                print '<a class="butActionNew" href="' . DOL_URL_ROOT . '/categories/index.php?type=control&backtopage=' . urlencode($_SERVER['PHP_SELF'] . '?action=create') . '" target="_blank"><span class="fa fa-plus-circle valignmiddle paddingleft" title="' . $langs->trans('AddCategories') . '"></span></a>';
+            if (!empty($sheet->show_tags)) {
+                print '<tr><td>' . ($source != 'pwa' ? $langs->trans('Categories') : img_picto('', 'fontawesome_fa-tags_fas_#000000_2em', 'class="pictofixedwidth"')) . '</td><td>';
+                $categoryArborescence = $form->select_all_categories('control', '', 'parent', 64, 0, 1);
+                print ($source != 'pwa' ? img_picto('', 'category', 'class="pictofixedwidth"') : '') . $form::multiselectarray('categories', $categoryArborescence, $selectedCategories, '', 0, 'minwidth100imp maxwidth500 widthcentpercentminusxx');
+                if ($source != 'pwa') {
+                    print '<a class="butActionNew" href="' . DOL_URL_ROOT . '/categories/index.php?type=control&backtopage=' . urlencode($_SERVER['PHP_SELF'] . '?action=create') . '" target="_blank"><span class="fa fa-plus-circle valignmiddle paddingleft" title="' . $langs->trans('AddCategories') . '"></span></a>';
+                }
+                print '</td></tr>';
+            } else {
+                // Hidden inputs to still apply default tags
+                foreach ($selectedCategories as $catId) {
+                    print '<input type="hidden" name="categories[]" value="' . intval($catId) . '">';
+                }
             }
-            print '</td></tr>';
         }
 
         // Other attributes

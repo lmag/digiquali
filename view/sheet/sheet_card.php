@@ -241,6 +241,10 @@ if (empty($reshook)) {
 		}
 		$object->element_linked = json_encode($showArray);
 
+		$object->default_control_tags = json_encode(GETPOST('default_control_tags', 'array'));
+		$_POST['show_project'] = GETPOST('ctrl_show_project');
+		$_POST['show_tags'] = GETPOST('ctrl_show_tags');
+
 		if (empty(GETPOST('categories', 'array'))) {
 			$category->fetch($conf->global->DIGIQUALI_SHEET_DEFAULT_TAG);
 			$defaultCategory[] = $category->id;
@@ -256,6 +260,10 @@ if (empty($reshook)) {
 			}
 		}
 		$object->element_linked = json_encode($showArray);
+
+		$object->default_control_tags = json_encode(GETPOST('default_control_tags', 'array'));
+		$_POST['show_project'] = GETPOST('ctrl_show_project');
+		$_POST['show_tags'] = GETPOST('ctrl_show_tags');
 
 		if (empty(GETPOST('categories', 'array'))) {
 			$category->fetch($conf->global->DIGIQUALI_SHEET_DEFAULT_TAG);
@@ -498,14 +506,46 @@ if ($action == 'create') {
     print $form::selectarray('type', $object->fields['type']['arrayofkeyval'], GETPOST('type'));
     print '</td></tr>';
 
-    // Project
-    if (!empty($conf->projet->enabled)) {
-        print '<tr><td class="">' . img_picto('', 'project', 'class="paddingrightonly"') . $langs->trans('Project') . '</td><td>';
-        print $formproject->select_projects(-1, GETPOSTINT('fk_project'), 'fk_project', 0, 0, 1, 0, 0, 0, 0, '', 1, 0, 'maxwidth500');
-        print '</td></tr>';
-    }
+	// Control creation options
+	print '<tr class="liste_titre"><td colspan="2">' . $langs->trans('ControlCreationOptions') . '</td></tr>';
 
-    //FK Element
+	// Show project on control
+	if (!empty($conf->projet->enabled)) {
+		print '<tr><td>' . $langs->trans('ShowProjectOnControl') . ' ' . img_picto($langs->trans('ShowProjectOnControlHelp'), 'help') . '</td><td>';
+		print $form::selectarray('ctrl_show_project', [0 => $langs->trans('No'), 1 => $langs->trans('Yes')], GETPOSTISSET('ctrl_show_project') ? GETPOST('ctrl_show_project') : 1);
+		print '</td></tr>';
+
+		// Default project for control
+		print '<tr><td>' . img_picto('', 'project', 'class="paddingrightonly"') . $langs->trans('DefaultControlProject') . '</td><td>';
+		print $formproject->select_projects(-1, GETPOSTINT('fk_project'), 'fk_project', 0, 0, 1, 0, 0, 0, 0, '', 1, 0, 'maxwidth500');
+		print '</td></tr>';
+	}
+
+	// Default control tags
+	if (!empty($conf->categorie->enabled)) {
+		print '<tr><td>' . $langs->trans('DefaultControlTags') . ' ' . img_picto($langs->trans('DefaultControlTagsHelp'), 'help') . '</td><td>';
+		$controlCateArbo = $form->select_all_categories('control', '', 'parent', 64, 0, 1);
+		print img_picto('', 'category', 'class="pictofixedwidth"') . $form::multiselectarray('default_control_tags', $controlCateArbo, GETPOST('default_control_tags', 'array'), '', 0, 'minwidth100imp maxwidth500 widthcentpercentminusxx');
+		print '</td></tr>';
+
+		// Show tags on control
+		print '<tr><td>' . $langs->trans('ShowTagsOnControl') . ' ' . img_picto($langs->trans('ShowTagsOnControlHelp'), 'help') . '</td><td>';
+		print $form::selectarray('ctrl_show_tags', [0 => $langs->trans('No'), 1 => $langs->trans('Yes')], GETPOSTISSET('ctrl_show_tags') ? GETPOST('ctrl_show_tags') : 1);
+		print '</td></tr>';
+	}
+
+	if (!empty($conf->categorie->enabled)) {
+		// Categories
+		print '<tr><td class="fieldrequired">'.$langs->trans("Categories").'</td><td>';
+		$cate_arbo = $form->select_all_categories('sheet', '', 'parent', 64, 0, 1);
+		print img_picto('', 'category', 'class="pictofixedwidth"').$form::multiselectarray('categories', $cate_arbo, GETPOST('categories', 'array'), '', 0, 'minwidth100imp maxwidth500 widthcentpercentminusxx');
+        print '<a class="butActionNew" href="' . DOL_URL_ROOT . '/categories/index.php?type=sheet&backtopage=' . urlencode($_SERVER['PHP_SELF'] . '?action=create') . '" target="_blank"><span class="fa fa-plus-circle valignmiddle paddingleft" title="' . $langs->trans('AddCategories') . '"></span></a>';
+		print "</td></tr>";
+	}
+
+    // Linked elements
+    print '<tr class="liste_titre"><td colspan="2"><b>' . $langs->trans('ControlledObjectsTitle') . '</b></td></tr>';
+
     $nbLinkableElements = 0;
     foreach ($objectsMetadata as $objectType => $objectMetadata) {
         if ($objectMetadata['conf'] == 0) {
@@ -528,14 +568,7 @@ if ($action == 'create') {
         print saturne_show_notice($langs->transnoentities('MissingConfigElementTypeTitle'), $noticeMessage, 'error', 'notice-infos', true);
     }
 
-	if (!empty($conf->categorie->enabled)) {
-		// Categories
-		print '<tr><td>'.$langs->trans("Categories").'</td><td>';
-		$cate_arbo = $form->select_all_categories('sheet', '', 'parent', 64, 0, 1);
-		print img_picto('', 'category', 'class="pictofixedwidth"').$form::multiselectarray('categories', $cate_arbo, GETPOST('categories', 'array'), '', 0, 'minwidth100imp maxwidth500 widthcentpercentminusxx');
-        print '<a class="butActionNew" href="' . DOL_URL_ROOT . '/categories/index.php?type=sheet&backtopage=' . urlencode($_SERVER['PHP_SELF'] . '?action=create') . '" target="_blank"><span class="fa fa-plus-circle valignmiddle paddingleft" title="' . $langs->trans('AddCategories') . '"></span></a>';
-		print "</td></tr>";
-	}
+
 
 	// Other attributes
 	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_add.tpl.php';
@@ -590,14 +623,55 @@ if (($id || $ref) && $action == 'edit') {
     print $form::selectarray('type', $object->fields['type']['arrayofkeyval'], $object->type);
     print '</td></tr>';
 
-    // Project
-    if (!empty($conf->projet->enabled)) {
-        print '<tr><td class="">' . img_picto('', 'project', 'class="paddingrightonly"') . $langs->trans('Project') . '</td><td>';
-        print $formproject->select_projects(-1, $object->fk_project, 'fk_project', 0, 0, 1, 0, 0, 0, 0, '', 1, 0, 'maxwidth500');
-        print '</td></tr>';
-    }
+	// Control creation options
+	print '<tr class="liste_titre"><td colspan="2">' . $langs->trans('ControlCreationOptions') . '</td></tr>';
 
-    //FK Element
+	// Show project on control
+	if (!empty($conf->projet->enabled)) {
+		print '<tr><td>' . $langs->trans('ShowProjectOnControl') . ' ' . img_picto($langs->trans('ShowProjectOnControlHelp'), 'help') . '</td><td>';
+		print $form::selectarray('ctrl_show_project', [0 => $langs->trans('No'), 1 => $langs->trans('Yes')], GETPOSTISSET('ctrl_show_project') ? GETPOST('ctrl_show_project') : $object->show_project);
+		print '</td></tr>';
+
+		// Default project for control
+		print '<tr><td>' . img_picto('', 'project', 'class="paddingrightonly"') . $langs->trans('DefaultControlProject') . '</td><td>';
+		print $formproject->select_projects(-1, $object->fk_project, 'fk_project', 0, 0, 1, 0, 0, 0, 0, '', 1, 0, 'maxwidth500');
+		print '</td></tr>';
+	}
+
+	// Default control tags
+	if (!empty($conf->categorie->enabled)) {
+		print '<tr><td>' . $langs->trans('DefaultControlTags') . ' ' . img_picto($langs->trans('DefaultControlTagsHelp'), 'help') . '</td><td>';
+		$controlCateArbo = $form->select_all_categories('control', '', 'parent', 64, 0, 1);
+		$defaultControlTagsSelected = GETPOSTISSET('default_control_tags') ? GETPOST('default_control_tags', 'array') : (json_decode($object->default_control_tags ?? '[]', true) ?: []);
+		print img_picto('', 'category', 'class="pictofixedwidth"') . $form::multiselectarray('default_control_tags', $controlCateArbo, $defaultControlTagsSelected, '', 0, 'minwidth100imp maxwidth500 widthcentpercentminusxx');
+		print '</td></tr>';
+
+		// Show tags on control
+		print '<tr><td>' . $langs->trans('ShowTagsOnControl') . ' ' . img_picto($langs->trans('ShowTagsOnControlHelp'), 'help') . '</td><td>';
+		print $form::selectarray('ctrl_show_tags', [0 => $langs->trans('No'), 1 => $langs->trans('Yes')], GETPOSTISSET('ctrl_show_tags') ? GETPOST('ctrl_show_tags') : $object->show_tags);
+		print '</td></tr>';
+	}
+
+	// Tags-Categories
+	if ($conf->categorie->enabled) {
+		print '<tr><td class="fieldrequired">'.$langs->trans("Categories").'</td><td>';
+		$cate_arbo = $form->select_all_categories('sheet', '', 'parent', 64, 0, 1);
+		$c = new Categorie($db);
+		$cats = $c->containing($object->id, 'sheet');
+		$arrayselected = array();
+		if (is_array($cats)) {
+			foreach ($cats as $cat) {
+				$arrayselected[] = $cat->id;
+			}
+		}
+		print img_picto('', 'category', 'class="pictofixedwidth"').$form::multiselectarray('categories', $cate_arbo, (GETPOSTISSET('categories') ? GETPOST('categories', 'array') : $arrayselected), '', 0, 'minwidth100imp maxwidth500 widthcentpercentminusxx');
+        print '<a class="butActionNew" href="' . DOL_URL_ROOT . '/categories/index.php?type=sheet&backtopage=' . urlencode($_SERVER['PHP_SELF'] . '?action=create') . '" target="_blank"><span class="fa fa-plus-circle valignmiddle paddingleft" title="' . $langs->trans('AddCategories') . '"></span></a>';
+		print "</td></tr>";
+	}
+
+    // Linked elements
+    print '<tr class="liste_titre"><td colspan="2"><b>' . $langs->trans('ControlledObjectsTitle') . '</b></td></tr>';
+
 	$elementLinked = json_decode($object->element_linked ?? '{}') ?? new stdClass();
 
 	foreach ($objectsMetadata as $key => $element) {
@@ -613,22 +687,7 @@ if (($id || $ref) && $action == 'edit') {
 		print '</td></tr>';
 	}
 
-	// Tags-Categories
-	if ($conf->categorie->enabled) {
-		print '<tr><td>'.$langs->trans("Categories").'</td><td>';
-		$cate_arbo = $form->select_all_categories('sheet', '', 'parent', 64, 0, 1);
-		$c = new Categorie($db);
-		$cats = $c->containing($object->id, 'sheet');
-		$arrayselected = array();
-		if (is_array($cats)) {
-			foreach ($cats as $cat) {
-				$arrayselected[] = $cat->id;
-			}
-		}
-		print img_picto('', 'category', 'class="pictofixedwidth"').$form::multiselectarray('categories', $cate_arbo, (GETPOSTISSET('categories') ? GETPOST('categories', 'array') : $arrayselected), '', 0, 'minwidth100imp maxwidth500 widthcentpercentminusxx');
-        print '<a class="butActionNew" href="' . DOL_URL_ROOT . '/categories/index.php?type=sheet&backtopage=' . urlencode($_SERVER['PHP_SELF'] . '?action=create') . '" target="_blank"><span class="fa fa-plus-circle valignmiddle paddingleft" title="' . $langs->trans('AddCategories') . '"></span></a>';
-		print "</td></tr>";
-	}
+
 
 	// Other attributes
 	include DOL_DOCUMENT_ROOT.'/core/tpl/extrafields_edit.tpl.php';
@@ -724,6 +783,52 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 		print $form->showCategories($object->id, 'sheet', 1);
 		print "</td></tr>";
 	}
+
+	// Control creation options
+	print '<tr class="liste_titre"><td colspan="2">' . $langs->trans('ControlCreationOptions') . '</td></tr>';
+
+	// Show project on control
+	if (!empty($conf->projet->enabled)) {
+		print '<tr><td class="titlefield">' . $langs->trans('ShowProjectOnControl') . '</td><td>';
+		print yn($object->show_project);
+		print '</td></tr>';
+
+		// Default project for control
+		print '<tr><td>' . img_picto('', 'project', 'class="paddingrightonly"') . $langs->trans('DefaultControlProject') . '</td><td>';
+		if (!empty($object->fk_project)) {
+			$tmpProject = new Project($db);
+			$tmpProject->fetch($object->fk_project);
+			print $tmpProject->getNomUrl(1);
+		} else {
+			print '<span class="opacitymedium">' . $langs->trans('None') . '</span>';
+		}
+		print '</td></tr>';
+	}
+
+	// Default control tags
+	if (!empty($conf->categorie->enabled)) {
+		print '<tr><td>' . $langs->trans('DefaultControlTags') . '</td><td>';
+		$defaultControlTagIds = json_decode($object->default_control_tags ?? '[]', true) ?: [];
+		if (!empty($defaultControlTagIds)) {
+			$tmpCategory = new Categorie($db);
+			foreach ($defaultControlTagIds as $catId) {
+				if ($tmpCategory->fetch($catId) > 0) {
+					print '<span class="noborderoncategories" ' . $tmpCategory->getHtmlColor() . '>' . $tmpCategory->getNomUrl(1) . '</span> ';
+				}
+			}
+		} else {
+			print '<span class="opacitymedium">' . $langs->trans('None') . '</span>';
+		}
+		print '</td></tr>';
+
+		// Show tags on control
+		print '<tr><td>' . $langs->trans('ShowTagsOnControl') . '</td><td>';
+		print yn($object->show_tags);
+		print '</td></tr>';
+	}
+
+	// Linked elements
+	print '<tr class="liste_titre"><td colspan="2"><b>' . $langs->trans('ControlledObjectsTitle') . '</b></td></tr>';
 
 	$elementLinked = json_decode($object->element_linked ?? '{}') ?? new stdClass();
 

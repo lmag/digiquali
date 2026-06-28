@@ -40,6 +40,15 @@ GenerateMainSheetCategories    = Génération des catégories principales du mod
 MainSheetCategoriesDescription = Cette option permet la génération des catégories principales du modèle de contrôle. <br> Les catégories créées seront : <ul><li>Contrôle</li><ul><li>Qualité</li><ul><li>Hygiène et Sécurité</li><ul><li>Trousses de premier secours</li></ul></ul><li>Matériels</li><ul><li>Masque</li></ul><li>Véhicules</li><ul><li>Voiture</li><li>Véhicule industriel</li></ul></ul></ul>
 SheetMainCategory              = Choix de la catégorie principale du modèle de contrôle
 SheetMainCategoryDescription   = Cette option permet de choisir quelle catégorie sera utilisée lors du choix de catégorie pendant la création d'un contrôle
+ShowProjectOnControl           = Afficher le projet sur le contrôle
+ShowTagsOnControl              = Afficher les tags sur le contrôle
+DefaultControlTags             = Tags par défaut du contrôle
+ControlCreationOptions         = Options de création du contrôle
+ShowProjectOnControlHelp       = Si activé, le champ projet sera visible lors de la création d'un contrôle depuis ce modèle
+ShowTagsOnControlHelp          = Si activé, le champ tags/catégories sera visible lors de la création d'un contrôle depuis ce modèle
+DefaultControlTagsHelp         = Catégories qui seront pré-sélectionnées lors de la création d'un contrôle depuis ce modèle
+DefaultControlProject          = Projet par défaut du contrôle
+ControlledObjectsTitle         = Objets contrôlés par ce Contrôle/Questionnaire
 
 # Control - Contrôle
 DisplayMediasSample                                = Afficher les médias d'exemple des questions
