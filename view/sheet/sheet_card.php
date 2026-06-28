@@ -506,41 +506,41 @@ if ($action == 'create') {
     print $form::selectarray('type', $object->fields['type']['arrayofkeyval'], GETPOST('type'));
     print '</td></tr>';
 
+	if (!empty($conf->categorie->enabled)) {
+		// Categories
+		print '<tr><td class="fieldrequired">' . img_picto('', 'category', 'class="paddingrightonly"') . $langs->trans("Categories").'</td><td>';
+		$cate_arbo = $form->select_all_categories('sheet', '', 'parent', 64, 0, 1);
+		print $form::multiselectarray('categories', $cate_arbo, GETPOST('categories', 'array'), '', 0, 'minwidth100imp maxwidth500 widthcentpercentminusxx');
+        print '<a class="butActionNew" href="' . DOL_URL_ROOT . '/categories/index.php?type=sheet&backtopage=' . urlencode($_SERVER['PHP_SELF'] . '?action=create') . '" target="_blank"><span class="fa fa-plus-circle valignmiddle paddingleft" title="' . $langs->trans('AddCategories') . '"></span></a>';
+		print "</td></tr>";
+	}
+
 	// Control creation options
-	print '<tr class="liste_titre"><td colspan="2">' . $langs->trans('ControlCreationOptions') . '</td></tr>';
+	print '<tr class="liste_titre"><td colspan="2"><b>' . $langs->trans('ControlCreationOptions') . '</b></td></tr>';
 
-	// Show project on control
+	// Default project for control
 	if (!empty($conf->projet->enabled)) {
-		print '<tr><td>' . $langs->trans('ShowProjectOnControl') . ' ' . img_picto($langs->trans('ShowProjectOnControlHelp'), 'help') . '</td><td>';
-		print $form::selectarray('ctrl_show_project', [0 => $langs->trans('No'), 1 => $langs->trans('Yes')], GETPOSTISSET('ctrl_show_project') ? GETPOST('ctrl_show_project') : 1);
-		print '</td></tr>';
-
-		// Default project for control
 		print '<tr><td>' . img_picto('', 'project', 'class="paddingrightonly"') . $langs->trans('DefaultControlProject') . '</td><td>';
 		print $formproject->select_projects(-1, GETPOSTINT('fk_project'), 'fk_project', 0, 0, 1, 0, 0, 0, 0, '', 1, 0, 'maxwidth500');
+		print '</td></tr>';
+
+		// Show project on control
+		print '<tr><td>' . $langs->trans('ShowProjectOnControl') . ' ' . img_picto($langs->trans('ShowProjectOnControlHelp'), 'help') . '</td><td>';
+		print $form::selectarray('ctrl_show_project', [0 => $langs->trans('No'), 1 => $langs->trans('Yes')], GETPOSTISSET('ctrl_show_project') ? GETPOST('ctrl_show_project') : 1);
 		print '</td></tr>';
 	}
 
 	// Default control tags
 	if (!empty($conf->categorie->enabled)) {
-		print '<tr><td>' . $langs->trans('DefaultControlTags') . ' ' . img_picto($langs->trans('DefaultControlTagsHelp'), 'help') . '</td><td>';
+		print '<tr><td>' . img_picto('', 'category', 'class="paddingrightonly"') . $langs->trans('DefaultControlTags') . ' ' . img_picto($langs->trans('DefaultControlTagsHelp'), 'help') . '</td><td>';
 		$controlCateArbo = $form->select_all_categories('control', '', 'parent', 64, 0, 1);
-		print img_picto('', 'category', 'class="pictofixedwidth"') . $form::multiselectarray('default_control_tags', $controlCateArbo, GETPOST('default_control_tags', 'array'), '', 0, 'minwidth100imp maxwidth500 widthcentpercentminusxx');
+		print $form::multiselectarray('default_control_tags', $controlCateArbo, GETPOST('default_control_tags', 'array'), '', 0, 'minwidth100imp maxwidth500 widthcentpercentminusxx');
 		print '</td></tr>';
 
 		// Show tags on control
 		print '<tr><td>' . $langs->trans('ShowTagsOnControl') . ' ' . img_picto($langs->trans('ShowTagsOnControlHelp'), 'help') . '</td><td>';
 		print $form::selectarray('ctrl_show_tags', [0 => $langs->trans('No'), 1 => $langs->trans('Yes')], GETPOSTISSET('ctrl_show_tags') ? GETPOST('ctrl_show_tags') : 1);
 		print '</td></tr>';
-	}
-
-	if (!empty($conf->categorie->enabled)) {
-		// Categories
-		print '<tr><td class="fieldrequired">'.$langs->trans("Categories").'</td><td>';
-		$cate_arbo = $form->select_all_categories('sheet', '', 'parent', 64, 0, 1);
-		print img_picto('', 'category', 'class="pictofixedwidth"').$form::multiselectarray('categories', $cate_arbo, GETPOST('categories', 'array'), '', 0, 'minwidth100imp maxwidth500 widthcentpercentminusxx');
-        print '<a class="butActionNew" href="' . DOL_URL_ROOT . '/categories/index.php?type=sheet&backtopage=' . urlencode($_SERVER['PHP_SELF'] . '?action=create') . '" target="_blank"><span class="fa fa-plus-circle valignmiddle paddingleft" title="' . $langs->trans('AddCategories') . '"></span></a>';
-		print "</td></tr>";
 	}
 
     // Linked elements
@@ -623,38 +623,9 @@ if (($id || $ref) && $action == 'edit') {
     print $form::selectarray('type', $object->fields['type']['arrayofkeyval'], $object->type);
     print '</td></tr>';
 
-	// Control creation options
-	print '<tr class="liste_titre"><td colspan="2">' . $langs->trans('ControlCreationOptions') . '</td></tr>';
-
-	// Show project on control
-	if (!empty($conf->projet->enabled)) {
-		print '<tr><td>' . $langs->trans('ShowProjectOnControl') . ' ' . img_picto($langs->trans('ShowProjectOnControlHelp'), 'help') . '</td><td>';
-		print $form::selectarray('ctrl_show_project', [0 => $langs->trans('No'), 1 => $langs->trans('Yes')], GETPOSTISSET('ctrl_show_project') ? GETPOST('ctrl_show_project') : $object->show_project);
-		print '</td></tr>';
-
-		// Default project for control
-		print '<tr><td>' . img_picto('', 'project', 'class="paddingrightonly"') . $langs->trans('DefaultControlProject') . '</td><td>';
-		print $formproject->select_projects(-1, $object->fk_project, 'fk_project', 0, 0, 1, 0, 0, 0, 0, '', 1, 0, 'maxwidth500');
-		print '</td></tr>';
-	}
-
-	// Default control tags
-	if (!empty($conf->categorie->enabled)) {
-		print '<tr><td>' . $langs->trans('DefaultControlTags') . ' ' . img_picto($langs->trans('DefaultControlTagsHelp'), 'help') . '</td><td>';
-		$controlCateArbo = $form->select_all_categories('control', '', 'parent', 64, 0, 1);
-		$defaultControlTagsSelected = GETPOSTISSET('default_control_tags') ? GETPOST('default_control_tags', 'array') : (json_decode($object->default_control_tags ?? '[]', true) ?: []);
-		print img_picto('', 'category', 'class="pictofixedwidth"') . $form::multiselectarray('default_control_tags', $controlCateArbo, $defaultControlTagsSelected, '', 0, 'minwidth100imp maxwidth500 widthcentpercentminusxx');
-		print '</td></tr>';
-
-		// Show tags on control
-		print '<tr><td>' . $langs->trans('ShowTagsOnControl') . ' ' . img_picto($langs->trans('ShowTagsOnControlHelp'), 'help') . '</td><td>';
-		print $form::selectarray('ctrl_show_tags', [0 => $langs->trans('No'), 1 => $langs->trans('Yes')], GETPOSTISSET('ctrl_show_tags') ? GETPOST('ctrl_show_tags') : $object->show_tags);
-		print '</td></tr>';
-	}
-
 	// Tags-Categories
 	if ($conf->categorie->enabled) {
-		print '<tr><td class="fieldrequired">'.$langs->trans("Categories").'</td><td>';
+		print '<tr><td class="fieldrequired">' . img_picto('', 'category', 'class="paddingrightonly"') . $langs->trans("Categories").'</td><td>';
 		$cate_arbo = $form->select_all_categories('sheet', '', 'parent', 64, 0, 1);
 		$c = new Categorie($db);
 		$cats = $c->containing($object->id, 'sheet');
@@ -664,9 +635,37 @@ if (($id || $ref) && $action == 'edit') {
 				$arrayselected[] = $cat->id;
 			}
 		}
-		print img_picto('', 'category', 'class="pictofixedwidth"').$form::multiselectarray('categories', $cate_arbo, (GETPOSTISSET('categories') ? GETPOST('categories', 'array') : $arrayselected), '', 0, 'minwidth100imp maxwidth500 widthcentpercentminusxx');
-        print '<a class="butActionNew" href="' . DOL_URL_ROOT . '/categories/index.php?type=sheet&backtopage=' . urlencode($_SERVER['PHP_SELF'] . '?action=create') . '" target="_blank"><span class="fa fa-plus-circle valignmiddle paddingleft" title="' . $langs->trans('AddCategories') . '"></span></a>';
+		print $form::multiselectarray('categories', $cate_arbo, (GETPOSTISSET('categories') ? GETPOST('categories', 'array') : $arrayselected), '', 0, 'minwidth100imp maxwidth500 widthcentpercentminusxx');
 		print "</td></tr>";
+	}
+
+	// Control creation options
+	print '<tr class="liste_titre"><td colspan="2"><b>' . $langs->trans('ControlCreationOptions') . '</b></td></tr>';
+
+	// Default project for control
+	if (!empty($conf->projet->enabled)) {
+		print '<tr><td>' . img_picto('', 'project', 'class="paddingrightonly"') . $langs->trans('DefaultControlProject') . '</td><td>';
+		print $formproject->select_projects(-1, $object->fk_project, 'fk_project', 0, 0, 1, 0, 0, 0, 0, '', 1, 0, 'maxwidth500');
+		print '</td></tr>';
+
+		// Show project on control
+		print '<tr><td>' . $langs->trans('ShowProjectOnControl') . ' ' . img_picto($langs->trans('ShowProjectOnControlHelp'), 'help') . '</td><td>';
+		print $form::selectarray('ctrl_show_project', [0 => $langs->trans('No'), 1 => $langs->trans('Yes')], GETPOSTISSET('ctrl_show_project') ? GETPOST('ctrl_show_project') : $object->show_project);
+		print '</td></tr>';
+	}
+
+	// Default control tags
+	if (!empty($conf->categorie->enabled)) {
+		print '<tr><td>' . img_picto('', 'category', 'class="paddingrightonly"') . $langs->trans('DefaultControlTags') . ' ' . img_picto($langs->trans('DefaultControlTagsHelp'), 'help') . '</td><td>';
+		$controlCateArbo = $form->select_all_categories('control', '', 'parent', 64, 0, 1);
+		$defaultControlTagsSelected = GETPOSTISSET('default_control_tags') ? GETPOST('default_control_tags', 'array') : (json_decode($object->default_control_tags ?? '[]', true) ?: []);
+		print $form::multiselectarray('default_control_tags', $controlCateArbo, $defaultControlTagsSelected, '', 0, 'minwidth100imp maxwidth500 widthcentpercentminusxx');
+		print '</td></tr>';
+
+		// Show tags on control
+		print '<tr><td>' . $langs->trans('ShowTagsOnControl') . ' ' . img_picto($langs->trans('ShowTagsOnControlHelp'), 'help') . '</td><td>';
+		print $form::selectarray('ctrl_show_tags', [0 => $langs->trans('No'), 1 => $langs->trans('Yes')], GETPOSTISSET('ctrl_show_tags') ? GETPOST('ctrl_show_tags') : $object->show_tags);
+		print '</td></tr>';
 	}
 
     // Linked elements
@@ -675,14 +674,14 @@ if (($id || $ref) && $action == 'edit') {
 	$elementLinked = json_decode($object->element_linked ?? '{}') ?? new stdClass();
 
 	foreach ($objectsMetadata as $key => $element) {
-		if (empty($element['conf'])) {
+		if (empty($elementLinked->$key) || empty($element['conf'])) {
 			continue;
 		}
 		print '<tr><td class="">' . img_picto('', $element['picto'], 'class="paddingrightonly"') . $langs->trans($element['langs']) . '</td><td>';
 		if ($conf->global->DIGIQUALI_SHEET_UNIQUE_LINKED_ELEMENT) {
-			print '<input type="radio" id="show_' . $key . '" name="linked_object[]" value="'.$key.'"'.(!empty($elementLinked->$key) ? 'checked=checked' : '').'>';
+			print '<input type="radio" id="show_' . $key . '" name="linked_object[]" value="'.$key.'"'.(!empty($elementLinked->$key) ? ' checked=checked' : '').' disabled>';
 		} else {
-			print '<input type="checkbox" id="show_' . $key . '" name="linked_object[]" value="'.$key.'"'.(!empty($elementLinked->$key) ? 'checked=checked' : '').'>';
+			print '<input type="checkbox" id="show_' . $key . '" name="linked_object[]" value="'.$key.'"'.(!empty($elementLinked->$key) ? ' checked=checked' : '').' disabled>';
 		}
 		print '</td></tr>';
 	}
@@ -779,22 +778,17 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 
 	// Categories
 	if ($conf->categorie->enabled) {
-		print '<tr><td class="valignmiddle">'.$langs->trans("Categories").'</td><td>';
+		print '<tr><td class="valignmiddle">' . img_picto('', 'category', 'class="paddingrightonly"') . $langs->trans("Categories").'</td><td>';
 		print $form->showCategories($object->id, 'sheet', 1);
 		print "</td></tr>";
 	}
 
 	// Control creation options
-	print '<tr class="liste_titre"><td colspan="2">' . $langs->trans('ControlCreationOptions') . '</td></tr>';
+	print '<tr class="liste_titre"><td colspan="2"><b>' . $langs->trans('ControlCreationOptions') . '</b></td></tr>';
 
-	// Show project on control
+	// Default project for control
 	if (!empty($conf->projet->enabled)) {
-		print '<tr><td class="titlefield">' . $langs->trans('ShowProjectOnControl') . '</td><td>';
-		print yn($object->show_project);
-		print '</td></tr>';
-
-		// Default project for control
-		print '<tr><td>' . img_picto('', 'project', 'class="paddingrightonly"') . $langs->trans('DefaultControlProject') . '</td><td>';
+		print '<tr><td class="titlefield">' . img_picto('', 'project', 'class="paddingrightonly"') . $langs->trans('DefaultControlProject') . '</td><td>';
 		if (!empty($object->fk_project)) {
 			$tmpProject = new Project($db);
 			$tmpProject->fetch($object->fk_project);
@@ -803,11 +797,16 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			print '<span class="opacitymedium">' . $langs->trans('None') . '</span>';
 		}
 		print '</td></tr>';
+
+		// Show project on control
+		print '<tr><td>' . $langs->trans('ShowProjectOnControl') . '</td><td>';
+		print yn($object->show_project);
+		print '</td></tr>';
 	}
 
 	// Default control tags
 	if (!empty($conf->categorie->enabled)) {
-		print '<tr><td>' . $langs->trans('DefaultControlTags') . '</td><td>';
+		print '<tr><td>' . img_picto('', 'category', 'class="paddingrightonly"') . $langs->trans('DefaultControlTags') . '</td><td>';
 		$defaultControlTagIds = json_decode($object->default_control_tags ?? '[]', true) ?: [];
 		if (!empty($defaultControlTagIds)) {
 			$tmpCategory = new Categorie($db);
@@ -900,7 +899,11 @@ if ($object->id > 0 && (empty($action) || ($action != 'edit' && $action != 'crea
 			}
 
 			// Modify
-			print '<a class="butAction" id="actionButtonEdit" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=edit' . '"><i class="fas fa-edit"></i> ' . $langs->trans('Modify') . '</a>';
+			if ($object->status != $object::STATUS_LOCKED) {
+				print '<a class="butAction" id="actionButtonEdit" href="' . $_SERVER['PHP_SELF'] . '?id=' . $object->id . '&action=edit' . '"><i class="fas fa-edit"></i> ' . $langs->trans('Modify') . '</a>';
+			} else {
+				print '<span class="butActionRefused classfortooltip" title="' . dol_escape_htmltag($langs->trans('ObjectMustBeUnlocked', ucfirst($langs->transnoentities('The' . ucfirst($object->element))))) . '"><i class="fas fa-edit"></i> ' . $langs->trans('Modify') . '</span>';
+			}
 
 			// Lock
 			if ($object->status == $object::STATUS_VALIDATED) {
