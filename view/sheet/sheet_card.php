@@ -544,11 +544,12 @@ if ($action == 'create') {
 	}
 
     // Linked elements
-    print '<tr class="liste_titre"><td colspan="2"><b>' . $langs->trans('ControlledObjectsTitle') . '</b></td></tr>';
+    $sheetAdminUrl = dol_buildpath('custom/digiquali/admin/sheet.php', 1);
+    print '<tr class="liste_titre"><td colspan="2"><b>' . $langs->trans('ControlledObjectsTitle') . '</b> <a href="' . $sheetAdminUrl . '" target="_blank"><span class="opacitymedium">(' . $langs->trans('ConfigureYourObjectsHere') . ')</span></a></td></tr>';
 
     $nbLinkableElements = 0;
     foreach ($objectsMetadata as $objectType => $objectMetadata) {
-        if ($objectMetadata['conf'] == 0) {
+        if (empty($objectMetadata['conf'])) {
             continue;
         }
 
@@ -564,7 +565,7 @@ if ($action == 'create') {
     }
 
     if ($nbLinkableElements == 0) {
-        $noticeMessage = '<a href="' . dol_buildpath('custom/digiquali/admin/sheet.php', 1) . '">' . $langs->transnoentities('MissingConfigElementTypeMessage') . '</a>';
+        $noticeMessage = '<a href="' . $sheetAdminUrl . '">' . $langs->transnoentities('MissingConfigElementTypeMessage') . '</a>';
         print saturne_show_notice($langs->transnoentities('MissingConfigElementTypeTitle'), $noticeMessage, 'error', 'notice-infos', true);
     }
 
@@ -674,14 +675,14 @@ if (($id || $ref) && $action == 'edit') {
 	$elementLinked = json_decode($object->element_linked ?? '{}') ?? new stdClass();
 
 	foreach ($objectsMetadata as $key => $element) {
-		if (empty($elementLinked->$key) || empty($element['conf'])) {
+		if (empty($element['conf'])) {
 			continue;
 		}
 		print '<tr><td class="">' . img_picto('', $element['picto'], 'class="paddingrightonly"') . $langs->trans($element['langs']) . '</td><td>';
 		if ($conf->global->DIGIQUALI_SHEET_UNIQUE_LINKED_ELEMENT) {
-			print '<input type="radio" id="show_' . $key . '" name="linked_object[]" value="'.$key.'"'.(!empty($elementLinked->$key) ? ' checked=checked' : '').' disabled>';
+			print '<input type="radio" id="show_' . $key . '" name="linked_object[]" value="'.$key.'"'.(!empty($elementLinked->$key) ? ' checked=checked' : '').'>';
 		} else {
-			print '<input type="checkbox" id="show_' . $key . '" name="linked_object[]" value="'.$key.'"'.(!empty($elementLinked->$key) ? ' checked=checked' : '').' disabled>';
+			print '<input type="checkbox" id="show_' . $key . '" name="linked_object[]" value="'.$key.'"'.(!empty($elementLinked->$key) ? ' checked=checked' : '').'>';
 		}
 		print '</td></tr>';
 	}
