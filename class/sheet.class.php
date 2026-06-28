@@ -124,6 +124,9 @@ class Sheet extends SaturneObject
         'photo'               => ['type' => 'text',         'label' => 'Photo',              'enabled' => 1, 'position' => 95,  'notnull' => 0, 'visible' => -2, 'disablesearch' => 1, 'disablesort' => 1],
         'success_rate'        => ['type' => 'real',         'label' => 'SuccessScore',       'enabled' => 1, 'position' => 35,  'notnull' => 0, 'visible' => 2, 'help' => 'PercentageValue'],
         'mandatory_questions' => ['type' => 'text',         'label' => 'MandatoryQuestions', 'enabled' => 1, 'position' => 100, 'notnull' => 1, 'visible' => 0],
+        'show_project'        => ['type' => 'boolean',      'label' => 'ShowProjectOnControl', 'enabled' => 1, 'position' => 101, 'notnull' => 0, 'visible' => 0, 'default' => 1],
+        'show_tags'           => ['type' => 'boolean',      'label' => 'ShowTagsOnControl',    'enabled' => 1, 'position' => 102, 'notnull' => 0, 'visible' => 0, 'default' => 1],
+        'default_control_tags' => ['type' => 'text',        'label' => 'DefaultControlTags',   'enabled' => 1, 'position' => 103, 'notnull' => 0, 'visible' => 0],
         'fk_user_creat'       => ['type' => 'integer:User:user/class/user.class.php', 'label' => 'UserAuthor', 'picto' => 'user', 'enabled' => 1, 'position' => 110, 'notnull' => 1, 'visible' => -2, 'foreignkey' => 'user.rowid'],
         'fk_user_modif'       => ['type' => 'integer:User:user/class/user.class.php', 'label' => 'UserModif',  'picto' => 'user', 'enabled' => 1, 'position' => 120, 'notnull' => 0, 'visible' => -2, 'foreignkey' => 'user.rowid']
     ];
@@ -207,6 +210,21 @@ class Sheet extends SaturneObject
      * @var string Mandatory questions.
      */
     public ?string $mandatory_questions = '{}';
+
+    /**
+     * @var int|null Show project on control creation.
+     */
+    public ?int $show_project = 1;
+
+    /**
+     * @var int|null Show tags on control creation.
+     */
+    public ?int $show_tags = 1;
+
+    /**
+     * @var string|null Default control tags JSON.
+     */
+    public ?string $default_control_tags;
 
     /**
      * @var int User ID.
