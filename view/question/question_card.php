@@ -197,7 +197,7 @@ if (empty($reshook)) {
 			}
 		}
 
-		if ( ! $error && ! empty($conf->global->MAIN_UPLOAD_DOC)) {
+		if ( ! $error && ! empty($conf->global->MAIN_UPLOAD_DOC) && isset($_FILES['userfile'])) {
 			// Define relativepath and upload_dir
 			$relativepath                                             = '/question/tmp/QU0/photo_ok';
 			$upload_dir                                               = $conf->digiquali->multidir_output[$conf->entity] . '/' . $relativepath;
@@ -225,7 +225,7 @@ if (empty($reshook)) {
 			$error = 0;
 		}
 
-		if ( ! $error && ! empty($conf->global->MAIN_UPLOAD_DOC)) {
+		if ( ! $error && ! empty($conf->global->MAIN_UPLOAD_DOC) && isset($_FILES['userfile2'])) {
 			// Define relativepath and upload_dir
 			$relativepath                                             = '/question/tmp/QU0/photo_ko';
 			$upload_dir                                               = $conf->digiquali->multidir_output[$conf->entity] . '/' . $relativepath;

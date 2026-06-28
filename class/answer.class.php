@@ -242,7 +242,7 @@ class Answer extends SaturneObject
         if ($resql) {
             $obj = $this->db->fetch_object($resql);
             $positionField = 'position';
-            return $obj->$positionField;
+            return $obj ? $obj->$positionField : 0;
         } else {
             return 0;
         }
