@@ -48,6 +48,7 @@ ShowProjectOnControlHelp       = Si activé, le champ projet sera visible lors d
 ShowTagsOnControlHelp          = Si activé, le champ tags/catégories sera visible lors de la création d'un contrôle depuis ce modèle
 DefaultControlTagsHelp         = Catégories qui seront pré-sélectionnées lors de la création d'un contrôle depuis ce modèle
 DefaultControlProject          = Projet par défaut du contrôle
+ConfigureYourObjectsHere       = Configurez vos Objets ici
 ControlledObjectsTitle         = Objets contrôlés par ce Contrôle/Questionnaire
 
 # Control - Contrôle

@@ -544,11 +544,12 @@ if ($action == 'create') {
 	}
 
     // Linked elements
-    print '<tr class="liste_titre"><td colspan="2"><b>' . $langs->trans('ControlledObjectsTitle') . '</b></td></tr>';
+    $sheetAdminUrl = dol_buildpath('custom/digiquali/admin/sheet.php', 1);
+    print '<tr class="liste_titre"><td colspan="2"><b>' . $langs->trans('ControlledObjectsTitle') . '</b> <a href="' . $sheetAdminUrl . '" target="_blank"><span class="opacitymedium">(' . $langs->trans('ConfigureYourObjectsHere') . ')</span></a></td></tr>';
 
     $nbLinkableElements = 0;
     foreach ($objectsMetadata as $objectType => $objectMetadata) {
-        if ($objectMetadata['conf'] == 0) {
+        if (empty($objectMetadata['conf'])) {
             continue;
         }
 
@@ -564,7 +565,7 @@ if ($action == 'create') {
     }
 
     if ($nbLinkableElements == 0) {
-        $noticeMessage = '<a href="' . dol_buildpath('custom/digiquali/admin/sheet.php', 1) . '">' . $langs->transnoentities('MissingConfigElementTypeMessage') . '</a>';
+        $noticeMessage = '<a href="' . $sheetAdminUrl . '">' . $langs->transnoentities('MissingConfigElementTypeMessage') . '</a>';
         print saturne_show_notice($langs->transnoentities('MissingConfigElementTypeTitle'), $noticeMessage, 'error', 'notice-infos', true);
     }
 
