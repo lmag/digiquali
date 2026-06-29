@@ -238,6 +238,11 @@ if (empty($resHook)) {
     // Actions set_thirdparty, set_project
     require_once __DIR__ . '/../../../saturne/core/tpl/actions/banner_actions.tpl.php';
 
+    // Move linked tasks to the new project so they follow the control
+    if ($action == 'set_project' && $permissiontoadd) {
+        $object->setLinkedTasksProject(GETPOSTINT(GETPOST('project_key', 'aZ09')), $user);
+    }
+
     if ($action == 'set_categories' && $permissiontoadd) {
         if ($object->fetch($id) > 0) {
             $result = $object->setCategories(GETPOST('categories', 'array'));
