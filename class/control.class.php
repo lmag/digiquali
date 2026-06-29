@@ -541,6 +541,53 @@ class Control extends SaturneObject
         return parent::setLocked($user, $noTrigger);
     }
 
+    /**
+     * Move every task related to this control to a new project.
+     *
+     * Moves both the master task (fk_master_task) and all tasks linked to the control lines,
+     * so the linked tasks follow the control when its project changes.
+     *
+     * @param  int<0,max> $newProjectId New project ID
+     * @param  User       $user         User that performs the action
+     * @return int<-1,1>                Return integer < 0 if KO, > 0 if OK
+     * @throws Exception
+     */
+    public function setLinkedTasksProject(int $newProjectId, User $user): int
+    {
+        if ($newProjectId <= 0) {
+            return 1;
+        }
+
+        require_once DOL_DOCUMENT_ROOT . '/projet/class/task.class.php';
+
+        $this->db->begin();
+
+        // Move the master task created with the control. The database column is fk_projet
+        if (!empty($this->fk_master_task)) {
+            $masterTask = new Task($this->db);
+            if ($masterTask->fetch($this->fk_master_task) > 0 && $masterTask->fk_project != $newProjectId) {
+                $masterTask->setValueFrom('fk_projet', $newProjectId, '', null, 'int', '', $user);
+            }
+        }
+
+        // Move every task linked to the control lines
+        $this->fetchLines();
+        if (is_array($this->lines)) {
+            foreach ($this->lines as $line) {
+                $line->fetchObjectLinked($line->id, $line->element);
+                foreach ($line->linkedObjects['project_task'] ?? [] as $task) {
+                    if ($task->fk_project != $newProjectId) {
+                        $task->setValueFrom('fk_projet', $newProjectId, '', null, 'int', '', $user);
+                    }
+                }
+            }
+        }
+
+        $this->db->commit();
+
+        return 1;
+    }
+
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.ScopeNotCamelCaps
 	/**
 	 *  Return if a control can be deleted

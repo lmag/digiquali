@@ -370,12 +370,16 @@ function get_task_infos(Task $task): array
     $userTmp->fetch($task->fk_user_creat);
     $out['task']['author'] = $userTmp->getNomUrl(1);
 
-    $out['task']['assigned'] = [];
+    $out['task']['assigned']         = [];
+    $out['task']['assigned_user_id'] = 0;
     $assignedContacts = $task->liste_contact(-1, 'internal', 0, 'TASKEXECUTIVE');
     if (is_array($assignedContacts)) {
         foreach ($assignedContacts as $assignedContact) {
             $userTmp->fetch($assignedContact['id']);
             $out['task']['assigned'][] = $userTmp->getNomUrl(1);
+            if (empty($out['task']['assigned_user_id'])) {
+                $out['task']['assigned_user_id'] = $assignedContact['id'];
+            }
         }
     }
 
