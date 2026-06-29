@@ -602,6 +602,10 @@ class ActionsDigiquali
     {
         global $conf, $langs;
 
+        if ($object === null || !is_object($object)) {
+            return 0;
+        }
+
         if (strpos($parameters['context'], 'main') !== false) {
             if (!empty($parameters['head'])) {
                 foreach ($parameters['head'] as $headKey => $headTab) {
