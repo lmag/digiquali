@@ -326,7 +326,7 @@ class Control extends SaturneObject
             if (!empty($questions)) {
                 foreach ($questions as $question) {
                     $controlLine->ref         = $controlLine->getNextNumRef();
-                    $fk_element              = 'fk_'. $object->element;
+                    $fk_element              = 'fk_'. $this->element;
                     $controlLine->fk_control = $this->id;
                     $controlLine->fk_question = $question->id;
                     $controlLine->answer      = '';
@@ -338,7 +338,7 @@ class Control extends SaturneObject
                 }
             }
 
-            if ($this->context['createfromclone'] != 'createfromclone') {
+            if (($this->context['createfromclone'] ?? '') != 'createfromclone') {
                 $objectsMetadata = saturne_get_objects_metadata();
                 foreach ($objectsMetadata as $objectMetadata) {
                     if (!empty(GETPOST($objectMetadata['post_name'])) && GETPOST($objectMetadata['post_name']) > 0) {
